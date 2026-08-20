@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Лист персонажа D&D 5e</title>
-<meta name="description" content="Мобильный лист персонажа D&D 5e с автосохранением, работает офлайн">
+<title>Дорбунла эм Джелмаузла</title>
+<meta name="description" content="Айыб этмегиз мен автомеханикме, программист тюлме">
 <meta name="theme-color" content="#1b1410">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Лист D&D">
+<meta name="apple-mobile-web-app-title" content="Д эм Д">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -159,13 +159,25 @@ body{
 .quick-item.hp .qlabel{color:var(--wax-bright);}
 
 /* ---------- MAIN CONTENT / PAGES ---------- */
+.pages-viewport{position:relative;touch-action:pan-y;}
 .page{
   padding:16px 14px 24px;
   display:none;
-  animation:fadeIn .18s ease;
 }
 .page.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.page.active.enter-right{animation:pageInRight .32s cubic-bezier(.25,.8,.4,1);}
+.page.active.enter-left{animation:pageInLeft .32s cubic-bezier(.25,.8,.4,1);}
+@keyframes pageInRight{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:translateX(0);}}
+@keyframes pageInLeft{from{opacity:0;transform:translateX(-30px);}to{opacity:1;transform:translateX(0);}}
+
+@keyframes cardRise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.page.active .card{animation:cardRise .36s ease both;}
+.page.active .card:nth-of-type(1){animation-delay:.02s;}
+.page.active .card:nth-of-type(2){animation-delay:.07s;}
+.page.active .card:nth-of-type(3){animation-delay:.12s;}
+.page.active .card:nth-of-type(4){animation-delay:.17s;}
+.page.active .card:nth-of-type(5){animation-delay:.22s;}
+.page.active .card:nth-of-type(6){animation-delay:.27s;}
 
 .card{
   background:
@@ -348,7 +360,10 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
   width:20px;height:20px;
   font-size:12px;line-height:1;
   cursor:pointer;
+  transition:transform .1s ease;
 }
+.dyn-item .del-btn:active{transform:scale(0.85);}
+.dyn-item{animation:cardRise .28s ease both;}
 .add-btn{
   margin-top:8px;
   width:100%;
@@ -362,8 +377,9 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
   letter-spacing:1px;
   text-transform:uppercase;
   cursor:pointer;
+  transition:transform .1s ease, background .15s ease;
 }
-.add-btn:active{transform:translateY(1px);}
+.add-btn:active{transform:scale(0.97) translateY(1px);}
 
 /* death saves / exhaustion */
 .death-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
@@ -385,7 +401,9 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
   color:var(--ink-soft);
   cursor:pointer;
   user-select:none;
+  transition:transform .1s ease, background .15s ease, color .15s ease;
 }
+.tag-toggle:active{transform:scale(0.92);}
 .tag-toggle.active{
   background:var(--wax);
   border-color:var(--wax);
@@ -436,7 +454,19 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
   padding:6px 4px 8px;
   box-shadow:0 -6px 14px rgba(0,0,0,0.4);
 }
+.tab-indicator{
+  position:absolute;
+  top:6px;bottom:8px;left:0;
+  width:calc(100% / 6);
+  background:rgba(224,181,99,0.14);
+  border:1px solid rgba(224,181,99,0.3);
+  border-radius:12px;
+  transition:left .25s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+}
 .tab-btn{
+  position:relative;
+  z-index:1;
   background:none;
   border:none;
   display:flex;
@@ -451,13 +481,12 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
   text-transform:uppercase;
   cursor:pointer;
   border-radius:10px;
+  transition:transform .1s ease, color .15s ease;
 }
-.tab-btn .ico{font-size:18px;}
-.tab-btn.active{
-  color:var(--gold-bright);
-  background:rgba(224,181,99,0.12);
-}
-.tab-btn.active .ico{filter:drop-shadow(0 0 4px rgba(224,181,99,0.6));}
+.tab-btn:active{transform:scale(0.9);}
+.tab-btn .ico{font-size:18px;transition:transform .2s ease;}
+.tab-btn.active{color:var(--gold-bright);}
+.tab-btn.active .ico{filter:drop-shadow(0 0 4px rgba(224,181,99,0.6));transform:translateY(-1px) scale(1.08);}
 
 /* ---------- TOP UTILITY BAR ---------- */
 .util-bar{
@@ -538,6 +567,8 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
   </div>
   <div id="saveStatus">данные сохраняются автоматически в этом браузере</div>
   <input type="file" id="importInput" accept="application/json">
+
+  <div class="pages-viewport" id="pagesViewport">
 
   <!-- ================= PAGE 1: ПРОФИЛЬ ================= -->
   <section class="page active" data-page="profile">
@@ -736,7 +767,10 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
     </div>
   </section>
 
+  </div>
+
   <nav class="tabbar">
+    <div class="tab-indicator" id="tabIndicator"></div>
     <button class="tab-btn active" data-target="profile"><span class="ico">🛡</span>Профиль</button>
     <button class="tab-btn" data-target="skills"><span class="ico">🎯</span>Навыки</button>
     <button class="tab-btn" data-target="combat"><span class="ico">⚔</span>Бой</button>
@@ -1217,21 +1251,64 @@ input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-
     }
   }
 
-  /* ---------------- TABS ---------------- */
-  function bindTabs(){
+  /* ---------------- TABS + SWIPE ---------------- */
+  var TAB_ORDER = ['profile','skills','combat','inventory','spells','traits'];
+  var currentTabIndex = 0;
+
+  function updateIndicator(index){
+    var indicator = document.getElementById('tabIndicator');
+    if (indicator) indicator.style.left = (index * (100 / TAB_ORDER.length)) + '%';
+  }
+
+  function activateTab(name){
+    var newIndex = TAB_ORDER.indexOf(name);
+    if (newIndex === -1 || newIndex === currentTabIndex) return;
+    var direction = newIndex > currentTabIndex ? 'right' : 'left';
     var btns = document.querySelectorAll('.tab-btn');
     var pages = document.querySelectorAll('.page');
+    btns.forEach(function(b){ b.classList.toggle('active', b.dataset.target === name); });
+    pages.forEach(function(p){ p.classList.remove('active','enter-right','enter-left'); });
+    var shownPage = document.querySelector('.page[data-page="'+name+'"]');
+    shownPage.classList.add('active', direction === 'right' ? 'enter-right' : 'enter-left');
+    shownPage.querySelectorAll('textarea').forEach(autoGrow);
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+    currentTabIndex = newIndex;
+    updateIndicator(newIndex);
+  }
+
+  function goToTabIndex(idx){
+    idx = Math.max(0, Math.min(TAB_ORDER.length - 1, idx));
+    activateTab(TAB_ORDER[idx]);
+  }
+
+  function bindSwipe(){
+    var viewport = document.getElementById('pagesViewport');
+    if (!viewport) return;
+    var startX = 0, startY = 0, startTime = 0;
+    var THRESHOLD = 55, RESTRAINT = 90, MAXTIME = 600;
+    viewport.addEventListener('touchstart', function(e){
+      var t = e.changedTouches[0];
+      startX = t.clientX; startY = t.clientY; startTime = Date.now();
+    }, {passive:true});
+    viewport.addEventListener('touchend', function(e){
+      var t = e.changedTouches[0];
+      var dx = t.clientX - startX;
+      var dy = t.clientY - startY;
+      var dt = Date.now() - startTime;
+      if (dt <= MAXTIME && Math.abs(dx) >= THRESHOLD && Math.abs(dy) <= RESTRAINT){
+        if (dx < 0) goToTabIndex(currentTabIndex + 1);
+        else goToTabIndex(currentTabIndex - 1);
+      }
+    }, {passive:true});
+  }
+
+  function bindTabs(){
+    var btns = document.querySelectorAll('.tab-btn');
     btns.forEach(function(btn){
-      btn.addEventListener('click', function(){
-        btns.forEach(function(b){ b.classList.remove('active'); });
-        pages.forEach(function(p){ p.classList.remove('active'); });
-        btn.classList.add('active');
-        var shownPage = document.querySelector('.page[data-page="'+btn.dataset.target+'"]');
-        shownPage.classList.add('active');
-        shownPage.querySelectorAll('textarea').forEach(autoGrow);
-        window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
-      });
+      btn.addEventListener('click', function(){ activateTab(btn.dataset.target); });
     });
+    updateIndicator(0);
+    bindSwipe();
   }
 
   /* ---------------- EXPORT / IMPORT / RESET ---------------- */
