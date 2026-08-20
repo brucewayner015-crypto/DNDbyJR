@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Лист персонажа D&D 5e</title>
+<meta name="description" content="Мобильный лист персонажа D&D 5e с автосохранением, работает офлайн">
+<meta name="theme-color" content="#1b1410">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Лист D&D">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --leather-1:#1b1410;
+  --leather-2:#241a14;
+  --leather-edge:#0f0b08;
+  --parchment:#eee1c1;
+  --parchment-2:#e2d3ab;
+  --parchment-shadow:#c9b686;
+  --ink:#2c2011;
+  --ink-soft:#5b4a30;
+  --gold:#b9903f;
+  --gold-bright:#e0b563;
+  --wax:#7c2a2a;
+  --wax-bright:#a63c3c;
+  --emerald:#3c5a45;
+  --emerald-bright:#5a8168;
+  --danger:#8f2626;
+  --ok:#3c6b4a;
+  --radius-s:6px;
+  --radius-m:12px;
+  --radius-l:18px;
+  --font-display:'Cinzel', serif;
+  --font-deco:'Cinzel Decorative', serif;
+  --font-body:'Spectral', serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.03), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 2px, transparent 2px, transparent 5px),
+    linear-gradient(180deg, var(--leather-1), var(--leather-2) 60%, var(--leather-edge));
+  color:var(--ink);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+.app-shell{
+  max-width:560px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding-bottom:78px;
+  position:relative;
+}
+
+/* ---------- HEADER / SPINE ---------- */
+.spine{
+  background:linear-gradient(180deg,#2a1e14,#1c130d);
+  border-bottom:3px solid var(--gold);
+  padding:14px 16px 12px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  box-shadow:0 6px 14px rgba(0,0,0,0.4);
+}
+.spine-top{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin-bottom:8px;
+}
+.spine-top input.name-input{
+  font-family:var(--font-deco);
+  font-size:22px;
+  color:var(--gold-bright);
+  background:transparent;
+  border:none;
+  border-bottom:1px dashed rgba(224,181,99,0.35);
+  flex:1;
+  min-width:0;
+  padding:2px 0;
+  letter-spacing:0.5px;
+}
+.spine-top input.name-input::placeholder{color:rgba(224,181,99,0.4);}
+.spine-top input.name-input:focus{outline:none;border-bottom-color:var(--gold-bright);}
+
+.spine-meta{
+  display:grid;
+  grid-template-columns:1.3fr 0.7fr 1.1fr 1.1fr;
+  gap:6px;
+}
+.spine-meta input{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(224,181,99,0.25);
+  color:var(--parchment-2);
+  border-radius:var(--radius-s);
+  font-family:var(--font-body);
+  font-size:11px;
+  padding:5px 6px;
+  min-width:0;
+  text-align:center;
+}
+.spine-meta input::placeholder{color:rgba(226,211,171,0.35);}
+.spine-meta input:focus{outline:none;border-color:var(--gold-bright);}
+
+/* quick-glance combat strip */
+.quickbar{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.quick-item{
+  background:radial-gradient(circle at 30% 25%, #33261a, #1a120b 75%);
+  border:1px solid var(--gold);
+  border-radius:var(--radius-m);
+  text-align:center;
+  padding:6px 2px 5px;
+  position:relative;
+}
+.quick-item .qlabel{
+  font-family:var(--font-display);
+  font-size:9px;
+  letter-spacing:1px;
+  color:var(--gold);
+  text-transform:uppercase;
+}
+.quick-item .qval{
+  font-family:var(--font-mono);
+  font-size:19px;
+  color:var(--parchment);
+  font-weight:700;
+}
+.quick-item input.qedit{
+  width:100%;
+  background:transparent;
+  border:none;
+  text-align:center;
+  font-family:var(--font-mono);
+  font-size:19px;
+  color:var(--parchment);
+  font-weight:700;
+  padding:0;
+}
+.quick-item input.qedit:focus{outline:none;}
+.quick-item.hp{border-color:var(--wax-bright);}
+.quick-item.hp .qlabel{color:var(--wax-bright);}
+
+/* ---------- MAIN CONTENT / PAGES ---------- */
+.page{
+  padding:16px 14px 24px;
+  display:none;
+  animation:fadeIn .18s ease;
+}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.card{
+  background:
+    linear-gradient(180deg, var(--parchment), var(--parchment-2));
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-l);
+  padding:14px 14px 16px;
+  margin-bottom:14px;
+  box-shadow:0 8px 18px rgba(0,0,0,0.35), inset 0 0 30px rgba(255,255,255,0.15);
+  position:relative;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border:1px solid rgba(91,74,48,0.25);
+  border-radius:calc(var(--radius-l) - 4px);
+  pointer-events:none;
+}
+.card h2{
+  font-family:var(--font-display);
+  font-size:14px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin:0 0 10px;
+  padding-bottom:6px;
+  border-bottom:2px solid var(--gold);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.card h2 .hint{
+  font-family:var(--font-body);
+  font-style:italic;
+  text-transform:none;
+  letter-spacing:0;
+  font-size:11px;
+  color:var(--ink-soft);
+  opacity:0.7;
+}
+
+label.field-label{
+  display:block;
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:3px;
+}
+input[type=text], input[type=number], select, textarea{
+  width:100%;
+  background:rgba(255,255,255,0.35);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  padding:7px 8px;
+  font-family:var(--font-body);
+  font-size:14px;
+  color:var(--ink);
+}
+textarea{resize:none;min-height:60px;font-size:13.5px;line-height:1.4;overflow:hidden;transition:height .12s ease;}
+input:focus, select:focus, textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.field{margin-bottom:10px;}
+.field:last-child{margin-bottom:0;}
+
+/* ---------- ABILITY MEDALLIONS (signature element) ---------- */
+.medallions{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.medallion{
+  background:radial-gradient(circle at 35% 25%, #f4e9cc, #d8c493 70%, #c2a86f);
+  border:2px solid var(--gold);
+  border-radius:14px 14px 30px 30px / 14px 14px 40px 40px;
+  text-align:center;
+  padding:10px 4px 8px;
+  position:relative;
+  box-shadow:0 4px 8px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(91,74,48,0.35);
+}
+.medallion .m-label{
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:1px;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+}
+.medallion .m-mod{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:24px;
+  color:var(--ink);
+  line-height:1.1;
+  margin:2px 0;
+}
+.medallion .m-score-wrap{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.55);
+  border:1px solid var(--gold);
+  border-radius:50%;
+  width:30px;height:30px;
+  margin-top:2px;
+}
+.medallion input.m-score{
+  width:26px;
+  background:transparent;
+  border:none;
+  text-align:center;
+  font-family:var(--font-mono);
+  font-size:12px;
+  font-weight:700;
+  color:var(--ink-soft);
+  padding:0;
+}
+.medallion input.m-score:focus{outline:none;}
+
+.inline-check{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-display);
+  font-size:12px;
+  letter-spacing:0.5px;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+}
+.inline-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--wax);}
+
+.prof-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-weight:700;font-size:13px;
+  background:var(--ink);color:var(--parchment);
+  border-radius:6px;padding:3px 8px;
+}
+
+/* ---------- LIST ROWS (saves/skills) ---------- */
+.row-list{display:flex;flex-direction:column;gap:2px;}
+.stat-row{
+  display:grid;
+  grid-template-columns:22px 22px 1fr 32px;
+  align-items:center;
+  gap:8px;
+  padding:6px 4px;
+  border-bottom:1px solid rgba(91,74,48,0.15);
+  font-size:13px;
+}
+.stat-row:last-child{border-bottom:none;}
+.stat-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--wax);cursor:pointer;}
+.stat-row .exp-check{accent-color:var(--emerald);}
+.stat-row .row-name{color:var(--ink);}
+.stat-row .row-ability{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;}
+.stat-row .row-bonus{
+  font-family:var(--font-mono);font-weight:700;font-size:14px;
+  text-align:center;
+  background:rgba(44,32,17,0.08);
+  border-radius:6px;
+  padding:3px 0;
+}
+.legend{font-size:10px;color:var(--ink-soft);opacity:0.75;margin-top:6px;font-style:italic;}
+
+/* ---------- DYNAMIC TABLES ---------- */
+.dyn-list{display:flex;flex-direction:column;gap:8px;}
+.dyn-item{
+  background:rgba(255,255,255,0.35);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  padding:8px;
+  position:relative;
+}
+.dyn-item .dyn-grid{display:grid;gap:6px;}
+.dyn-item .del-btn{
+  position:absolute;top:6px;right:6px;
+  background:var(--wax);color:var(--parchment);
+  border:none;border-radius:50%;
+  width:20px;height:20px;
+  font-size:12px;line-height:1;
+  cursor:pointer;
+}
+.add-btn{
+  margin-top:8px;
+  width:100%;
+  background:linear-gradient(180deg,#4a3722,#332415);
+  color:var(--gold-bright);
+  border:1px solid var(--gold);
+  border-radius:var(--radius-s);
+  padding:9px;
+  font-family:var(--font-display);
+  font-size:12px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.add-btn:active{transform:translateY(1px);}
+
+/* death saves / exhaustion */
+.death-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.death-row span{font-family:var(--font-display);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-soft);width:80px;}
+.death-dots{display:flex;gap:6px;}
+.death-dots input[type=checkbox]{width:16px;height:16px;}
+.death-dots.success input{accent-color:var(--ok);}
+.death-dots.fail input{accent-color:var(--danger);}
+
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;}
+.tag-toggle{
+  font-size:11px;
+  font-family:var(--font-display);
+  letter-spacing:0.3px;
+  padding:5px 9px;
+  border-radius:20px;
+  border:1px solid var(--ink-soft);
+  background:rgba(255,255,255,0.3);
+  color:var(--ink-soft);
+  cursor:pointer;
+  user-select:none;
+}
+.tag-toggle.active{
+  background:var(--wax);
+  border-color:var(--wax);
+  color:var(--parchment);
+}
+
+.currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.currency-grid .field{margin-bottom:0;}
+.currency-grid input{text-align:center;font-family:var(--font-mono);}
+.coin{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 5px;
+  font-family:var(--font-display);font-weight:700;font-size:11px;
+  border:1px solid rgba(0,0,0,0.4);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,0.55), inset 0 -3px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.3);
+}
+.coin.copper{background:linear-gradient(155deg,#cd7f45,#8a4a20 75%);color:#3a1c0a;}
+.coin.silver{background:linear-gradient(155deg,#eaeaef,#a2a2ac 75%);color:#33333a;}
+.coin.electrum{background:linear-gradient(155deg,#ecdfab,#b39f5e 75%);color:#463c1e;}
+.coin.gold{background:linear-gradient(155deg,#f3d374,#c79a26 75%);color:#4a3705;}
+.coin.platinum{background:linear-gradient(155deg,#f7f8fa,#c3c9d0 75%);color:#3a3f45;}
+
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.slot-box{
+  background:rgba(255,255,255,0.35);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  padding:6px 8px;
+  text-align:center;
+}
+.slot-box .slabel{font-family:var(--font-display);font-size:10px;color:var(--ink-soft);letter-spacing:0.5px;}
+.slot-box .snums{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:3px;}
+.slot-box input{width:34px;text-align:center;padding:4px 2px;font-family:var(--font-mono);}
+.slot-box .sdiv{color:var(--ink-soft);font-family:var(--font-mono);}
+
+/* ---------- BOTTOM NAV ---------- */
+.tabbar{
+  position:fixed;
+  left:0;right:0;bottom:0;
+  max-width:560px;
+  margin:0 auto;
+  background:linear-gradient(0deg,#0f0b08,#241a14);
+  border-top:3px solid var(--gold);
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  z-index:40;
+  padding:6px 4px 8px;
+  box-shadow:0 -6px 14px rgba(0,0,0,0.4);
+}
+.tab-btn{
+  background:none;
+  border:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  padding:6px 2px;
+  color:rgba(226,211,171,0.55);
+  font-family:var(--font-display);
+  font-size:9px;
+  letter-spacing:0.3px;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-radius:10px;
+}
+.tab-btn .ico{font-size:18px;}
+.tab-btn.active{
+  color:var(--gold-bright);
+  background:rgba(224,181,99,0.12);
+}
+.tab-btn.active .ico{filter:drop-shadow(0 0 4px rgba(224,181,99,0.6));}
+
+/* ---------- TOP UTILITY BAR ---------- */
+.util-bar{
+  display:flex;
+  gap:6px;
+  padding:8px 14px 0;
+  flex-wrap:wrap;
+}
+.util-btn{
+  flex:1;
+  min-width:70px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(224,181,99,0.3);
+  color:var(--parchment-2);
+  border-radius:var(--radius-s);
+  padding:7px 6px;
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  cursor:pointer;
+  text-align:center;
+}
+.util-btn:active{transform:translateY(1px);}
+#saveStatus{
+  text-align:center;
+  font-size:10px;
+  color:rgba(224,181,99,0.6);
+  font-family:var(--font-body);
+  font-style:italic;
+  padding:4px 0 0;
+}
+#importInput{display:none;}
+
+@media (min-width:600px){
+  .medallions{grid-template-columns:repeat(6,1fr);}
+  .grid4{grid-template-columns:repeat(4,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <header class="spine">
+    <div class="spine-top">
+      <input class="name-input" id="f_name" placeholder="Имя персонажа" data-field="meta.name">
+    </div>
+    <div class="spine-meta">
+      <input placeholder="Класс и уровень" id="f_class" data-field="meta.klass">
+      <input placeholder="Ур." id="f_level" type="number" min="1" max="20" data-field="meta.level">
+      <input placeholder="Раса" id="f_race" data-field="meta.race">
+      <input placeholder="Предыстория" id="f_background" data-field="meta.background">
+    </div>
+    <div class="quickbar">
+      <div class="quick-item">
+        <div class="qlabel">КБ</div>
+        <input class="qedit" type="text" inputmode="text" id="f_ac" data-field="combat.ac" placeholder="10">
+      </div>
+      <div class="quick-item">
+        <div class="qlabel">Иниц.</div>
+        <div class="qval" id="disp_init">+0</div>
+      </div>
+      <div class="quick-item">
+        <div class="qlabel">Скор.</div>
+        <input class="qedit" type="text" id="f_speed" data-field="combat.speed" placeholder="9 м">
+      </div>
+      <div class="quick-item hp">
+        <div class="qlabel">ХП</div>
+        <input class="qedit" type="number" id="f_hpcur" data-field="combat.hpCur" placeholder="0">
+      </div>
+    </div>
+  </header>
+
+  <div class="util-bar">
+    <button class="util-btn" id="btnExport">⬇ Экспорт</button>
+    <button class="util-btn" id="btnImport">⬆ Импорт</button>
+    <button class="util-btn" id="btnReset">✕ Новый лист</button>
+  </div>
+  <div id="saveStatus">данные сохраняются автоматически в этом браузере</div>
+  <input type="file" id="importInput" accept="application/json">
+
+  <!-- ================= PAGE 1: ПРОФИЛЬ ================= -->
+  <section class="page active" data-page="profile">
+    <div class="card">
+      <h2>Персонаж</h2>
+      <div class="grid2">
+        <div class="field">
+          <label class="field-label">Мировоззрение</label>
+          <input type="text" id="f_alignment" data-field="meta.alignment" placeholder="Нейтрально-добрый">
+        </div>
+        <div class="field">
+          <label class="field-label">Опыт (XP)</label>
+          <input type="number" id="f_xp" data-field="meta.xp" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Игрок</label>
+        <input type="text" id="f_player" data-field="meta.player" placeholder="Имя игрока">
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label class="inline-check"><input type="checkbox" id="f_inspiration" data-field="inspiration"> Вдохновение</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Характеристики <span class="hint" id="dispProf">бонус мастерства +2</span></h2>
+      <div class="medallions" id="medallionsWrap"></div>
+    </div>
+
+    <div class="card">
+      <h2>Прочее</h2>
+      <div class="grid2">
+        <div class="field">
+          <label class="field-label">Пассивное восприятие</label>
+          <input type="text" id="dispPassivePerc" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
+        </div>
+        <div class="field">
+          <label class="field-label">Бонус мастерства</label>
+          <input type="text" id="dispProfBonus" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 2: НАВЫКИ ================= -->
+  <section class="page" data-page="skills">
+    <div class="card">
+      <h2>Спасброски</h2>
+      <div class="row-list" id="savesWrap"></div>
+      <div class="legend">Отметьте владение — бонус мастерства прибавится автоматически</div>
+    </div>
+    <div class="card">
+      <h2>Навыки</h2>
+      <div class="row-list" id="skillsWrap"></div>
+      <div class="legend">✓ владение · ★ экспертиза (двойной бонус мастерства)</div>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 3: БОЙ ================= -->
+  <section class="page" data-page="combat">
+    <div class="card">
+      <h2>Здоровье</h2>
+      <div class="grid3">
+        <div class="field">
+          <label class="field-label">Макс. ХП</label>
+          <input type="number" id="f_hpmax" data-field="combat.hpMax" placeholder="0">
+        </div>
+        <div class="field">
+          <label class="field-label">Текущие ХП</label>
+          <input type="number" id="f_hpcur2" data-field="combat.hpCur" placeholder="0">
+        </div>
+        <div class="field">
+          <label class="field-label">Временные ХП</label>
+          <input type="number" id="f_hptemp" data-field="combat.hpTemp" placeholder="0">
+        </div>
+      </div>
+      <div class="grid3" style="margin-top:6px;">
+        <div class="field">
+          <label class="field-label">Кость хитов</label>
+          <input type="text" id="f_hdtype" data-field="combat.hitDiceType" placeholder="напр. к8">
+        </div>
+        <div class="field">
+          <label class="field-label">Всего костей</label>
+          <input type="number" id="f_hdtotal" data-field="combat.hitDiceTotal" placeholder="0">
+        </div>
+        <div class="field">
+          <label class="field-label">Использовано</label>
+          <input type="number" id="f_hdused" data-field="combat.hitDiceUsed" placeholder="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Спасброски от смерти</h2>
+      <div class="death-row">
+        <span>Успехи</span>
+        <div class="death-dots success" id="deathSuccessWrap"></div>
+      </div>
+      <div class="death-row">
+        <span>Провалы</span>
+        <div class="death-dots fail" id="deathFailWrap"></div>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label class="field-label">Истощение (0–6)</label>
+        <input type="number" id="f_exhaustion" min="0" max="6" data-field="combat.exhaustion" placeholder="0">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Состояния</h2>
+      <div class="tags-wrap" id="conditionsWrap"></div>
+    </div>
+
+    <div class="card">
+      <h2>Атаки и заклинания в бою</h2>
+      <div class="dyn-list" id="attacksWrap"></div>
+      <button class="add-btn" id="addAttack">+ добавить атаку</button>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 4: ИНВЕНТАРЬ ================= -->
+  <section class="page" data-page="inventory">
+    <div class="card">
+      <h2>Кошелёк</h2>
+      <div class="currency-grid">
+        <div class="field"><div class="coin copper" title="Медные монеты">М</div><input type="number" data-field="currency.cp" id="f_cp"></div>
+        <div class="field"><div class="coin silver" title="Серебряные монеты">С</div><input type="number" data-field="currency.sp" id="f_sp"></div>
+        <div class="field"><div class="coin electrum" title="Электрумовые монеты">Э</div><input type="number" data-field="currency.ep" id="f_ep"></div>
+        <div class="field"><div class="coin gold" title="Золотые монеты">З</div><input type="number" data-field="currency.gp" id="f_gp"></div>
+        <div class="field"><div class="coin platinum" title="Платиновые монеты">П</div><input type="number" data-field="currency.pp" id="f_pp"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Снаряжение</h2>
+      <div class="dyn-list" id="itemsWrap"></div>
+      <button class="add-btn" id="addItem">+ добавить предмет</button>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 5: ЗАКЛИНАНИЯ ================= -->
+  <section class="page" data-page="spells">
+    <div class="card">
+      <h2>Заклинательство</h2>
+      <div class="grid3">
+        <div class="field">
+          <label class="field-label">Характеристика</label>
+          <select id="f_spellability" data-field="spellAbility">
+            <option value="none">Нет</option>
+            <option value="int">Интеллект</option>
+            <option value="wis">Мудрость</option>
+            <option value="cha">Харизма</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Сложность спасброска</label>
+          <input type="text" id="dispSpellDC" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
+        </div>
+        <div class="field">
+          <label class="field-label">Бонус атаки</label>
+          <input type="text" id="dispSpellAtk" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Ячейки заклинаний</h2>
+      <div class="slots-grid" id="slotsWrap"></div>
+      <div class="legend">Слева — израсходовано, справа — всего доступно</div>
+    </div>
+    <div class="card">
+      <h2>Список заклинаний</h2>
+      <div class="dyn-list" id="spellsWrap"></div>
+      <button class="add-btn" id="addSpell">+ добавить заклинание</button>
+    </div>
+  </section>
+
+  <!-- ================= PAGE 6: ЧЕРТЫ ================= -->
+  <section class="page" data-page="traits">
+    <div class="card">
+      <h2>Черты характера</h2>
+      <div class="field"><label class="field-label">Черты личности</label><textarea data-field="traits.personality"></textarea></div>
+      <div class="field"><label class="field-label">Идеалы</label><textarea data-field="traits.ideals"></textarea></div>
+      <div class="field"><label class="field-label">Привязанности</label><textarea data-field="traits.bonds"></textarea></div>
+      <div class="field"><label class="field-label">Слабости</label><textarea data-field="traits.flaws"></textarea></div>
+    </div>
+    <div class="card">
+      <h2>Умения и особенности</h2>
+      <textarea data-field="traits.features" style="min-height:110px;"></textarea>
+    </div>
+    <div class="card">
+      <h2>Владения и языки</h2>
+      <textarea data-field="traits.profs" style="min-height:80px;"></textarea>
+    </div>
+    <div class="card">
+      <h2>Заметки</h2>
+      <textarea data-field="traits.notes" style="min-height:100px;"></textarea>
+    </div>
+  </section>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" data-target="profile"><span class="ico">🛡</span>Профиль</button>
+    <button class="tab-btn" data-target="skills"><span class="ico">🎯</span>Навыки</button>
+    <button class="tab-btn" data-target="combat"><span class="ico">⚔</span>Бой</button>
+    <button class="tab-btn" data-target="inventory"><span class="ico">🎒</span>Вещи</button>
+    <button class="tab-btn" data-target="spells"><span class="ico">✨</span>Магия</button>
+    <button class="tab-btn" data-target="traits"><span class="ico">📜</span>Черты</button>
+  </nav>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ABILITIES = [
+    {id:'str',name:'Сила'},
+    {id:'dex',name:'Ловкость'},
+    {id:'con',name:'Телосложение'},
+    {id:'int',name:'Интеллект'},
+    {id:'wis',name:'Мудрость'},
+    {id:'cha',name:'Харизма'}
+  ];
+
+  var SKILLS = [
+    {id:'athletics', name:'Атлетика', ability:'str'},
+    {id:'acrobatics', name:'Акробатика', ability:'dex'},
+    {id:'sleight', name:'Ловкость рук', ability:'dex'},
+    {id:'stealth', name:'Скрытность', ability:'dex'},
+    {id:'arcana', name:'Магия', ability:'int'},
+    {id:'history', name:'История', ability:'int'},
+    {id:'investigation', name:'Расследование', ability:'int'},
+    {id:'nature', name:'Природа', ability:'int'},
+    {id:'religion', name:'Религия', ability:'int'},
+    {id:'animal', name:'Уход за животными', ability:'wis'},
+    {id:'insight', name:'Проницательность', ability:'wis'},
+    {id:'medicine', name:'Медицина', ability:'wis'},
+    {id:'perception', name:'Восприятие', ability:'wis'},
+    {id:'survival', name:'Выживание', ability:'wis'},
+    {id:'deception', name:'Обман', ability:'cha'},
+    {id:'intimidation', name:'Запугивание', ability:'cha'},
+    {id:'performance', name:'Выступление', ability:'cha'},
+    {id:'persuasion', name:'Убеждение', ability:'cha'}
+  ];
+
+  var CONDITIONS = ['Ослеплён','Оглушён','Испуган','Схвачен','Недееспособен','Невидим','Парализован','Окаменел','Отравлен','Опутан','Ошеломлён','Повержен','Без сознания'];
+
+  var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
+
+  var STORAGE_KEY = 'dnd5e_ru_character_v1';
+
+  function defaultState(){
+    var abilities = {};
+    ABILITIES.forEach(function(a){ abilities[a.id] = 10; });
+    var saves = {};
+    ABILITIES.forEach(function(a){ saves[a.id] = {prof:false}; });
+    var skills = {};
+    SKILLS.forEach(function(s){ skills[s.id] = {prof:false, exp:false}; });
+    var slots = [];
+    for (var i=1;i<=9;i++){ slots.push({total:0,cur:0}); }
+    return {
+      meta:{name:'',klass:'',level:1,race:'',background:'',alignment:'',player:'',xp:0},
+      abilities: abilities,
+      inspiration:false,
+      saves: saves,
+      skills: skills,
+      combat:{
+        ac:10, speed:'9 м', hpMax:0, hpCur:0, hpTemp:0,
+        hitDiceType:'к8', hitDiceTotal:0, hitDiceUsed:0,
+        deathSuccess:[false,false,false], deathFail:[false,false,false],
+        exhaustion:0, conditions:[]
+      },
+      attacks:[],
+      currency:{cp:0,sp:0,ep:0,gp:0,pp:0},
+      items:[],
+      spellAbility:'none',
+      slots: slots,
+      spells:[],
+      traits:{personality:'',ideals:'',bonds:'',flaws:'',features:'',profs:'',notes:''}
+    };
+  }
+
+  var state = defaultState();
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var loaded = JSON.parse(raw);
+      state = Object.assign(defaultState(), loaded);
+      // deep-merge nested objects to survive schema additions
+      ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
+        state[key] = Object.assign(defaultState()[key], loaded[key] || {});
+      });
+      if (!Array.isArray(state.attacks)) state.attacks = [];
+      if (!Array.isArray(state.items)) state.items = [];
+      if (!Array.isArray(state.spells)) state.spells = [];
+      if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
+      if (!state.combat.conditions) state.combat.conditions = [];
+      if (!state.combat.deathSuccess) state.combat.deathSuccess = [false,false,false];
+      if (!state.combat.deathFail) state.combat.deathFail = [false,false,false];
+    }catch(e){ console.warn('Не удалось загрузить сохранённые данные', e); }
+  }
+
+  var saveTimer = null;
+  function saveState(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        var el = document.getElementById('saveStatus');
+        el.textContent = 'сохранено · ' + new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+        setTimeout(function(){ el.textContent = 'данные сохраняются автоматически в этом браузере'; }, 2000);
+      }catch(e){ console.warn('Не удалось сохранить', e); }
+    }, 300);
+  }
+
+  function getPath(obj, path){
+    return path.split('.').reduce(function(o,k){ return (o||{})[k]; }, obj);
+  }
+  function setPath(obj, path, value){
+    var parts = path.split('.');
+    var cur = obj;
+    for (var i=0;i<parts.length-1;i++){ cur = cur[parts[i]]; }
+    cur[parts[parts.length-1]] = value;
+  }
+
+  function mod(score){
+    return Math.floor((Number(score||0) - 10) / 2);
+  }
+  function fmtMod(n){
+    n = Number(n)||0;
+    return (n >= 0 ? '+' : '') + n;
+  }
+  function profBonus(){
+    var lvl = Number(state.meta.level) || 1;
+    return Math.floor((lvl - 1) / 4) + 2;
+  }
+
+  /* ---------------- AUTO-GROW TEXTAREAS ---------------- */
+  function autoGrow(el){
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  /* ---------------- BIND SIMPLE FIELDS ---------------- */
+  function bindSimpleFields(){
+    var els = document.querySelectorAll('[data-field]');
+    els.forEach(function(el){
+      var path = el.dataset.field;
+      var evt = (el.tagName === 'SELECT' || el.type === 'checkbox') ? 'change' : 'input';
+      el.addEventListener(evt, function(){
+        var val;
+        if (el.type === 'checkbox') val = el.checked;
+        else if (el.type === 'number') val = el.value === '' ? '' : Number(el.value);
+        else val = el.value;
+        setPath(state, path, val);
+        if (el.tagName === 'TEXTAREA') autoGrow(el);
+        recalc();
+        saveState();
+      });
+    });
+  }
+
+  function refreshSimpleFields(){
+    var els = document.querySelectorAll('[data-field]');
+    els.forEach(function(el){
+      var val = getPath(state, el.dataset.field);
+      if (el.type === 'checkbox'){ el.checked = !!val; }
+      else { el.value = (val === undefined || val === null) ? '' : val; }
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
+    });
+  }
+
+  /* ---------------- MEDALLIONS (ability scores) ---------------- */
+  function renderMedallions(){
+    var wrap = document.getElementById('medallionsWrap');
+    wrap.innerHTML = '';
+    ABILITIES.forEach(function(a){
+      var div = document.createElement('div');
+      div.className = 'medallion';
+      div.innerHTML =
+        '<div class="m-label">'+a.name+'</div>' +
+        '<div class="m-mod" id="mmod_'+a.id+'">+0</div>' +
+        '<div class="m-score-wrap"><input class="m-score" type="number" min="1" max="30" id="mscore_'+a.id+'"></div>';
+      wrap.appendChild(div);
+    });
+    ABILITIES.forEach(function(a){
+      var input = document.getElementById('mscore_'+a.id);
+      input.value = state.abilities[a.id];
+      input.addEventListener('input', function(){
+        state.abilities[a.id] = input.value === '' ? 0 : Number(input.value);
+        recalc();
+        saveState();
+      });
+    });
+  }
+
+  /* ---------------- SAVES ---------------- */
+  function renderSaves(){
+    var wrap = document.getElementById('savesWrap');
+    wrap.innerHTML = '';
+    ABILITIES.forEach(function(a){
+      var row = document.createElement('div');
+      row.className = 'stat-row';
+      row.innerHTML =
+        '<input type="checkbox" id="save_'+a.id+'">' +
+        '<span></span>' +
+        '<span class="row-name">'+a.name+' <span class="row-ability">('+ABIL_SHORT[a.id]+')</span></span>' +
+        '<span class="row-bonus" id="savebonus_'+a.id+'">+0</span>';
+      wrap.appendChild(row);
+    });
+    ABILITIES.forEach(function(a){
+      var cb = document.getElementById('save_'+a.id);
+      cb.checked = !!state.saves[a.id].prof;
+      cb.addEventListener('change', function(){
+        state.saves[a.id].prof = cb.checked;
+        recalc();
+        saveState();
+      });
+    });
+  }
+
+  /* ---------------- SKILLS ---------------- */
+  function renderSkills(){
+    var wrap = document.getElementById('skillsWrap');
+    wrap.innerHTML = '';
+    SKILLS.forEach(function(s){
+      var row = document.createElement('div');
+      row.className = 'stat-row';
+      row.innerHTML =
+        '<input type="checkbox" id="skillprof_'+s.id+'" title="владение">' +
+        '<input type="checkbox" class="exp-check" id="skillexp_'+s.id+'" title="экспертиза">' +
+        '<span class="row-name">'+s.name+' <span class="row-ability">('+ABIL_SHORT[s.ability]+')</span></span>' +
+        '<span class="row-bonus" id="skillbonus_'+s.id+'">+0</span>';
+      wrap.appendChild(row);
+    });
+    SKILLS.forEach(function(s){
+      var cbP = document.getElementById('skillprof_'+s.id);
+      var cbE = document.getElementById('skillexp_'+s.id);
+      cbP.checked = !!state.skills[s.id].prof;
+      cbE.checked = !!state.skills[s.id].exp;
+      cbP.addEventListener('change', function(){
+        state.skills[s.id].prof = cbP.checked;
+        recalc(); saveState();
+      });
+      cbE.addEventListener('change', function(){
+        state.skills[s.id].exp = cbE.checked;
+        recalc(); saveState();
+      });
+    });
+  }
+
+  /* ---------------- DEATH SAVES ---------------- */
+  function renderDeathSaves(){
+    var sWrap = document.getElementById('deathSuccessWrap');
+    var fWrap = document.getElementById('deathFailWrap');
+    sWrap.innerHTML = ''; fWrap.innerHTML = '';
+    for (var i=0;i<3;i++){
+      (function(i){
+        var cs = document.createElement('input');
+        cs.type='checkbox'; cs.checked = !!state.combat.deathSuccess[i];
+        cs.addEventListener('change', function(){ state.combat.deathSuccess[i]=cs.checked; saveState(); });
+        sWrap.appendChild(cs);
+        var cf = document.createElement('input');
+        cf.type='checkbox'; cf.checked = !!state.combat.deathFail[i];
+        cf.addEventListener('change', function(){ state.combat.deathFail[i]=cf.checked; saveState(); });
+        fWrap.appendChild(cf);
+      })(i);
+    }
+  }
+
+  /* ---------------- CONDITIONS ---------------- */
+  function renderConditions(){
+    var wrap = document.getElementById('conditionsWrap');
+    wrap.innerHTML = '';
+    CONDITIONS.forEach(function(c){
+      var btn = document.createElement('div');
+      btn.className = 'tag-toggle' + (state.combat.conditions.indexOf(c) > -1 ? ' active' : '');
+      btn.textContent = c;
+      btn.addEventListener('click', function(){
+        var idx = state.combat.conditions.indexOf(c);
+        if (idx > -1){ state.combat.conditions.splice(idx,1); btn.classList.remove('active'); }
+        else { state.combat.conditions.push(c); btn.classList.add('active'); }
+        saveState();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  /* ---------------- ATTACKS (dynamic) ---------------- */
+  function renderAttacks(){
+    var wrap = document.getElementById('attacksWrap');
+    wrap.innerHTML = '';
+    state.attacks.forEach(function(atk, idx){
+      var div = document.createElement('div');
+      div.className = 'dyn-item';
+      div.innerHTML =
+        '<button class="del-btn" data-idx="'+idx+'">✕</button>' +
+        '<div class="dyn-grid" style="grid-template-columns:1.4fr 0.7fr;">' +
+          '<div><label class="field-label">Название</label><input type="text" data-k="name" value="'+escAttr(atk.name)+'"></div>' +
+          '<div><label class="field-label">Бонус атаки</label><input type="text" data-k="bonus" value="'+escAttr(atk.bonus)+'"></div>' +
+        '</div>' +
+        '<div class="dyn-grid" style="grid-template-columns:1fr 1.4fr;margin-top:6px;">' +
+          '<div><label class="field-label">Урон/тип</label><input type="text" data-k="damage" value="'+escAttr(atk.damage)+'"></div>' +
+          '<div><label class="field-label">Заметки</label><input type="text" data-k="notes" value="'+escAttr(atk.notes)+'"></div>' +
+        '</div>';
+      wrap.appendChild(div);
+      div.querySelectorAll('input[data-k]').forEach(function(inp){
+        inp.addEventListener('input', function(){
+          state.attacks[idx][inp.dataset.k] = inp.value;
+          saveState();
+        });
+      });
+      div.querySelector('.del-btn').addEventListener('click', function(){
+        state.attacks.splice(idx,1);
+        renderAttacks();
+        saveState();
+      });
+    });
+  }
+
+  /* ---------------- ITEMS (dynamic) ---------------- */
+  function renderItems(){
+    var wrap = document.getElementById('itemsWrap');
+    wrap.innerHTML = '';
+    state.items.forEach(function(item, idx){
+      var div = document.createElement('div');
+      div.className = 'dyn-item';
+      div.innerHTML =
+        '<button class="del-btn" data-idx="'+idx+'">✕</button>' +
+        '<div class="dyn-grid" style="grid-template-columns:1.6fr 0.6fr;">' +
+          '<div><label class="field-label">Предмет</label><input type="text" data-k="name" value="'+escAttr(item.name)+'"></div>' +
+          '<div><label class="field-label">Кол-во</label><input type="number" data-k="qty" value="'+escAttr(item.qty)+'"></div>' +
+        '</div>' +
+        '<div class="field" style="margin-top:6px;"><label class="field-label">Заметки</label><input type="text" data-k="notes" value="'+escAttr(item.notes)+'"></div>';
+      wrap.appendChild(div);
+      div.querySelectorAll('input[data-k]').forEach(function(inp){
+        inp.addEventListener('input', function(){
+          var v = inp.type === 'number' ? (inp.value===''?'':Number(inp.value)) : inp.value;
+          state.items[idx][inp.dataset.k] = v;
+          saveState();
+        });
+      });
+      div.querySelector('.del-btn').addEventListener('click', function(){
+        state.items.splice(idx,1);
+        renderItems();
+        saveState();
+      });
+    });
+  }
+
+  /* ---------------- SPELL SLOTS ---------------- */
+  function renderSlots(){
+    var wrap = document.getElementById('slotsWrap');
+    wrap.innerHTML = '';
+    for (var lvl=1; lvl<=9; lvl++){
+      (function(lvl){
+        var s = state.slots[lvl-1];
+        var box = document.createElement('div');
+        box.className = 'slot-box';
+        box.innerHTML =
+          '<div class="slabel">Круг '+lvl+'</div>' +
+          '<div class="snums"><input type="number" min="0" id="slotcur_'+lvl+'" value="'+s.cur+'"><span class="sdiv">/</span><input type="number" min="0" id="slottotal_'+lvl+'" value="'+s.total+'"></div>';
+        wrap.appendChild(box);
+      })(lvl);
+    }
+    for (var lvl2=1; lvl2<=9; lvl2++){
+      (function(lvl2){
+        var curEl = document.getElementById('slotcur_'+lvl2);
+        var totEl = document.getElementById('slottotal_'+lvl2);
+        curEl.addEventListener('input', function(){
+          state.slots[lvl2-1].cur = curEl.value===''?0:Number(curEl.value);
+          saveState();
+        });
+        totEl.addEventListener('input', function(){
+          state.slots[lvl2-1].total = totEl.value===''?0:Number(totEl.value);
+          saveState();
+        });
+      })(lvl2);
+    }
+  }
+
+  /* ---------------- SPELLS LIST (dynamic) ---------------- */
+  function renderSpells(){
+    var wrap = document.getElementById('spellsWrap');
+    wrap.innerHTML = '';
+    state.spells.forEach(function(sp, idx){
+      var div = document.createElement('div');
+      div.className = 'dyn-item';
+      var options = '';
+      for (var l=0; l<=9; l++){
+        options += '<option value="'+l+'"'+(Number(sp.level)===l?' selected':'')+'>'+(l===0?'Заговор':'Круг '+l)+'</option>';
+      }
+      div.innerHTML =
+        '<button class="del-btn" data-idx="'+idx+'">✕</button>' +
+        '<div class="dyn-grid" style="grid-template-columns:0.9fr 1.6fr;">' +
+          '<div><label class="field-label">Круг</label><select data-k="level">'+options+'</select></div>' +
+          '<div><label class="field-label">Название</label><input type="text" data-k="name" value="'+escAttr(sp.name)+'"></div>' +
+        '</div>' +
+        '<div class="field" style="margin-top:6px;"><label class="inline-check"><input type="checkbox" data-k="prepared" '+(sp.prepared?'checked':'')+'> подготовлено</label></div>' +
+        '<div class="field" style="margin-top:6px;"><label class="field-label">Заметки</label><input type="text" data-k="notes" value="'+escAttr(sp.notes)+'"></div>';
+      wrap.appendChild(div);
+      div.querySelectorAll('[data-k]').forEach(function(inp){
+        var evt = (inp.tagName==='SELECT' || inp.type==='checkbox') ? 'change' : 'input';
+        inp.addEventListener(evt, function(){
+          var v;
+          if (inp.type === 'checkbox') v = inp.checked;
+          else if (inp.tagName==='SELECT') v = Number(inp.value);
+          else v = inp.value;
+          state.spells[idx][inp.dataset.k] = v;
+          saveState();
+        });
+      });
+      div.querySelector('.del-btn').addEventListener('click', function(){
+        state.spells.splice(idx,1);
+        renderSpells();
+        saveState();
+      });
+    });
+  }
+
+  function escAttr(v){
+    if (v === undefined || v === null) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  }
+
+  /* ---------------- ADD BUTTONS ---------------- */
+  document.getElementById('addAttack').addEventListener('click', function(){
+    state.attacks.push({name:'',bonus:'',damage:'',notes:''});
+    renderAttacks(); saveState();
+  });
+  document.getElementById('addItem').addEventListener('click', function(){
+    state.items.push({name:'',qty:1,notes:''});
+    renderItems(); saveState();
+  });
+  document.getElementById('addSpell').addEventListener('click', function(){
+    state.spells.push({level:0,name:'',prepared:false,notes:''});
+    renderSpells(); saveState();
+  });
+
+  /* ---------------- RECALC DERIVED VALUES ---------------- */
+  function recalc(){
+    var pb = profBonus();
+    document.getElementById('dispProf').textContent = 'бонус мастерства ' + fmtMod(pb);
+    document.getElementById('dispProfBonus').value = fmtMod(pb);
+
+    ABILITIES.forEach(function(a){
+      var m = mod(state.abilities[a.id]);
+      var elMod = document.getElementById('mmod_'+a.id);
+      if (elMod) elMod.textContent = fmtMod(m);
+      var saveVal = m + (state.saves[a.id].prof ? pb : 0);
+      var elSave = document.getElementById('savebonus_'+a.id);
+      if (elSave) elSave.textContent = fmtMod(saveVal);
+    });
+
+    SKILLS.forEach(function(s){
+      var m = mod(state.abilities[s.ability]);
+      var bonus = m;
+      if (state.skills[s.id].exp) bonus += pb*2;
+      else if (state.skills[s.id].prof) bonus += pb;
+      var el = document.getElementById('skillbonus_'+s.id);
+      if (el) el.textContent = fmtMod(bonus);
+    });
+
+    var perceptionBonus = mod(state.abilities.wis) + (state.skills.perception.exp ? pb*2 : (state.skills.perception.prof ? pb : 0));
+    document.getElementById('dispPassivePerc').value = 10 + perceptionBonus;
+
+    var dexMod = mod(state.abilities.dex);
+    document.getElementById('disp_init').textContent = fmtMod(dexMod);
+
+    var sa = state.spellAbility;
+    if (sa && sa !== 'none'){
+      var saMod = mod(state.abilities[sa]);
+      document.getElementById('dispSpellDC').value = 8 + pb + saMod;
+      document.getElementById('dispSpellAtk').value = fmtMod(pb + saMod);
+    } else {
+      document.getElementById('dispSpellDC').value = '—';
+      document.getElementById('dispSpellAtk').value = '—';
+    }
+  }
+
+  /* ---------------- TABS ---------------- */
+  function bindTabs(){
+    var btns = document.querySelectorAll('.tab-btn');
+    var pages = document.querySelectorAll('.page');
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.classList.remove('active'); });
+        pages.forEach(function(p){ p.classList.remove('active'); });
+        btn.classList.add('active');
+        var shownPage = document.querySelector('.page[data-page="'+btn.dataset.target+'"]');
+        shownPage.classList.add('active');
+        shownPage.querySelectorAll('textarea').forEach(autoGrow);
+        window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+      });
+    });
+  }
+
+  /* ---------------- EXPORT / IMPORT / RESET ---------------- */
+  document.getElementById('btnExport').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var safeName = (state.meta.name || 'персонаж').replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]+/g,'_');
+    a.href = url;
+    a.download = safeName + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btnImport').addEventListener('click', function(){
+    document.getElementById('importInput').click();
+  });
+  document.getElementById('importInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var loaded = JSON.parse(reader.result);
+        state = Object.assign(defaultState(), loaded);
+        ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
+          state[key] = Object.assign(defaultState()[key], loaded[key] || {});
+        });
+        if (!Array.isArray(state.attacks)) state.attacks = [];
+        if (!Array.isArray(state.items)) state.items = [];
+        if (!Array.isArray(state.spells)) state.spells = [];
+        if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
+        renderAll();
+        saveState();
+        alert('Персонаж загружен.');
+      }catch(err){
+        alert('Не удалось прочитать файл: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('btnReset').addEventListener('click', function(){
+    if (confirm('Стереть текущего персонажа и начать новый лист? Не забудьте сделать экспорт, если хотите сохранить копию.')){
+      state = defaultState();
+      renderAll();
+      saveState();
+    }
+  });
+
+  /* ---------------- INIT ---------------- */
+  function renderAll(){
+    refreshSimpleFields();
+    renderMedallions();
+    renderSaves();
+    renderSkills();
+    renderDeathSaves();
+    renderConditions();
+    renderAttacks();
+    renderItems();
+    renderSlots();
+    renderSpells();
+    recalc();
+  }
+
+  loadState();
+  bindSimpleFields();
+  bindTabs();
+  renderAll();
+
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('service-worker.js').catch(function(err){
+        console.warn('Service worker не зарегистрирован', err);
+      });
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
