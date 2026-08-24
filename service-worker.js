@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnd-sheet-cache-v1';
+const CACHE_NAME = 'dnd-sheet-cache-v4';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -30,23 +30,30 @@ self.addEventListener('activate', function(event){
   );
 });
 
-// Cache-first strategy: works fully offline once installed.
+// Network-first strategy: always tries to fetch the latest version from the
+// hosted site first (so updates show up as soon as you're online), and only
+// falls back to the cached copy when there is no connection.
 self.addEventListener('fetch', function(event){
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then(function(cached){
-      if (cached) return cached;
-      return fetch(event.request).then(function(response){
-        var copy = response.clone();
-        caches.open(CACHE_NAME).then(function(cache){
-          cache.put(event.request, copy);
-        });
-        return response;
-      }).catch(function(){
+    fetch(event.request).then(function(response){
+      var copy = response.clone();
+      caches.open(CACHE_NAME).then(function(cache){
+        cache.put(event.request, copy);
+      });
+      return response;
+    }).catch(function(){
+      return caches.match(event.request).then(function(cached){
+        if (cached) return cached;
         if (event.request.mode === 'navigate'){
           return caches.match('./index.html');
         }
       });
     })
   );
+});
+
+// Lets the page force this worker to take over immediately after an update.
+self.addEventListener('message', function(event){
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
