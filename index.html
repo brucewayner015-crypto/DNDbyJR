@@ -619,6 +619,16 @@
   clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);
   border-radius:0;
 }
+[data-style="runic"] .spine, [data-style="runic"] .tabbar{
+  border-color:var(--gold-bright);
+  box-shadow:0 6px 14px rgba(0,0,0,0.4), inset 0 0 14px rgba(224,181,99,0.12);
+}
+[data-style="runic"] .tab-indicator{
+  border-style:dashed;
+  border-color:var(--gold-bright);
+  border-radius:2px;
+}
+[data-style="runic"] .quick-item{border-style:dashed;}
 
 /* ---------- ROYAL SEAL (wax-stamped royal decree) ---------- */
 [data-style="royal_seal"]{
@@ -647,6 +657,20 @@
 [data-style="royal_seal"] .add-btn, [data-style="royal_seal"] .util-btn, [data-style="royal_seal"] .update-btn{
   border-radius:999px; border-width:2px; border-style:double;
 }
+[data-style="royal_seal"] .medallion{
+  border-radius:50%;
+  border-width:3px;
+  border-style:double;
+  box-shadow:0 4px 8px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(91,74,48,0.35), 0 0 0 3px var(--parchment), 0 0 0 4px var(--wax);
+}
+[data-style="royal_seal"] .spine, [data-style="royal_seal"] .tabbar{
+  border-color:var(--wax);
+  box-shadow:0 6px 14px rgba(0,0,0,0.45), inset 0 0 0 1px var(--gold);
+}
+[data-style="royal_seal"] .gear-btn, [data-style="royal_seal"] .h2-edit-btn, [data-style="royal_seal"] .scale-btn{
+  border-width:2px; border-style:double;
+}
+[data-style="royal_seal"] .tab-indicator{border-color:var(--wax); background:rgba(124,15,34,0.16);}
 
 /* ---------- CRYSTAL (faceted gem-cut) ---------- */
 [data-style="crystal"]{
@@ -676,6 +700,14 @@
   clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
   border-radius:0;
 }
+[data-style="crystal"] .spine, [data-style="crystal"] .tabbar{
+  box-shadow:0 6px 14px rgba(0,0,0,0.4), inset 0 0 0 1px var(--gold-bright), 0 0 16px rgba(224,181,99,0.25);
+}
+[data-style="crystal"] .quick-item{
+  clip-path:polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  border-radius:0;
+}
+[data-style="crystal"] .tab-indicator{border-color:var(--gold-bright); box-shadow:0 0 10px rgba(224,181,99,0.4);}
 
 /* ---------- SCROLL (unrolled parchment with wooden dowels) ---------- */
 [data-style="scroll"]{
@@ -702,6 +734,24 @@
 [data-style="scroll"] .card::before{display:none;}
 [data-style="scroll"] .card h2{border-bottom-style:solid;}
 [data-style="scroll"] .add-btn, [data-style="scroll"] .util-btn, [data-style="scroll"] .update-btn{border-radius:3px;}
+[data-style="scroll"] .medallion{
+  border-radius:50%;
+  border-width:3px;
+  border-color:var(--btn-wood-1);
+  box-shadow:0 4px 8px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(91,74,48,0.35), 0 0 0 2px var(--parchment);
+}
+[data-style="scroll"] .gear-btn, [data-style="scroll"] .h2-edit-btn, [data-style="scroll"] .scale-btn{
+  border-radius:6px;
+}
+[data-style="scroll"] .spine{
+  border-bottom:6px solid var(--btn-wood-1);
+  box-shadow:0 6px 14px rgba(0,0,0,0.45), 0 3px 0 -1px var(--btn-wood-2);
+}
+[data-style="scroll"] .tabbar{
+  border-top:6px solid var(--btn-wood-1);
+  box-shadow:0 -6px 14px rgba(0,0,0,0.4), 0 -3px 0 -1px var(--btn-wood-2);
+}
+[data-style="scroll"] .tab-indicator{border-radius:6px;}
 
 
 *{box-sizing:border-box;}
@@ -734,7 +784,7 @@ body{
 .spine{
   background:linear-gradient(180deg,var(--chrome-1),var(--chrome-2));
   border-bottom:3px solid var(--gold);
-  padding:14px 16px 12px;
+  padding:16px 16px 14px;
   flex-shrink:0;
   box-shadow:0 6px 14px rgba(0,0,0,0.4);
 }
@@ -742,7 +792,7 @@ body{
   display:flex;
   align-items:baseline;
   gap:10px;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 .spine-top input.name-input{
   font-family:var(--font-deco);
@@ -852,6 +902,96 @@ body{
 .update-status.ok{color:var(--ok);font-style:normal;}
 .update-status.err{color:var(--danger);font-style:normal;}
 
+.feedback-email-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,0.35);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  padding:9px 10px;
+}
+.feedback-email-text{
+  flex:1;
+  font-family:var(--font-mono);
+  font-size:calc(12.5px * var(--ui-font-scale));
+  color:var(--ink);
+  word-break:break-all;
+}
+.feedback-copy-btn{
+  flex-shrink:0;
+  width:30px;height:30px;
+  border-radius:6px;
+  border:1px solid var(--gold);
+  background:rgba(255,255,255,0.4);
+  color:var(--ink-soft);
+  font-size:14px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
+  transition:transform .1s ease, background-color .15s ease, color .15s ease;
+}
+.feedback-copy-btn:active{transform:scale(0.9);}
+.feedback-copy-btn.copied{background:var(--ok);border-color:var(--ok);color:var(--parchment);}
+
+.donate-btn{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-sizing:border-box;
+  text-decoration:none;
+  width:100%;
+  background:linear-gradient(135deg, var(--gold-bright), var(--gold) 55%, var(--wax-bright));
+  background-size:200% 200%;
+  color:var(--ink);
+  border:2px solid var(--gold-bright);
+  border-radius:var(--radius-m);
+  padding:14px 16px;
+  cursor:pointer;
+  box-shadow:0 6px 20px -4px rgba(224,181,99,0.55), 0 0 0 1px rgba(255,255,255,0.15) inset;
+  transition:transform .12s ease, box-shadow .12s ease;
+  animation:donateGlow 3.2s ease-in-out infinite;
+  position:relative;
+  overflow:hidden;
+}
+.donate-btn::after{
+  content:"";
+  position:absolute;
+  top:0; left:-60%;
+  width:40%; height:100%;
+  background:linear-gradient(115deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform:skewX(-20deg);
+  animation:donateShine 3.2s ease-in-out infinite;
+}
+@keyframes donateGlow{
+  0%, 100%{background-position:0% 50%; box-shadow:0 6px 20px -4px rgba(224,181,99,0.55), 0 0 0 1px rgba(255,255,255,0.15) inset;}
+  50%{background-position:100% 50%; box-shadow:0 8px 26px -2px rgba(224,181,99,0.8), 0 0 0 1px rgba(255,255,255,0.25) inset;}
+}
+@keyframes donateShine{
+  0%{left:-60%;}
+  55%{left:120%;}
+  100%{left:120%;}
+}
+.donate-btn:active{transform:scale(0.97);}
+.donate-btn-icon{
+  flex-shrink:0;
+  font-size:28px;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+}
+.donate-btn-text{display:flex;flex-direction:column;gap:1px;text-align:left;}
+.donate-btn-title{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:calc(15px * var(--ui-font-scale));
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+}
+.donate-btn-sub{
+  font-family:var(--font-body);
+  font-size:calc(11px * var(--ui-font-scale));
+  opacity:0.85;
+}
+
 .spine-meta{
   display:grid;
   grid-template-columns:1.3fr 0.7fr 1.1fr 1.1fr;
@@ -864,7 +1004,7 @@ body{
   border-radius:var(--radius-s);
   font-family:var(--font-body);
   font-size:calc(11px * var(--ui-font-scale));
-  padding:5px 4px;
+  padding:6px 5px;
   min-width:0;
   text-align:center;
 }
@@ -888,7 +1028,7 @@ body{
   border:1px solid var(--gold);
   border-radius:var(--radius-m);
   text-align:center;
-  padding:6px 2px 5px;
+  padding:8px 4px 7px;
   position:relative;
   box-shadow:0 2px 6px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.08);
   transition:box-shadow .15s ease;
@@ -982,7 +1122,7 @@ body{
 .settings-body::-webkit-scrollbar-track{background:transparent;}
 .settings-body::-webkit-scrollbar-thumb{background:var(--gold); border-radius:6px;}
 .page{
-  padding:16px 14px 24px;
+  padding:18px 16px 26px;
   display:none;
 }
 .page.active{display:block;}
@@ -1005,7 +1145,7 @@ body{
     linear-gradient(180deg, var(--parchment), var(--parchment-2) 480px);
   border:var(--card-border-w) var(--card-border-style) var(--parchment-shadow);
   border-radius:var(--radius-l);
-  padding:16px 15px 17px;
+  padding:18px 16px 18px;
   margin-bottom:16px;
   box-shadow:
     0 1px 0 rgba(255,255,255,0.35) inset,
@@ -1056,16 +1196,16 @@ body{
 }
 .h2-edit-btn{
   flex-shrink:0;
-  width:26px;height:26px;
+  width:30px;height:30px;
   border-radius:50%;
   border:1px solid var(--ink-soft);
   background:rgba(255,255,255,0.35);
   color:var(--ink-soft);
-  font-size:12px;
+  font-size:13px;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
   padding:0;
-  transition:transform .1s ease;
+  transition:transform .1s ease, background-color .15s ease;
 }
 .h2-edit-btn.active{
   background:var(--wax);
@@ -1141,20 +1281,20 @@ label.field-label{
   letter-spacing:0.8px;
   text-transform:uppercase;
   color:var(--ink-soft);
-  margin-bottom:3px;
+  margin-bottom:4px;
 }
 input[type=text], input[type=number], select, textarea{
   width:100%;
   background:rgba(255,255,255,0.35);
   border:1px solid var(--parchment-shadow);
   border-radius:var(--radius-s);
-  padding:7px 8px;
+  padding:8px 10px;
   font-family:var(--font-body);
   font-size:calc(14px * var(--ui-font-scale));
   color:var(--ink);
   transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
 }
-textarea{resize:none;min-height:60px;font-size:calc(13.5px * var(--ui-font-scale));line-height:1.4;overflow:hidden;transition:height .12s ease, border-color .15s ease, box-shadow .15s ease;}
+textarea{resize:none;min-height:60px;font-size:calc(13.5px * var(--ui-font-scale));line-height:1.45;overflow:hidden;transition:height .12s ease, border-color .15s ease, box-shadow .15s ease;}
 input:focus, select:focus, textarea:focus{
   outline:none;
   border-color:var(--gold-bright);
@@ -1165,7 +1305,7 @@ input:focus, select:focus, textarea:focus{
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.field{margin-bottom:10px;}
+.field{margin-bottom:12px;}
 .field:last-child{margin-bottom:0;}
 
 /* ---------- ABILITY MEDALLIONS (signature element) ---------- */
@@ -1378,17 +1518,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:rgba(255,255,255,0.35);
   border:1px solid var(--parchment-shadow);
   border-radius:var(--radius-s);
-  padding:10px;
+  padding:12px;
   position:relative;
   box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
-.dyn-item .dyn-grid{display:grid;gap:6px;}
+.dyn-item .dyn-grid{display:grid;gap:8px;}
 .dyn-item textarea.dyn-notes{min-height:36px;}
 .dyn-item .del-btn{
-  position:absolute;top:6px;right:6px;
+  position:absolute;top:7px;right:7px;
   background:var(--wax);color:var(--parchment);
   border:none;border-radius:50%;
-  width:20px;height:20px;
+  width:22px;height:22px;
   font-size:12px;line-height:1;
   cursor:pointer;
   box-shadow:0 2px 4px rgba(0,0,0,0.25);
@@ -1478,12 +1618,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-top:3px solid var(--gold);
   display:grid;
   grid-template-columns:repeat(6,1fr);
-  padding:6px 4px calc(8px + env(safe-area-inset-bottom));
+  padding:8px 4px calc(9px + env(safe-area-inset-bottom));
   box-shadow:0 -6px 14px rgba(0,0,0,0.4);
 }
 .tab-indicator{
   position:absolute;
-  top:6px;bottom:8px;left:0;
+  top:8px;bottom:9px;left:0;
   width:calc(100% / 6);
   background:rgba(224,181,99,0.14);
   border:1px solid rgba(224,181,99,0.3);
@@ -1499,8 +1639,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:2px;
-  padding:6px 2px;
+  gap:3px;
+  padding:7px 2px;
   color:rgba(226,211,171,0.55);
   font-family:var(--font-display);
   font-size:calc(9px * var(--ui-font-scale));
@@ -1532,7 +1672,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:linear-gradient(180deg, var(--parchment), var(--parchment-2));
   border:2px solid var(--gold);
   border-radius:var(--radius-l);
-  padding:22px 20px 18px;
+  padding:24px 20px 20px;
   max-width:320px;
   width:100%;
   text-align:center;
@@ -1543,7 +1683,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .modal-card.wide{max-width:380px;}
 @keyframes modalPop{from{transform:scale(0.92);opacity:0;}to{transform:scale(1);opacity:1;}}
-.modal-icon{font-size:26px;margin-bottom:6px;}
+.modal-icon{font-size:28px;margin-bottom:8px;}
 
 /* ---------- SETTINGS MODAL (tabbed) ---------- */
 .settings-modal{
@@ -1557,23 +1697,27 @@ input[type=checkbox]:active{transform:scale(0.88);}
   flex-shrink:0;
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:6px;
-  margin:6px 0 14px;
+  gap:7px;
+  margin:8px 0 16px;
 }
+.settings-tabs-5{grid-template-columns:repeat(5,1fr);gap:5px;}
 .settings-tab{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   background:rgba(255,255,255,0.32);
   border:1px solid var(--parchment-shadow);
   border-radius:var(--radius-s);
-  padding:8px 2px 7px;
+  padding:10px 3px;
+  min-height:56px;
   font-family:var(--font-display);
   font-size:calc(9px * var(--ui-font-scale));
-  letter-spacing:0.2px;
+  letter-spacing:0.3px;
   text-transform:uppercase;
   color:var(--ink-soft);
   cursor:pointer;
+  transition:background-color .15s ease, border-color .15s ease, transform .1s ease;
 }
-.settings-tab .settings-tab-ico{font-size:17px;line-height:1;}
+.settings-tab:active{transform:scale(0.95);}
+.settings-tab .settings-tab-ico{font-size:19px;line-height:1;}
 .settings-tab.active{
   background:var(--wax);
   border-color:var(--wax);
@@ -1584,12 +1728,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   min-height:0;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  padding:2px 2px 4px;
+  padding:3px 3px 6px;
   text-align:left;
 }
 .settings-pane{display:none;}
 .settings-pane.active{display:block;}
-.settings-modal .modal-btn.cancel{flex-shrink:0;margin-top:14px;}
+.settings-modal .modal-btn.cancel{flex-shrink:0;margin-top:16px;}
 .data-btn-row{display:flex;gap:8px;margin-bottom:10px;}
 .data-btn-row .util-btn{flex:1;}
 .settings-hint{
@@ -1597,7 +1741,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   color:var(--ink-soft);
   opacity:0.75;
   font-style:italic;
-  margin:0 0 10px;
+  margin:0 0 12px;
   line-height:1.4;
 }
 .custom-theme-panel{display:none;}
@@ -1607,7 +1751,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   align-items:center;
   justify-content:space-between;
   gap:10px;
-  padding:8px 2px;
+  padding:9px 2px;
   border-bottom:1px dashed rgba(91,74,48,0.2);
 }
 .custom-color-row:last-of-type{border-bottom:none;}
@@ -1786,7 +1930,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
-  margin:2px 0 4px;
+  margin:4px 0 6px;
 }
 .theme-card{
   position:relative;
@@ -1797,32 +1941,33 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:rgba(255,255,255,0.3);
   padding:0;
   text-align:left;
-  transition:transform .1s ease, border-color .15s ease;
+  transition:transform .1s ease, border-color .15s ease, box-shadow .15s ease;
 }
 .theme-card:active{transform:scale(0.96);}
 .theme-card.selected{border-color:var(--wax);box-shadow:0 0 0 2px rgba(124,42,42,0.15);}
-.theme-swatch{height:34px;display:flex;}
+.theme-swatch{height:44px;display:flex;}
 .theme-swatch span{flex:1;}
 .theme-card .theme-name{
   display:block;
   font-family:var(--font-display);
-  font-size:calc(10.5px * var(--ui-font-scale));
+  font-size:calc(11px * var(--ui-font-scale));
   letter-spacing:0.3px;
   color:var(--ink);
-  padding:6px 8px 7px;
-  line-height:1.25;
+  padding:7px 9px 8px;
+  line-height:1.3;
 }
 .theme-check{
   position:absolute;
-  top:4px;right:4px;
-  width:18px;height:18px;
+  top:5px;right:5px;
+  width:20px;height:20px;
   border-radius:50%;
   background:var(--wax);
+  border:1.5px solid var(--parchment);
   color:var(--parchment);
   display:none;
   align-items:center;justify-content:center;
   font-size:11px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.4);
+  box-shadow:0 1px 4px rgba(0,0,0,0.45);
 }
 .theme-card.selected .theme-check{display:flex;}
 .style-preview{
@@ -2150,11 +2295,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="modal-card wide settings-modal">
     <div class="modal-icon">⚙</div>
 
-    <div class="settings-tabs">
+    <div class="settings-tabs settings-tabs-5">
       <button class="settings-tab active" data-settings-pane="theme"><span class="settings-tab-ico">🎨</span>Тема</button>
       <button class="settings-tab" data-settings-pane="style"><span class="settings-tab-ico">🖼</span>Стиль</button>
       <button class="settings-tab" data-settings-pane="display"><span class="settings-tab-ico">🔍</span>Экран</button>
       <button class="settings-tab" data-settings-pane="data"><span class="settings-tab-ico">💾</span>Данные</button>
+      <button class="settings-tab" data-settings-pane="support"><span class="settings-tab-ico">💝</span>Донат</button>
     </div>
 
     <div class="settings-body">
@@ -2281,6 +2427,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
         </div>
         <div class="settings-hint">Экспорт сохраняет персонажа в файл .json — держите копию на всякий случай. Импорт загружает персонажа из такого файла.</div>
         <button class="update-btn" id="btnReset" style="border-color:var(--wax);color:var(--wax);">✕ Новый лист</button>
+      </div>
+
+      <div class="settings-pane" data-pane="support">
+        <p class="modal-text" style="margin-bottom:6px;">Поддержать разработчика</p>
+        <div class="settings-hint" style="margin-bottom:10px;">Если лист оказался полезен и хотите угостить автора чашкой кофе — буду рад. Оплата пройдёт на отдельной защищённой странице DonatePay.</div>
+        <a class="donate-btn" id="btnDonate" href="https://new.donatepay.ru/@1529004" target="_blank" rel="noopener noreferrer">
+          <span class="donate-btn-icon">💝</span>
+          <span class="donate-btn-text">
+            <span class="donate-btn-title">Задонатить</span>
+            <span class="donate-btn-sub">Поддержать через DonatePay</span>
+          </span>
+        </a>
+
+        <div class="settings-divider"></div>
+
+        <p class="modal-text" style="margin-bottom:6px;">Обратная связь</p>
+        <div class="settings-hint" style="margin-bottom:8px;">Нашли баг, есть идея или просто хотите написать — пишите на почту.</div>
+        <div class="feedback-email-row">
+          <span class="feedback-email-text" id="feedbackEmailText">brucewayner015@gmail.com</span>
+          <button type="button" class="feedback-copy-btn" id="btnCopyEmail" title="Скопировать адрес">⧉</button>
+        </div>
+        <a class="update-btn" id="btnMailTo" href="mailto:brucewayner015@gmail.com?subject=Лист%20персонажа%20D%26D%20—%20отзыв" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-top:8px;">✉ Написать письмо</a>
       </div>
     </div>
 
@@ -3805,6 +3973,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
       saveState();
     });
   });
+
+  var btnCopyEmail = document.getElementById('btnCopyEmail');
+  if (btnCopyEmail){
+    btnCopyEmail.addEventListener('click', function(){
+      var email = document.getElementById('feedbackEmailText').textContent.trim();
+      function markCopied(){
+        btnCopyEmail.classList.add('copied');
+        btnCopyEmail.textContent = '✓';
+        setTimeout(function(){
+          btnCopyEmail.classList.remove('copied');
+          btnCopyEmail.textContent = '⧉';
+        }, 1500);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(email).then(markCopied).catch(function(){
+          window.prompt('Скопируйте адрес вручную:', email);
+        });
+      } else {
+        window.prompt('Скопируйте адрес вручную:', email);
+      }
+    });
+  }
 
   /* ---------------- INIT ---------------- */
   function renderAll(){
