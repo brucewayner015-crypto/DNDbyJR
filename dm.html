@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>DM — Персонажи группы</title>
+<meta name="theme-color" content="#1b1410">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Spectral:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --leather-1:#1b1410; --leather-2:#241b14; --leather-edge:#0f0a07;
+  --parchment:#eee1c1; --parchment-2:#ddccA0; --parchment-shadow:#5b4a30;
+  --ink:#2c2011; --ink-soft:#6b5a3e;
+  --gold:#b9903f; --gold-bright:#e0b563;
+  --wax:#7c2a2a; --wax-bright:#a5453f;
+  --ok:#3c6e4f; --ok-bright:#59a374;
+  --radius-s:8px; --radius-m:14px; --radius-l:18px;
+  --font-display:'Cinzel', serif;
+  --font-body:'Spectral', serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;min-height:100%;}
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 20% -10%, rgba(185,144,63,0.10), transparent 60%),
+    linear-gradient(160deg, var(--leather-1), var(--leather-2));
+  color:var(--parchment);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{max-width:640px;margin:0 auto;padding:18px 16px 40px;}
+
+.dm-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+  padding-bottom:14px;border-bottom:2px solid var(--gold);
+}
+.dm-header .ico{font-size:26px;}
+.dm-header h1{
+  font-family:var(--font-display);font-weight:700;font-size:19px;
+  letter-spacing:1px;text-transform:uppercase;color:var(--gold-bright);margin:0;
+  flex:1;
+}
+.btn-back{
+  display:none;
+  background:var(--leather-2);border:1px solid var(--gold);color:var(--gold-bright);
+  border-radius:var(--radius-s);padding:7px 12px;font-family:var(--font-display);
+  font-size:11px;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;
+}
+.btn-back.show{display:inline-block;}
+
+/* status / info banners */
+.banner{
+  background:rgba(255,255,255,0.05);border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-m);padding:16px;margin-bottom:16px;
+  font-size:14px;line-height:1.5;color:var(--parchment-2);
+}
+.banner.err{border-color:var(--wax-bright);background:rgba(124,42,42,0.15);}
+.banner .uid-box{
+  margin-top:10px;display:flex;align-items:center;gap:8px;
+  background:rgba(0,0,0,0.3);border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);padding:8px 10px;
+}
+.banner .uid-box span{font-family:var(--font-mono);font-size:12px;word-break:break-all;flex:1;}
+.banner .uid-box button{
+  flex-shrink:0;background:var(--gold);border:none;color:var(--leather-1);
+  border-radius:6px;padding:6px 10px;font-family:var(--font-display);font-weight:700;
+  font-size:11px;cursor:pointer;
+}
+
+/* character list */
+.char-list{display:flex;flex-direction:column;gap:10px;}
+.char-card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  border:1px solid var(--parchment-shadow);border-radius:var(--radius-m);
+  padding:14px 16px;cursor:pointer;
+  display:flex;align-items:center;gap:12px;
+  transition:transform .1s ease, border-color .15s ease;
+}
+.char-card:active{transform:scale(0.98);}
+.char-card:hover{border-color:var(--gold);}
+.char-card .avatar{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
+  border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--gold-bright);
+}
+.char-card .cc-info{flex:1;min-width:0;}
+.char-card .cc-name{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--parchment);}
+.char-card .cc-meta{font-size:12.5px;color:var(--ink-soft);color:var(--parchment-2);opacity:0.75;margin-top:2px;}
+.char-card .cc-arrow{font-size:18px;color:var(--gold);flex-shrink:0;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--parchment-2);opacity:0.7;font-style:italic;}
+
+/* detail view */
+#detailView{display:none;}
+#listView.hidden, #detailView.hidden{display:none;}
+#detailView.show{display:block;}
+
+.d-card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01));
+  border:1px solid var(--parchment-shadow);border-radius:var(--radius-l);
+  padding:16px;margin-bottom:14px;
+}
+.d-card h2{
+  font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--gold-bright);margin:0 0 12px;
+  padding-bottom:8px;border-bottom:1px solid var(--parchment-shadow);
+}
+.d-hero{display:flex;align-items:center;gap:14px;}
+.d-hero .avatar{width:58px;height:58px;font-size:22px;}
+.d-hero .d-name{font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--parchment);}
+.d-hero .d-sub{font-size:13.5px;color:var(--parchment-2);opacity:0.8;margin-top:3px;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.stat-box{background:rgba(0,0,0,0.22);border:1px solid var(--parchment-shadow);border-radius:var(--radius-s);padding:8px 6px;text-align:center;}
+.stat-box .sv{font-family:var(--font-mono);font-weight:700;font-size:18px;color:var(--gold-bright);}
+.stat-box .sl{font-family:var(--font-display);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--parchment-2);opacity:0.75;margin-top:2px;}
+
+.ability-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.ability-box{background:rgba(0,0,0,0.18);border:1px solid var(--parchment-shadow);border-radius:var(--radius-s);padding:7px 4px;text-align:center;}
+.ability-box .av{font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--parchment);}
+.ability-box .al{font-family:var(--font-display);font-size:8.5px;letter-spacing:0.6px;color:var(--parchment-2);opacity:0.7;}
+
+.currency-row{display:flex;gap:8px;flex-wrap:wrap;}
+.coin-chip{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.22);border:1px solid var(--parchment-shadow);border-radius:20px;padding:5px 11px 5px 6px;}
+.coin-chip .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#3a2a10;}
+.coin-chip .dot.cp{background:#cd7f45;} .coin-chip .dot.sp{background:#c7c9d1;} .coin-chip .dot.ep{background:#c8b877;}
+.coin-chip .dot.gp{background:#e0b563;} .coin-chip .dot.pp{background:#e3e6ea;}
+.coin-chip .val{font-family:var(--font-mono);font-weight:700;font-size:13px;color:var(--parchment);}
+.currency-total{margin-top:10px;font-size:12.5px;color:var(--parchment-2);opacity:0.85;font-style:italic;}
+
+.d-list{display:flex;flex-direction:column;gap:8px;}
+.d-item{background:rgba(0,0,0,0.18);border:1px solid var(--parchment-shadow);border-radius:var(--radius-s);padding:9px 11px;}
+.d-item .di-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.d-item .di-name{font-family:var(--font-display);font-weight:700;font-size:13.5px;color:var(--parchment);}
+.d-item .di-tag{font-family:var(--font-mono);font-size:11.5px;color:var(--gold-bright);flex-shrink:0;}
+.d-item .di-sub{font-size:12px;color:var(--parchment-2);opacity:0.75;margin-top:3px;line-height:1.4;}
+.d-empty{font-size:12.5px;color:var(--parchment-2);opacity:0.6;font-style:italic;}
+
+.notes-text{font-size:13px;color:var(--parchment-2);opacity:0.88;line-height:1.55;white-space:pre-wrap;}
+.updated-note{text-align:center;font-size:11px;color:var(--parchment-2);opacity:0.5;font-style:italic;margin-top:6px;}
+
+.loading{text-align:center;padding:50px 20px;color:var(--gold-bright);font-family:var(--font-display);letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="dm-header">
+    <span class="ico">🎲</span>
+    <h1>Персонажи группы</h1>
+    <button class="btn-back" id="btnBack">← К списку</button>
+  </div>
+
+  <div id="statusBanner"></div>
+
+  <div id="listView">
+    <div class="loading" id="listLoading">Загружаем список…</div>
+    <div class="char-list" id="charList" style="display:none;"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">Пока ни один игрок не открывал приложение.<br>Как только кто-то зайдёт в лист, он появится здесь.</div>
+  </div>
+
+  <div id="detailView"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAeTjlzEpkTY4wjd3PcR8pKd4nmk-R3mlw",
+    authDomain: "dndsheet-cdee8.firebaseapp.com",
+    projectId: "dndsheet-cdee8",
+    storageBucket: "dndsheet-cdee8.firebasestorage.app",
+    messagingSenderId: "914138982194",
+    appId: "1:914138982194:web:1bbd13654057099204592b"
+  };
+
+  var ABILITIES = [
+    {id:'str', short:'СИЛ'}, {id:'dex', short:'ЛОВ'}, {id:'con', short:'ТЕЛ'},
+    {id:'int', short:'ИНТ'}, {id:'wis', short:'МУД'}, {id:'cha', short:'ХАР'}
+  ];
+
+  function esc(v){
+    if (v === undefined || v === null) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function mod(score){ var n = Number(score||10); return Math.floor((n-10)/2); }
+  function fmtMod(n){ n = Number(n)||0; return (n>=0?'+':'')+n; }
+  function initials(name){
+    name = (name||'').trim();
+    if (!name) return '?';
+    var parts = name.split(/\s+/);
+    return parts.length > 1 ? (parts[0][0]+parts[1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
+  }
+
+  function showBanner(kind, html){
+    document.getElementById('statusBanner').innerHTML = '<div class="banner'+(kind==='err'?' err':'')+'">'+html+'</div>';
+  }
+  function clearBanner(){
+    document.getElementById('statusBanner').innerHTML = '';
+  }
+
+  var db = null;
+  var myUid = null;
+  var allChars = [];
+
+  function init(){
+    if (typeof firebase === 'undefined'){
+      document.getElementById('listLoading').style.display = 'none';
+      showBanner('err', 'Не удалось загрузить Firebase — проверьте подключение к интернету и обновите страницу.');
+      return;
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var auth = firebase.auth();
+    db = firebase.firestore();
+    auth.onAuthStateChanged(function(user){
+      if (user){
+        myUid = user.uid;
+        loadCharacters();
+      }
+    });
+    auth.signInAnonymously().catch(function(err){
+      document.getElementById('listLoading').style.display = 'none';
+      showBanner('err', 'Не удалось войти: ' + esc(err.message));
+    });
+  }
+
+  function loadCharacters(){
+    db.collection('characters').get().then(function(snap){
+      clearBanner();
+      allChars = [];
+      snap.forEach(function(doc){
+        var d = doc.data();
+        allChars.push({ id: doc.id, name: (d.characterName || '').trim(), state: d.state || {}, updatedAt: d.updatedAt });
+      });
+      allChars.sort(function(a,b){
+        return (a.name || 'яяяя').localeCompare(b.name || 'яяяя', 'ru');
+      });
+      renderList();
+    }).catch(function(err){
+      document.getElementById('listLoading').style.display = 'none';
+      if (err && err.code === 'permission-denied'){
+        showBanner('err',
+          'Нет доступа к базе данных.<br>' +
+          'Проверьте, что в консоли Firebase (Firestore Database → Rules) сохранены правила, разрешающие чтение всей коллекции — см. инструкцию у разработчика.'
+        );
+      } else {
+        showBanner('err', 'Ошибка загрузки: ' + esc(err.message));
+      }
+    });
+  }
+
+  function renderList(){
+    document.getElementById('listLoading').style.display = 'none';
+    var listEl = document.getElementById('charList');
+    var emptyEl = document.getElementById('emptyState');
+    if (!allChars.length){
+      emptyEl.style.display = 'block';
+      return;
+    }
+    listEl.style.display = 'flex';
+    listEl.innerHTML = '';
+    allChars.forEach(function(c){
+      var meta = c.state.meta || {};
+      var name = c.name || meta.name || 'Без имени';
+      var sub = [meta.klass, meta.race].filter(Boolean).join(' · ') || 'нет данных о классе';
+      if (meta.level) sub = 'Ур. ' + meta.level + (sub ? ' · ' + sub : '');
+      var card = document.createElement('div');
+      card.className = 'char-card';
+      card.innerHTML =
+        '<div class="avatar">'+esc(initials(name))+'</div>' +
+        '<div class="cc-info"><div class="cc-name">'+esc(name)+'</div><div class="cc-meta">'+esc(sub)+'</div></div>' +
+        '<div class="cc-arrow">›</div>';
+      card.addEventListener('click', function(){ showDetail(c); });
+      listEl.appendChild(card);
+    });
+  }
+
+  function showDetail(c){
+    var s = c.state || {};
+    var meta = s.meta || {};
+    var abilities = s.abilities || {};
+    var combat = s.combat || {};
+    var currency = s.currency || {};
+    var items = Array.isArray(s.items) ? s.items : [];
+    var attacks = Array.isArray(s.attacks) ? s.attacks : [];
+    var spells = Array.isArray(s.spells) ? s.spells : [];
+    var traits = s.traits || {};
+
+    var name = c.name || meta.name || 'Без имени';
+    var sub = [meta.klass, meta.race, meta.background].filter(Boolean).join(' · ');
+    var subLine = (meta.level ? 'Уровень ' + meta.level : '') + (sub ? (meta.level ? ' · ' : '') + sub : '');
+
+    var html = '';
+
+    html += '<div class="d-card"><div class="d-hero">' +
+      '<div class="avatar">'+esc(initials(name))+'</div>' +
+      '<div><div class="d-name">'+esc(name)+'</div><div class="d-sub">'+esc(subLine || 'нет данных')+'</div></div>' +
+      '</div></div>';
+
+    html += '<div class="d-card"><h2>Боевые показатели</h2><div class="stat-grid">' +
+      statBox(combat.ac, 'КБ') +
+      statBox((combat.hpCur!==undefined?combat.hpCur:'—') + ' / ' + (combat.hpMax!==undefined?combat.hpMax:'—'), 'ХП') +
+      statBox(combat.speed || '—', 'Скорость') +
+      '</div>';
+    html += '<div class="ability-grid">';
+    ABILITIES.forEach(function(a){
+      var score = abilities[a.id];
+      html += '<div class="ability-box"><div class="av">'+(score!==undefined?fmtMod(mod(score)):'—')+'</div><div class="al">'+a.short+'</div></div>';
+    });
+    html += '</div></div>';
+
+    var cp=Number(currency.cp)||0, sp=Number(currency.sp)||0, ep=Number(currency.ep)||0, gp=Number(currency.gp)||0, pp=Number(currency.pp)||0;
+    var totalGp = cp*0.01 + sp*0.1 + ep*0.5 + gp + pp*10;
+    html += '<div class="d-card"><h2>Кошелёк</h2><div class="currency-row">' +
+      coinChip('cp','М',cp) + coinChip('sp','С',sp) + coinChip('ep','Э',ep) + coinChip('gp','З',gp) + coinChip('pp','П',pp) +
+      '</div><div class="currency-total">Итого ≈ '+totalGp.toFixed(2)+' зм</div></div>';
+
+    html += '<div class="d-card"><h2>Снаряжение ('+items.length+')</h2><div class="d-list">';
+    if (!items.length) html += '<div class="d-empty">Пусто</div>';
+    items.forEach(function(it){
+      html += '<div class="d-item"><div class="di-top"><span class="di-name">'+esc(it.name||'—')+'</span><span class="di-tag">×'+esc(it.qty!==undefined?it.qty:1)+'</span></div>' +
+        (it.notes ? '<div class="di-sub">'+esc(it.notes)+'</div>' : '') + '</div>';
+    });
+    html += '</div></div>';
+
+    html += '<div class="d-card"><h2>Атаки и оружие ('+attacks.length+')</h2><div class="d-list">';
+    if (!attacks.length) html += '<div class="d-empty">Пусто</div>';
+    attacks.forEach(function(at){
+      html += '<div class="d-item"><div class="di-top"><span class="di-name">'+esc(at.name||'—')+'</span><span class="di-tag">'+esc(at.bonus||'')+'</span></div>' +
+        '<div class="di-sub">'+esc(at.damage||'')+(at.notes ? ' — '+esc(at.notes) : '')+'</div></div>';
+    });
+    html += '</div></div>';
+
+    if (spells.length){
+      html += '<div class="d-card"><h2>Заклинания ('+spells.length+')</h2><div class="d-list">';
+      spells.forEach(function(sp){
+        var lvl = sp.level === 0 ? 'Заговор' : 'Круг ' + sp.level;
+        html += '<div class="d-item"><div class="di-top"><span class="di-name">'+esc(sp.name||'—')+'</span><span class="di-tag">'+esc(lvl)+(sp.prepared?' ✓':'')+'</span></div></div>';
+      });
+      html += '</div></div>';
+    }
+
+    var notesBits = [];
+    if (traits.personality) notesBits.push('<b>Черты:</b> ' + esc(traits.personality));
+    if (traits.ideals) notesBits.push('<b>Идеалы:</b> ' + esc(traits.ideals));
+    if (traits.bonds) notesBits.push('<b>Привязанности:</b> ' + esc(traits.bonds));
+    if (traits.flaws) notesBits.push('<b>Слабости:</b> ' + esc(traits.flaws));
+    if (notesBits.length){
+      html += '<div class="d-card"><h2>Личность</h2><div class="notes-text">'+notesBits.join('<br><br>')+'</div></div>';
+    }
+
+    if (c.updatedAt && c.updatedAt.toDate){
+      html += '<div class="updated-note">Обновлено: '+c.updatedAt.toDate().toLocaleString('ru-RU')+'</div>';
+    }
+
+    document.getElementById('detailView').innerHTML = html;
+    document.getElementById('detailView').classList.add('show');
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('btnBack').classList.add('show');
+    window.scrollTo(0,0);
+  }
+
+  function statBox(val, label){
+    return '<div class="stat-box"><div class="sv">'+esc(val)+'</div><div class="sl">'+esc(label)+'</div></div>';
+  }
+  function coinChip(cls, letter, val){
+    return '<div class="coin-chip"><span class="dot '+cls+'">'+letter+'</span><span class="val">'+val+'</span></div>';
+  }
+
+  document.getElementById('btnBack').addEventListener('click', function(){
+    document.getElementById('detailView').classList.remove('show');
+    document.getElementById('listView').classList.remove('hidden');
+    document.getElementById('btnBack').classList.remove('show');
+    window.scrollTo(0,0);
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>

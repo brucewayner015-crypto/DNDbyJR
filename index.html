@@ -1702,6 +1702,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .settings-tabs-5{grid-template-columns:repeat(5,1fr);gap:5px;}
 .settings-tabs-6{grid-template-columns:repeat(6,1fr);gap:4px;}
+.settings-tabs-7{grid-template-columns:repeat(4,1fr);gap:6px;}
+.account-status-row{display:flex;align-items:center;gap:8px;font-family:var(--font-body);font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
+.account-status-dot{width:9px;height:9px;border-radius:50%;background:var(--ink-soft);flex-shrink:0;transition:background-color .2s ease;}
+.account-status-dot.ok{background:var(--ok);box-shadow:0 0 6px var(--ok);}
+.account-status-dot.err{background:var(--wax);}
+.account-status-dot.pending{background:var(--gold);animation:accountPulse 1.2s ease-in-out infinite;}
+@keyframes accountPulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 .settings-tab{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   background:rgba(255,255,255,0.32);
@@ -2033,6 +2040,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   .grid4{grid-template-columns:repeat(4,1fr);}
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -2655,6 +2665,79 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return list.map(function(c){ return CONDITION_LEGACY_MAP[c] || c; });
   }
 
+  /* ---------------- FIREBASE SYNC (cloud copy for DM viewing) ---------------- */
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAeTjlzEpkTY4wjd3PcR8pKd4nmk-R3mlw",
+    authDomain: "dndsheet-cdee8.firebaseapp.com",
+    projectId: "dndsheet-cdee8",
+    storageBucket: "dndsheet-cdee8.firebasestorage.app",
+    messagingSenderId: "914138982194",
+    appId: "1:914138982194:web:1bbd13654057099204592b"
+  };
+  var fbDb = null, fbUser = null, fbReady = false;
+  var cloudSyncTimer = null;
+
+  function setAccountStatus(kind, text){
+    var dot = document.getElementById('fbStatusDot');
+    var label = document.getElementById('fbStatusText');
+    if (dot) dot.className = 'account-status-dot' + (kind ? ' ' + kind : '');
+    if (label) label.textContent = text;
+  }
+
+  function updateAccountUidUI(){
+    var uidEl = document.getElementById('fbUidText');
+    if (uidEl) uidEl.textContent = fbUser ? fbUser.uid : '—';
+  }
+
+  function initFirebase(){
+    if (typeof firebase === 'undefined'){
+      setAccountStatus('err', 'Нет сети — облако недоступно, но лист работает как обычно');
+      return;
+    }
+    try{
+      firebase.initializeApp(FIREBASE_CONFIG);
+      var auth = firebase.auth();
+      fbDb = firebase.firestore();
+      try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
+      setAccountStatus('pending', 'Подключение…');
+      auth.onAuthStateChanged(function(user){
+        if (user){
+          fbUser = user;
+          fbReady = true;
+          updateAccountUidUI();
+          setAccountStatus('ok', 'Подключено — лист синхронизируется');
+          syncToCloud();
+        }
+      });
+      auth.signInAnonymously().catch(function(err){
+        console.warn('Firebase anonymous sign-in failed', err);
+        setAccountStatus('err', 'Не удалось подключиться к облаку');
+      });
+    }catch(e){
+      console.warn('Firebase init failed', e);
+      setAccountStatus('err', 'Не удалось подключиться к облаку');
+    }
+  }
+
+  function syncToCloud(){
+    if (!fbReady || !fbDb || !fbUser) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(function(){
+      try{
+        fbDb.collection('characters').doc(fbUser.uid).set({
+          state: state,
+          characterName: (state.meta && state.meta.name) ? state.meta.name : '',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function(){
+          setAccountStatus('ok', 'Подключено — лист синхронизируется');
+        }).catch(function(err){
+          console.warn('Cloud sync failed', err);
+          setAccountStatus('err', 'Не удалось сохранить в облако (см. консоль)');
+        });
+      }catch(e){ console.warn(e); }
+    }, 800);
+  }
+
   function loadState(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
@@ -2684,6 +2767,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       try{
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }catch(e){ console.warn('Не удалось сохранить', e); }
+      syncToCloud();
     }, 300);
   }
 
@@ -4133,6 +4217,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
   renderIconSetGrid();
   renderLangGrid();
   renderAll();
+  initFirebase();
+
+  var btnCopyUid = document.getElementById('btnCopyUid');
+  if (btnCopyUid){
+    btnCopyUid.addEventListener('click', function(){
+      var uid = fbUser ? fbUser.uid : '';
+      if (!uid) return;
+      function markCopied(){
+        btnCopyUid.classList.add('copied');
+        btnCopyUid.textContent = '✓';
+        setTimeout(function(){ btnCopyUid.classList.remove('copied'); btnCopyUid.textContent = '⧉'; }, 1500);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(uid).then(markCopied).catch(function(){ window.prompt('Скопируйте ID вручную:', uid); });
+      } else {
+        window.prompt('Скопируйте ID вручную:', uid);
+      }
+    });
+  }
 
   try{
     if (sessionStorage.getItem('dnd_just_updated') === '1'){
