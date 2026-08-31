@@ -1,10 +1,16 @@
-const CACHE_NAME = 'dnd-sheet-cache-v6';
+const CACHE_NAME = 'dnd-sheet-cache-v7';
 const ASSETS = [
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './icons/icon-maskable-512.png',
+  './dm.html',
+  './dm-manifest.json',
+  './icons-dm/icon-192.png',
+  './icons-dm/icon-512.png',
+  './icons-dm/icon-maskable-512.png',
+  './icons-dm/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', function(event){
@@ -46,6 +52,7 @@ self.addEventListener('fetch', function(event){
       return caches.match(event.request).then(function(cached){
         if (cached) return cached;
         if (event.request.mode === 'navigate'){
+          if (event.request.url.indexOf('dm.html') !== -1) return caches.match('./dm.html');
           return caches.match('./index.html');
         }
       });
