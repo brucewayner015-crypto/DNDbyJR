@@ -4217,90 +4217,26 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
   }
 
-  /* ---------------- TETRIS MUSIC (classic folk melody, synthesized chiptune-style) ---------------- */
-  var TETRIS_NOTE_FREQ = {
-    'B3':246.94,'C4':261.63,'D4':293.66,'E4':329.63,'F4':349.23,'G4':392.00,'A4':440.00,'B4':493.88,
-    'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99,'A5':880.00,'B5':987.77
-  };
-  var TETRIS_MELODY = [
-    ['E5',1],['B4',0.5],['C5',0.5],['D5',1],['C5',0.5],['B4',0.5],
-    ['A4',1],['A4',0.5],['C5',0.5],['E5',1],['D5',0.5],['C5',0.5],
-    ['B4',1.5],['C5',0.5],['D5',1],['E5',1],
-    ['C5',1],['A4',1],['A4',1],[null,1],
-    ['D5',1],['F5',0.5],['A5',1],['G5',0.5],['F5',0.5],
-    ['E5',1.5],['C5',0.5],['E5',1],['D5',0.5],['C5',0.5],
-    ['B4',1],['B4',0.5],['C5',0.5],['D5',1],['E5',1],
-    ['C5',1],['A4',1],['A4',1],[null,1]
-  ];
-  var tetrisMusicPlaying = false, tetrisMusicSchedTimer = null, tetrisMusicIdx = 0, tetrisMusicNextTime = 0;
-
-  function tetrisMusicScheduleChunk(){
-    var ctx = getSndCtx();
-    if (!ctx || !tetrisMusicPlaying) return;
-    var beatDur = 0.19;
-    while (tetrisMusicNextTime < ctx.currentTime + 1.5){
-      var note = TETRIS_MELODY[tetrisMusicIdx % TETRIS_MELODY.length];
-      var freq = note[0] ? TETRIS_NOTE_FREQ[note[0]] : null;
-      var dur = note[1] * beatDur;
-      if (freq){
-        var vol = soundSettings.tetrisMusicVol * 0.5;
-        var t0 = tetrisMusicNextTime;
-        var osc = ctx.createOscillator();
-        var gain = ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.0001, t0);
-        gain.gain.exponentialRampToValueAtTime(Math.max(vol,0.0005), t0+0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur*0.88);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(t0); osc.stop(t0+dur);
-      }
-      tetrisMusicNextTime += dur;
-      tetrisMusicIdx++;
-    }
-  }
-  function tetrisStartSynthMusic(){
-    if (!soundSettings.tetrisMusic || !soundSettings.master || tetrisMusicPlaying) return;
-    var ctx = getSndCtx();
-    if (!ctx) return;
-    tetrisMusicPlaying = true;
-    tetrisMusicIdx = 0;
-    tetrisMusicNextTime = ctx.currentTime + 0.1;
-    tetrisMusicScheduleChunk();
-    tetrisMusicSchedTimer = setInterval(tetrisMusicScheduleChunk, 700);
-  }
-  function tetrisStopSynthMusic(){
-    tetrisMusicPlaying = false;
-    clearInterval(tetrisMusicSchedTimer);
-    tetrisMusicSchedTimer = null;
-  }
-
-  var tetrisMusicFileFailed = false;
+  /* ---------------- TETRIS MUSIC (real file only) ---------------- */
   function tetrisGetMusicAudioEl(){
     return document.getElementById('tetrisMusicAudio');
   }
   function tetrisStartMusic(){
     if (!soundSettings.tetrisMusic || !soundSettings.master) return;
     var audioEl = tetrisGetMusicAudioEl();
-    if (audioEl && !tetrisMusicFileFailed){
-      audioEl.volume = soundSettings.tetrisMusicVol;
-      try{ audioEl.currentTime = 0; }catch(e){}
-      var p = audioEl.play();
-      if (p && p.catch){
-        p.catch(function(err){
-          console.warn('tetris-theme.mp3 недоступен, включаю синтезированную мелодию', err);
-          tetrisMusicFileFailed = true;
-          tetrisStartSynthMusic();
-        });
-      }
-      return;
+    if (!audioEl) return;
+    audioEl.volume = soundSettings.tetrisMusicVol;
+    try{ audioEl.currentTime = 0; }catch(e){}
+    var p = audioEl.play();
+    if (p && p.catch){
+      p.catch(function(err){
+        console.warn('tetris-theme.mp3 не удалось воспроизвести', err);
+      });
     }
-    tetrisStartSynthMusic();
   }
   function tetrisStopMusic(){
     var audioEl = tetrisGetMusicAudioEl();
     if (audioEl && !audioEl.paused) audioEl.pause();
-    tetrisStopSynthMusic();
   }
 
   function openTetris(){
@@ -5903,12 +5839,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
-  var __tetrisMusicEl = document.getElementById('tetrisMusicAudio');
-  if (__tetrisMusicEl){
-    __tetrisMusicEl.addEventListener('error', function(){
-      tetrisMusicFileFailed = true;
-    });
-  }
   initIOSInstallHint();
   bindLockButtons();
   bindCustomThemeInputs();
