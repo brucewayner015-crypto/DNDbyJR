@@ -1935,9 +1935,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .tetris-hud > div > span:last-child{
   font-family:var(--font-mono);font-weight:700;font-size:14px;color:var(--gold-bright);
 }
+.tetris-hud #tetrisNextCanvas{display:block;margin:0 auto;}
 .tetris-board-wrap{
   position:relative;
   display:flex;justify-content:center;
+  width:fit-content;
+  margin:0 auto;
   border:3px solid var(--gold);
   border-radius:var(--radius-m);
   overflow:hidden;
@@ -1999,6 +2002,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .settings-tabs-5{grid-template-columns:repeat(5,1fr);gap:5px;}
 .settings-tabs-6{grid-template-columns:repeat(6,1fr);gap:4px;}
 .settings-tabs-7{grid-template-columns:repeat(4,1fr);gap:6px;}
+.sound-vol-row{margin-bottom:10px;}
+.sound-vol-row label{
+  display:block;font-family:var(--font-body);font-size:calc(12px * var(--ui-font-scale));
+  color:var(--ink);margin-bottom:3px;
+}
+.sound-slider{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:6px;border-radius:3px;
+  background:linear-gradient(90deg, var(--gold) 0%, var(--gold) var(--fill,50%), rgba(0,0,0,0.15) var(--fill,50%), rgba(0,0,0,0.15) 100%);
+  outline:none;
+}
+.sound-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold-bright);border:2px solid var(--leather-edge);
+  cursor:pointer;
+}
+.sound-slider::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold-bright);border:2px solid var(--leather-edge);
+  cursor:pointer;
+}
 .account-status-row{display:flex;align-items:center;gap:8px;font-family:var(--font-body);font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
 .account-status-dot{width:9px;height:9px;border-radius:50%;background:var(--ink-soft);flex-shrink:0;transition:background-color .2s ease;}
 .account-status-dot.ok{background:var(--ok);box-shadow:0 0 6px var(--ok);}
@@ -2382,6 +2407,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   <div id="saveStatus"></div>
   <input type="file" id="importInput" accept="application/json">
+  <audio id="tetrisMusicAudio" src="tetris-theme.mp3" loop preload="none"></audio>
 
   <div class="pages-viewport" id="pagesViewport">
 
@@ -2656,7 +2682,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       <div><span class="tetris-hud-label">Счёт</span><span id="tetrisScore">0</span></div>
       <div><span class="tetris-hud-label">Рекорд</span><span id="tetrisBest">0</span></div>
       <div><span class="tetris-hud-label">Уровень</span><span id="tetrisLevel">1</span></div>
-      <div><span class="tetris-hud-label">Далее</span><span id="tetrisNext">—</span></div>
+      <div><span class="tetris-hud-label">Далее</span><canvas id="tetrisNextCanvas" width="40" height="40"></canvas></div>
     </div>
     <div class="tetris-board-wrap" id="tetrisBoardWrap">
       <canvas id="tetrisCanvas"></canvas>
@@ -2695,16 +2721,69 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="modal-card wide settings-modal">
     <div class="modal-icon gear-emoji-icon" id="settingsGearIcon"></div>
 
-    <div class="settings-tabs settings-tabs-6">
+    <div class="settings-tabs settings-tabs-7">
       <button class="settings-tab active" data-settings-pane="theme"><span class="settings-tab-ico">🎨</span><span data-i18n="settings.tabTheme">Тема</span></button>
       <button class="settings-tab" data-settings-pane="style"><span class="settings-tab-ico">🖼</span><span data-i18n="settings.tabStyle">Стиль</span></button>
       <button class="settings-tab" data-settings-pane="display"><span class="settings-tab-ico">🔍</span><span data-i18n="settings.tabDisplay">Экран</span></button>
       <button class="settings-tab" data-settings-pane="lang"><span class="settings-tab-ico">🌐</span><span data-i18n="settings.langTitle">Язык</span></button>
+      <button class="settings-tab" data-settings-pane="sound"><span class="settings-tab-ico">🔊</span><span>Звук</span></button>
       <button class="settings-tab" data-settings-pane="data"><span class="settings-tab-ico">💾</span><span data-i18n="settings.tabData">Данные</span></button>
       <button class="settings-tab" data-settings-pane="support"><span class="settings-tab-ico">💝</span><span data-i18n="settings.tabSupport">Донат</span></button>
     </div>
 
     <div class="settings-body">
+      <div class="settings-pane" data-pane="sound">
+        <p class="modal-text" style="margin-bottom:8px;">Звук</p>
+
+        <label class="inline-check" style="margin-bottom:10px;">
+          <input type="checkbox" id="sndMasterToggle" checked> <span>Включить звуки в приложении</span>
+        </label>
+
+        <div class="settings-divider"></div>
+
+        <p class="settings-hint" style="margin-bottom:8px;">Звуковая тема</p>
+        <div class="theme-grid" id="sndThemeGrid"></div>
+
+        <div class="settings-divider"></div>
+
+        <p class="settings-hint" style="margin-bottom:10px;">Громкость по категориям</p>
+        <div class="sound-vol-row">
+          <label for="sndVol_ui">Кнопки и вкладки</label>
+          <input type="range" min="0" max="100" id="sndVol_ui" class="sound-slider">
+        </div>
+        <div class="sound-vol-row">
+          <label for="sndVol_data">Добавление / удаление</label>
+          <input type="range" min="0" max="100" id="sndVol_data" class="sound-slider">
+        </div>
+        <div class="sound-vol-row">
+          <label for="sndVol_toggle">Переключатели</label>
+          <input type="range" min="0" max="100" id="sndVol_toggle" class="sound-slider">
+        </div>
+        <div class="sound-vol-row">
+          <label for="sndVol_modal">Окна</label>
+          <input type="range" min="0" max="100" id="sndVol_modal" class="sound-slider">
+        </div>
+        <div class="sound-vol-row">
+          <label for="sndVol_calc">Калькулятор</label>
+          <input type="range" min="0" max="100" id="sndVol_calc" class="sound-slider">
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <p class="settings-hint" style="margin-bottom:8px;">Тетрис</p>
+        <label class="inline-check" style="margin-bottom:10px;">
+          <input type="checkbox" id="sndTetrisMusicToggle" checked> <span>Музыка в игре</span>
+        </label>
+        <div class="sound-vol-row">
+          <label for="sndVol_tetrisMusic">Громкость музыки</label>
+          <input type="range" min="0" max="100" id="sndVol_tetrisMusic" class="sound-slider">
+        </div>
+        <div class="sound-vol-row">
+          <label for="sndVol_tetrisSfx">Звуки игры</label>
+          <input type="range" min="0" max="100" id="sndVol_tetrisSfx" class="sound-slider">
+        </div>
+      </div>
+
       <div class="settings-pane" data-pane="lang">
         <p class="modal-text" style="margin-bottom:8px;" data-i18n="settings.langTitle">Язык</p>
         <div class="theme-grid" id="langGrid"></div>
@@ -3210,8 +3289,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- AUTO-GROW TEXTAREAS ---------------- */
   function autoGrow(el){
-    el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    if (el.scrollHeight > el.clientHeight){
+      el.style.height = el.scrollHeight + 'px';
+    } else {
+      var minH = parseInt(getComputedStyle(el).minHeight, 10) || 60;
+      el.style.height = 'auto';
+      el.style.height = Math.max(el.scrollHeight, minH) + 'px';
+    }
   }
 
   /* ---------------- BIND SIMPLE FIELDS ---------------- */
@@ -3759,7 +3843,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   /* ---------------- TETRIS (hidden minigame) ---------------- */
   var TETRIS_COLS = 10, TETRIS_ROWS = 20, TETRIS_BLOCK = 17;
   var TETROMINO_TYPES = ['I','O','T','S','Z','J','L'];
-  var TETROMINO_COLOR_VAR = {I:'--gold-bright', O:'--gold', T:'--wax-bright', S:'--emerald-bright', Z:'--wax', J:'--parchment-2', L:'--ink-soft'};
+  var TETROMINO_COLOR_VAR = {I:'#3fd0e0', O:'#f3c93d', T:'#b565e0', S:'#4fc76b', Z:'#e0524f', J:'#4a80e8', L:'#f0954b'};
   var TETROMINO_SHAPES = {
     I: [[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
         [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],
@@ -3809,7 +3893,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return false;
   }
   function tetrisRotate(){
-    if (!tetrisState || tetrisState.over) return;
+    if (!tetrisState || tetrisState.over || tetrisState.clearing) return;
     var p = tetrisState.piece;
     var newRot = (p.rot+1) % 4;
     var kicks = [0,-1,1,-2,2];
@@ -3818,6 +3902,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (!tetrisCollide(np, tetrisState.board)){
         tetrisState.piece = np;
         tetrisDraw();
+        tetrisSfx('rotate');
         return;
       }
     }
@@ -3827,27 +3912,30 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (c.y >= 0) tetrisState.board[c.y][c.x] = tetrisState.piece.type;
     });
   }
-  function tetrisClearLines(){
-    var cleared = 0;
-    for (var r=TETRIS_ROWS-1; r>=0; r--){
-      if (tetrisState.board[r].every(function(v){ return v; })){
-        tetrisState.board.splice(r,1);
-        tetrisState.board.unshift(new Array(TETRIS_COLS).fill(0));
-        cleared++;
-        r++;
-      }
+  function tetrisFindFullRows(){
+    var rows = [];
+    for (var r=0; r<TETRIS_ROWS; r++){
+      if (tetrisState.board[r].every(function(v){ return v; })) rows.push(r);
     }
+    return rows;
+  }
+  function tetrisRemoveRows(rows){
+    var sorted = rows.slice().sort(function(a,b){ return b-a; });
+    sorted.forEach(function(r){
+      tetrisState.board.splice(r,1);
+      tetrisState.board.unshift(new Array(TETRIS_COLS).fill(0));
+    });
+    var cleared = rows.length;
     if (cleared){
       var table = [0,100,300,500,800];
       tetrisState.score += (table[cleared] || 800) * tetrisState.level;
       tetrisState.lines += cleared;
       tetrisState.level = 1 + Math.floor(tetrisState.lines/10);
       updateTetrisSpeed();
+      tetrisSfx(cleared >= 4 ? 'tetris' : ('clear'+cleared));
     }
   }
-  function tetrisLockPiece(){
-    tetrisMerge();
-    tetrisClearLines();
+  function tetrisSpawnNext(){
     tetrisState.piece = tetrisState.next;
     tetrisState.next = tetrisNewPiece();
     if (tetrisCollide(tetrisState.piece, tetrisState.board)){
@@ -3855,18 +3943,42 @@ input[type=checkbox]:active{transform:scale(0.88);}
       return;
     }
     updateTetrisHUD();
+    tetrisDraw();
+  }
+  function tetrisLockPiece(){
+    tetrisMerge();
+    var fullRows = tetrisFindFullRows();
+    tetrisDraw();
+    if (fullRows.length){
+      tetrisState.clearing = true;
+      clearInterval(tetrisTimer);
+      var blinks = 3, i = 0;
+      var flashTimer = setInterval(function(){
+        i++;
+        tetrisDraw();
+        if (i % 2 === 1) tetrisDrawFlash(fullRows);
+        if (i >= blinks*2){
+          clearInterval(flashTimer);
+          tetrisRemoveRows(fullRows);
+          tetrisState.clearing = false;
+          tetrisSpawnNext();
+        }
+      }, 80);
+    } else {
+      tetrisSpawnNext();
+    }
   }
   function tetrisTick(){
-    if (!tetrisState || tetrisState.over) return;
+    if (!tetrisState || tetrisState.over || tetrisState.clearing) return;
     if (!tetrisTryMoveSilent(0,1)) tetrisLockPiece();
-    tetrisDraw();
+    else tetrisDraw();
   }
   function tetrisHardDrop(){
-    if (!tetrisState || tetrisState.over) return;
+    if (!tetrisState || tetrisState.over || tetrisState.clearing) return;
     while (tetrisTryMoveSilent(0,1)){ tetrisState.score += 2; }
-    tetrisLockPiece();
-    tetrisDraw();
     updateTetrisHUD();
+    tetrisSfx('drop');
+    tetrisLockPiece();
   }
   function tetrisSyncScore(){
     if (!fbDb || !fbUser) return;
@@ -3883,6 +3995,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function tetrisGameOver(){
     tetrisState.over = true;
     clearInterval(tetrisTimer);
+    tetrisStopMusic();
+    tetrisSfx('gameover');
     if (tetrisState.score > tetrisBest){
       tetrisBest = tetrisState.score;
       try{ localStorage.setItem('dnd5e_tetris_best', String(tetrisBest)); }catch(e){}
@@ -3892,16 +4006,45 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var goEl = document.getElementById('tetrisGameOver');
     if (goEl) goEl.style.display = 'flex';
   }
+  function tetrisDrawNextPreview(){
+    var canvas = document.getElementById('tetrisNextCanvas');
+    if (!canvas || !tetrisState) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    var type = tetrisState.next.type;
+    var shape = TETROMINO_SHAPES[type][0];
+    var minX=4,maxX=-1,minY=4,maxY=-1;
+    for (var r=0;r<shape.length;r++){
+      for (var c=0;c<shape[r].length;c++){
+        if (shape[r][c]){
+          if (c<minX) minX=c; if (c>maxX) maxX=c;
+          if (r<minY) minY=r; if (r>maxY) maxY=r;
+        }
+      }
+    }
+    var cell = 9;
+    var w = (maxX-minX+1)*cell, h = (maxY-minY+1)*cell;
+    var offX = (W-w)/2, offY = (H-h)/2;
+    var color = TETROMINO_COLOR_VAR[type];
+    for (var r2=0;r2<shape.length;r2++){
+      for (var c2=0;c2<shape[r2].length;c2++){
+        if (shape[r2][c2]){
+          var px = offX + (c2-minX)*cell, py = offY + (r2-minY)*cell;
+          tetrisPaintBlock(ctx, px, py, cell, cell, color);
+        }
+      }
+    }
+  }
   function updateTetrisHUD(){
     if (!tetrisState) return;
     var scoreEl = document.getElementById('tetrisScore');
     var levelEl = document.getElementById('tetrisLevel');
     var bestEl = document.getElementById('tetrisBest');
-    var nextEl = document.getElementById('tetrisNext');
     if (scoreEl) scoreEl.textContent = tetrisState.score;
     if (levelEl) levelEl.textContent = tetrisState.level;
     if (bestEl) bestEl.textContent = tetrisBest;
-    if (nextEl) nextEl.textContent = tetrisState.next.type;
+    tetrisDrawNextPreview();
   }
   function updateTetrisSpeed(){
     clearInterval(tetrisTimer);
@@ -3911,16 +4054,96 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function tetrisGetColor(varName){
     return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#b9903f';
   }
+
+  var _tetrisColorCanvas = null, _tetrisColorCtx = null;
+  function tetrisParseColor(str){
+    if (!_tetrisColorCanvas){
+      _tetrisColorCanvas = document.createElement('canvas');
+      _tetrisColorCanvas.width = 1; _tetrisColorCanvas.height = 1;
+      _tetrisColorCtx = _tetrisColorCanvas.getContext('2d');
+    }
+    _tetrisColorCtx.clearRect(0,0,1,1);
+    _tetrisColorCtx.fillStyle = '#000';
+    _tetrisColorCtx.fillStyle = str;
+    _tetrisColorCtx.fillRect(0,0,1,1);
+    var d = _tetrisColorCtx.getImageData(0,0,1,1).data;
+    return {r:d[0], g:d[1], b:d[2]};
+  }
+  function tetrisShade(str, amt){
+    var c = tetrisParseColor(str);
+    var r = Math.max(0,Math.min(255, c.r + amt));
+    var g = Math.max(0,Math.min(255, c.g + amt));
+    var b = Math.max(0,Math.min(255, c.b + amt));
+    return 'rgb('+r+','+g+','+b+')';
+  }
+  function tetrisRoundRectPath(ctx, x, y, w, h, r){
+    if (ctx.roundRect){
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+  function tetrisPaintBlock(ctx, px, py, w, h, color){
+    var r = Math.max(2, Math.floor(Math.min(w,h)*0.18));
+    var grad = ctx.createLinearGradient(px, py, px+w, py+h);
+    grad.addColorStop(0, tetrisShade(color, 55));
+    grad.addColorStop(0.45, color);
+    grad.addColorStop(1, tetrisShade(color, -45));
+    ctx.save();
+    tetrisRoundRectPath(ctx, px+0.5, py+0.5, w-1, h-1, r);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.stroke();
+    ctx.save();
+    tetrisRoundRectPath(ctx, px+0.5, py+0.5, w-1, h-1, r);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px+w, py);
+    ctx.lineTo(px, py+h*0.55);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+  }
   function tetrisDrawCell(x, y, color){
     var ctx = tetrisCtx;
     var px = x*TETRIS_BLOCK, py = y*TETRIS_BLOCK;
-    ctx.fillStyle = color;
-    ctx.fillRect(px+1, py+1, TETRIS_BLOCK-2, TETRIS_BLOCK-2);
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(px+1, py+1, TETRIS_BLOCK-2, TETRIS_BLOCK-2);
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(px+2, py+2, TETRIS_BLOCK-4, 3);
+    tetrisPaintBlock(ctx, px+1, py+1, TETRIS_BLOCK-2, TETRIS_BLOCK-2, color);
+  }
+  function tetrisDrawGhostCell(x, y, color){
+    var ctx = tetrisCtx;
+    var px = x*TETRIS_BLOCK, py = y*TETRIS_BLOCK;
+    var size = TETRIS_BLOCK-2, r = Math.max(2, Math.floor(size*0.18));
+    ctx.save();
+    tetrisRoundRectPath(ctx, px+1.5, py+1.5, size-1, size-1, r);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.6;
+    ctx.globalAlpha = 0.75;
+    ctx.stroke();
+    ctx.restore();
+  }
+  function tetrisDrawFlash(rows){
+    var ctx = tetrisCtx;
+    var W = TETRIS_COLS*TETRIS_BLOCK;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,250,225,0.92)';
+    ctx.shadowColor = 'rgba(255,235,150,0.9)';
+    ctx.shadowBlur = 8;
+    rows.forEach(function(r){
+      ctx.fillRect(0, r*TETRIS_BLOCK, W, TETRIS_BLOCK);
+    });
+    ctx.restore();
   }
   function tetrisGhostY(){
     var p = tetrisState.piece;
@@ -3933,7 +4156,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var ctx = tetrisCtx;
     var W = TETRIS_COLS*TETRIS_BLOCK, H = TETRIS_ROWS*TETRIS_BLOCK;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = tetrisGetColor('--leather-edge');
+    var bgGrad = ctx.createLinearGradient(0,0,0,H);
+    bgGrad.addColorStop(0, tetrisShade(tetrisGetColor('--leather-edge'), 10));
+    bgGrad.addColorStop(1, tetrisShade(tetrisGetColor('--leather-edge'), -8));
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0,0,W,H);
     ctx.strokeStyle = 'rgba(255,255,255,0.05)';
     ctx.lineWidth = 1;
@@ -3942,17 +4168,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
     for (var y=0;y<TETRIS_ROWS;y++){
       for (var x=0;x<TETRIS_COLS;x++){
         var v = tetrisState.board[y][x];
-        if (v) tetrisDrawCell(x,y,tetrisGetColor(TETROMINO_COLOR_VAR[v]));
+        if (v) tetrisDrawCell(x,y,TETROMINO_COLOR_VAR[v]);
       }
     }
     var ghostY = tetrisGhostY();
-    ctx.globalAlpha = 0.25;
+    var pieceColor = TETROMINO_COLOR_VAR[tetrisState.piece.type];
     tetrisCellsOf({type:tetrisState.piece.type, rot:tetrisState.piece.rot, x:tetrisState.piece.x, y:ghostY}).forEach(function(c){
-      if (c.y >= 0) tetrisDrawCell(c.x, c.y, tetrisGetColor(TETROMINO_COLOR_VAR[tetrisState.piece.type]));
+      if (c.y >= 0) tetrisDrawGhostCell(c.x, c.y, pieceColor);
     });
-    ctx.globalAlpha = 1;
     tetrisCellsOf(tetrisState.piece).forEach(function(c){
-      if (c.y >= 0) tetrisDrawCell(c.x, c.y, tetrisGetColor(TETROMINO_COLOR_VAR[tetrisState.piece.type]));
+      if (c.y >= 0) tetrisDrawCell(c.x, c.y, pieceColor);
     });
   }
   function tetrisResetGame(){
@@ -3972,6 +4197,112 @@ input[type=checkbox]:active{transform:scale(0.88);}
     updateTetrisSpeed();
     tetrisDraw();
   }
+  /* ---------------- TETRIS SOUND EFFECTS ---------------- */
+  function tetrisSfx(action){
+    if (!soundSettings.master) return;
+    var vol = soundSettings.tetrisSfxVol;
+    if (!vol || vol <= 0) return;
+    var ctx = getSndCtx();
+    if (!ctx) return;
+    var dest = ctx.destination;
+    switch(action){
+      case 'move': sndTone(dest, 300, 0.03, 'square', vol*0.25); break;
+      case 'rotate': sndTone(dest, 500, 0.05, 'square', vol*0.35); break;
+      case 'drop': sndTone(dest, 120, 0.09, 'square', vol*0.5); break;
+      case 'clear1': sndTone(dest, 660, 0.09, 'square', vol*0.5); break;
+      case 'clear2': sndTone(dest,660,0.07,'square',vol*0.45); sndTone(dest,880,0.09,'square',vol*0.45,0.06); break;
+      case 'clear3': sndTone(dest,660,0.06,'square',vol*0.4); sndTone(dest,880,0.06,'square',vol*0.4,0.05); sndTone(dest,990,0.09,'square',vol*0.4,0.1); break;
+      case 'tetris': sndTone(dest,660,0.06,'square',vol*0.5); sndTone(dest,880,0.06,'square',vol*0.5,0.06); sndTone(dest,990,0.06,'square',vol*0.5,0.12); sndTone(dest,1320,0.14,'square',vol*0.55,0.18); break;
+      case 'gameover': sndTone(dest, 440, 0.15, 'sawtooth', vol*0.4, 0); sndTone(dest, 330,0.15,'sawtooth',vol*0.4,0.13); sndTone(dest,220,0.25,'sawtooth',vol*0.4,0.26); break;
+    }
+  }
+
+  /* ---------------- TETRIS MUSIC (classic folk melody, synthesized chiptune-style) ---------------- */
+  var TETRIS_NOTE_FREQ = {
+    'B3':246.94,'C4':261.63,'D4':293.66,'E4':329.63,'F4':349.23,'G4':392.00,'A4':440.00,'B4':493.88,
+    'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99,'A5':880.00,'B5':987.77
+  };
+  var TETRIS_MELODY = [
+    ['E5',1],['B4',0.5],['C5',0.5],['D5',1],['C5',0.5],['B4',0.5],
+    ['A4',1],['A4',0.5],['C5',0.5],['E5',1],['D5',0.5],['C5',0.5],
+    ['B4',1.5],['C5',0.5],['D5',1],['E5',1],
+    ['C5',1],['A4',1],['A4',1],[null,1],
+    ['D5',1],['F5',0.5],['A5',1],['G5',0.5],['F5',0.5],
+    ['E5',1.5],['C5',0.5],['E5',1],['D5',0.5],['C5',0.5],
+    ['B4',1],['B4',0.5],['C5',0.5],['D5',1],['E5',1],
+    ['C5',1],['A4',1],['A4',1],[null,1]
+  ];
+  var tetrisMusicPlaying = false, tetrisMusicSchedTimer = null, tetrisMusicIdx = 0, tetrisMusicNextTime = 0;
+
+  function tetrisMusicScheduleChunk(){
+    var ctx = getSndCtx();
+    if (!ctx || !tetrisMusicPlaying) return;
+    var beatDur = 0.19;
+    while (tetrisMusicNextTime < ctx.currentTime + 1.5){
+      var note = TETRIS_MELODY[tetrisMusicIdx % TETRIS_MELODY.length];
+      var freq = note[0] ? TETRIS_NOTE_FREQ[note[0]] : null;
+      var dur = note[1] * beatDur;
+      if (freq){
+        var vol = soundSettings.tetrisMusicVol * 0.5;
+        var t0 = tetrisMusicNextTime;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(Math.max(vol,0.0005), t0+0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur*0.88);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t0); osc.stop(t0+dur);
+      }
+      tetrisMusicNextTime += dur;
+      tetrisMusicIdx++;
+    }
+  }
+  function tetrisStartSynthMusic(){
+    if (!soundSettings.tetrisMusic || !soundSettings.master || tetrisMusicPlaying) return;
+    var ctx = getSndCtx();
+    if (!ctx) return;
+    tetrisMusicPlaying = true;
+    tetrisMusicIdx = 0;
+    tetrisMusicNextTime = ctx.currentTime + 0.1;
+    tetrisMusicScheduleChunk();
+    tetrisMusicSchedTimer = setInterval(tetrisMusicScheduleChunk, 700);
+  }
+  function tetrisStopSynthMusic(){
+    tetrisMusicPlaying = false;
+    clearInterval(tetrisMusicSchedTimer);
+    tetrisMusicSchedTimer = null;
+  }
+
+  var tetrisMusicFileFailed = false;
+  function tetrisGetMusicAudioEl(){
+    return document.getElementById('tetrisMusicAudio');
+  }
+  function tetrisStartMusic(){
+    if (!soundSettings.tetrisMusic || !soundSettings.master) return;
+    var audioEl = tetrisGetMusicAudioEl();
+    if (audioEl && !tetrisMusicFileFailed){
+      audioEl.volume = soundSettings.tetrisMusicVol;
+      try{ audioEl.currentTime = 0; }catch(e){}
+      var p = audioEl.play();
+      if (p && p.catch){
+        p.catch(function(err){
+          console.warn('tetris-theme.mp3 недоступен, включаю синтезированную мелодию', err);
+          tetrisMusicFileFailed = true;
+          tetrisStartSynthMusic();
+        });
+      }
+      return;
+    }
+    tetrisStartSynthMusic();
+  }
+  function tetrisStopMusic(){
+    var audioEl = tetrisGetMusicAudioEl();
+    if (audioEl && !audioEl.paused) audioEl.pause();
+    tetrisStopSynthMusic();
+  }
+
   function openTetris(){
     var overlay = document.getElementById('tetrisOverlay');
     if (!overlay) return;
@@ -3987,11 +4318,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
     overlay.classList.add('active');
     tetrisResetGame();
+    tetrisStartMusic();
   }
   function closeTetris(){
     var overlay = document.getElementById('tetrisOverlay');
     if (overlay) overlay.classList.remove('active');
     clearInterval(tetrisTimer);
+    tetrisStopMusic();
   }
   function tetrisLoadLeaderboard(){
     var listEl = document.getElementById('tetrisLeaderboardList');
@@ -4041,17 +4374,21 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('tetrisCloseBtn').addEventListener('click', closeTetris);
     document.getElementById('tetrisLeaderboardBtn').addEventListener('click', tetrisShowLeaderboard);
     document.getElementById('tetrisLeaderboardBack').addEventListener('click', tetrisHideLeaderboard);
-    document.getElementById('tetrisLeft').addEventListener('click', function(){ if (tetrisState && !tetrisState.over){ tetrisTryMoveSilent(-1,0); tetrisDraw(); } });
-    document.getElementById('tetrisRight').addEventListener('click', function(){ if (tetrisState && !tetrisState.over){ tetrisTryMoveSilent(1,0); tetrisDraw(); } });
+    document.getElementById('tetrisLeft').addEventListener('click', function(){ if (tetrisState && !tetrisState.over && !tetrisState.clearing){ tetrisTryMoveSilent(-1,0); tetrisDraw(); tetrisSfx('move'); } });
+    document.getElementById('tetrisRight').addEventListener('click', function(){ if (tetrisState && !tetrisState.over && !tetrisState.clearing){ tetrisTryMoveSilent(1,0); tetrisDraw(); tetrisSfx('move'); } });
     document.getElementById('tetrisRotateBtn').addEventListener('click', tetrisRotate);
     document.getElementById('tetrisDown').addEventListener('click', function(){
-      if (!tetrisState || tetrisState.over) return;
-      if (!tetrisTryMoveSilent(0,1)) tetrisLockPiece();
-      tetrisDraw();
-      updateTetrisHUD();
+      if (!tetrisState || tetrisState.over || tetrisState.clearing) return;
+      if (!tetrisTryMoveSilent(0,1)){
+        tetrisLockPiece();
+      } else {
+        tetrisDraw();
+        updateTetrisHUD();
+        tetrisSfx('move');
+      }
     });
     document.getElementById('tetrisDrop').addEventListener('click', tetrisHardDrop);
-    document.getElementById('tetrisRestart').addEventListener('click', tetrisResetGame);
+    document.getElementById('tetrisRestart').addEventListener('click', function(){ tetrisResetGame(); tetrisStartMusic(); });
 
     var canvas = document.getElementById('tetrisCanvas');
     var sx=0, sy=0, st=0;
@@ -4059,7 +4396,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now();
     }, {passive:true});
     canvas.addEventListener('touchend', function(e){
-      if (!tetrisState || tetrisState.over) return;
+      if (!tetrisState || tetrisState.over || tetrisState.clearing) return;
       var t = e.changedTouches[0];
       var dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - st;
       if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && dt < 250){
@@ -4070,6 +4407,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         var steps = Math.round(dx / TETRIS_BLOCK);
         for (var i=0; i<Math.abs(steps); i++) tetrisTryMoveSilent(steps>0?1:-1, 0);
         tetrisDraw();
+        if (steps !== 0) tetrisSfx('move');
       } else if (dy > 40){
         tetrisHardDrop();
       }
@@ -4174,6 +4512,232 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var r = gear.getBoundingClientRect();
       if (e.clientX < r.left-20 || e.clientX > r.right+20 || e.clientY < r.top-20 || e.clientY > r.bottom+20) cancelLongPress();
     });
+  }
+
+  /* ---------------- SOUND ENGINE ---------------- */
+  var SND_KEY = 'dnd5e_sound_settings';
+  var soundSettings = {
+    master: true,
+    theme: 'minimal',
+    vol: { ui:0.5, data:0.5, toggle:0.5, modal:0.5, calc:0.5 },
+    tetrisMusic: true,
+    tetrisMusicVol: 0.35,
+    tetrisSfxVol: 0.5
+  };
+  function loadSoundSettings(){
+    try{
+      var raw = localStorage.getItem(SND_KEY);
+      if (raw){
+        var d = JSON.parse(raw);
+        soundSettings.master = (typeof d.master === 'boolean') ? d.master : soundSettings.master;
+        soundSettings.theme = d.theme || soundSettings.theme;
+        soundSettings.vol = Object.assign({}, soundSettings.vol, d.vol||{});
+        soundSettings.tetrisMusic = (typeof d.tetrisMusic === 'boolean') ? d.tetrisMusic : soundSettings.tetrisMusic;
+        if (typeof d.tetrisMusicVol === 'number') soundSettings.tetrisMusicVol = d.tetrisMusicVol;
+        if (typeof d.tetrisSfxVol === 'number') soundSettings.tetrisSfxVol = d.tetrisSfxVol;
+      }
+    }catch(e){}
+  }
+  function saveSoundSettings(){
+    try{ localStorage.setItem(SND_KEY, JSON.stringify(soundSettings)); }catch(e){}
+  }
+
+  var sndCtx = null;
+  function getSndCtx(){
+    if (!sndCtx){
+      try{ sndCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; }
+    }
+    if (sndCtx.state === 'suspended'){ try{ sndCtx.resume(); }catch(e){} }
+    return sndCtx;
+  }
+
+  function sndTone(dest, freq, dur, type, vol, delay, freq2){
+    var ctx = getSndCtx();
+    if (!ctx || vol <= 0) return;
+    delay = delay || 0;
+    var t0 = ctx.currentTime + delay;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, t0+dur);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(Math.max(vol,0.0005), t0+0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain); gain.connect(dest);
+    osc.start(t0); osc.stop(t0+dur+0.03);
+  }
+
+  function sndNoise(dest, f1, f2, dur, vol, delay){
+    var ctx = getSndCtx();
+    if (!ctx || vol <= 0) return;
+    delay = delay || 0;
+    var t0 = ctx.currentTime + delay;
+    var bufSize = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    var buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i=0;i<bufSize;i++) data[i] = Math.random()*2-1;
+    var src = ctx.createBufferSource();
+    src.buffer = buffer;
+    var filt = ctx.createBiquadFilter();
+    filt.type = 'bandpass';
+    filt.frequency.value = (f1+f2)/2;
+    filt.Q.value = 0.8;
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(Math.max(vol,0.0005), t0+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    src.connect(filt); filt.connect(gain); gain.connect(dest);
+    src.start(t0);
+  }
+
+  function sndCoin(dest, vol, delay){
+    sndTone(dest, 1800, 0.18, 'sine', vol, delay);
+    sndTone(dest, 2650, 0.22, 'sine', vol*0.6, (delay||0)+0.02);
+  }
+
+  var SOUND_THEMES = {
+    minimal: {
+      name: 'Минимализм',
+      click:      function(dest,v){ sndTone(dest, 720, 0.045, 'sine', v*0.5); },
+      toggle:     function(dest,v){ sndTone(dest, 900, 0.06, 'triangle', v*0.55); },
+      add:        function(dest,v){ sndTone(dest, 650,0.05,'sine',v*0.5); sndTone(dest,980,0.06,'sine',v*0.4,0.045); },
+      remove:     function(dest,v){ sndTone(dest, 420, 0.09, 'sine', v*0.5, 0, 260); },
+      modalOpen:  function(dest,v){ sndTone(dest, 380, 0.14, 'sine', v*0.4, 0, 780); },
+      modalClose: function(dest,v){ sndTone(dest, 780, 0.11, 'sine', v*0.35, 0, 380); }
+    },
+    fantasy: {
+      name: 'Фэнтези',
+      click:      function(dest,v){ sndNoise(dest, 2800, 5200, 0.035, v*0.45); },
+      toggle:     function(dest,v){ sndCoin(dest, v*0.5); },
+      add:        function(dest,v){ sndCoin(dest, v*0.55); },
+      remove:     function(dest,v){ sndTone(dest, 150, 0.16, 'sine', v*0.5); sndNoise(dest, 200,600,0.1,v*0.25,0.02); },
+      modalOpen:  function(dest,v){ sndNoise(dest, 1200, 3200, 0.22, v*0.4); },
+      modalClose: function(dest,v){ sndNoise(dest, 900, 2400, 0.17, v*0.32); }
+    }
+  };
+  var SOUND_THEME_ORDER = ['minimal','fantasy'];
+
+  function playSound(category, action){
+    if (!soundSettings.master) return;
+    var vol = soundSettings.vol[category];
+    if (!vol || vol <= 0) return;
+    var ctx = getSndCtx();
+    if (!ctx) return;
+    var theme = SOUND_THEMES[soundSettings.theme] || SOUND_THEMES.minimal;
+    var fn = theme[action] || theme.click;
+    try{ fn(ctx.destination, vol); }catch(e){}
+  }
+
+  function renderSoundThemeGrid(){
+    var wrap = document.getElementById('sndThemeGrid');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    SOUND_THEME_ORDER.forEach(function(key){
+      var th = SOUND_THEMES[key];
+      var card = document.createElement('div');
+      card.className = 'theme-card' + (soundSettings.theme === key ? ' selected' : '');
+      card.innerHTML = '<div class="font-preview" style="font-size:13px;">'+th.name+'</div><span class="theme-name">'+th.name+'</span><div class="theme-check">✓</div>';
+      card.addEventListener('click', function(){
+        soundSettings.theme = key;
+        saveSoundSettings();
+        renderSoundThemeGrid();
+        playSound('ui','click');
+      });
+      wrap.appendChild(card);
+    });
+  }
+
+  function bindSoundSettingsUI(){
+    var master = document.getElementById('sndMasterToggle');
+    if (master){
+      master.checked = soundSettings.master;
+      master.addEventListener('change', function(){
+        soundSettings.master = master.checked;
+        saveSoundSettings();
+        if (soundSettings.master) playSound('ui','click');
+      });
+    }
+    ['ui','data','toggle','modal','calc'].forEach(function(cat){
+      var el = document.getElementById('sndVol_'+cat);
+      if (!el) return;
+      el.value = Math.round(soundSettings.vol[cat]*100);
+      el.style.setProperty('--fill', el.value+'%');
+      el.addEventListener('input', function(){
+        soundSettings.vol[cat] = el.value/100;
+        el.style.setProperty('--fill', el.value+'%');
+      });
+      el.addEventListener('change', function(){
+        saveSoundSettings();
+        playSound(cat, cat==='data'?'add':(cat==='toggle'?'toggle':(cat==='modal'?'modalOpen':'click')));
+      });
+    });
+    var tetrisMusicToggle = document.getElementById('sndTetrisMusicToggle');
+    if (tetrisMusicToggle){
+      tetrisMusicToggle.checked = soundSettings.tetrisMusic;
+      tetrisMusicToggle.addEventListener('change', function(){
+        soundSettings.tetrisMusic = tetrisMusicToggle.checked;
+        saveSoundSettings();
+        if (!soundSettings.tetrisMusic) tetrisStopMusic();
+        else if (typeof tetrisState !== 'undefined' && tetrisState && document.getElementById('tetrisOverlay').classList.contains('active')) tetrisStartMusic();
+      });
+    }
+    var musicVol = document.getElementById('sndVol_tetrisMusic');
+    if (musicVol){
+      musicVol.value = Math.round(soundSettings.tetrisMusicVol*100);
+      musicVol.style.setProperty('--fill', musicVol.value+'%');
+      musicVol.addEventListener('input', function(){
+        soundSettings.tetrisMusicVol = musicVol.value/100;
+        musicVol.style.setProperty('--fill', musicVol.value+'%');
+        var audioEl = tetrisGetMusicAudioEl();
+        if (audioEl) audioEl.volume = soundSettings.tetrisMusicVol;
+      });
+      musicVol.addEventListener('change', saveSoundSettings);
+    }
+    var sfxVol = document.getElementById('sndVol_tetrisSfx');
+    if (sfxVol){
+      sfxVol.value = Math.round(soundSettings.tetrisSfxVol*100);
+      sfxVol.style.setProperty('--fill', sfxVol.value+'%');
+      sfxVol.addEventListener('input', function(){
+        soundSettings.tetrisSfxVol = sfxVol.value/100;
+        sfxVol.style.setProperty('--fill', sfxVol.value+'%');
+      });
+      sfxVol.addEventListener('change', function(){
+        saveSoundSettings();
+        tetrisSfx('move');
+      });
+    }
+    renderSoundThemeGrid();
+  }
+
+  function bindGlobalSounds(){
+    document.addEventListener('click', function(e){
+      if (e.target.closest('#tetrisOverlay')) return; /* tetris has its own sfx */
+
+      var calcKey = e.target.closest('.calc-key');
+      if (calcKey){ playSound('calc','click'); return; }
+
+      var addBtn = e.target.closest('.add-btn');
+      if (addBtn){ playSound('data','add'); return; }
+
+      var delBtn = e.target.closest('.del-btn, #confirmDeleteBtn, .sec-btn.del');
+      if (delBtn){ playSound('data','remove'); return; }
+
+      var toggleEl = e.target.closest('.tag-toggle, .stat-row');
+      if (toggleEl){ playSound('toggle','toggle'); return; }
+
+      var closers = e.target.closest('#settingsCloseBtn, #calcCloseBtn, #confirmCancelBtn, .calc-close');
+      if (closers){ playSound('modal','modalClose'); return; }
+
+      var openers = e.target.closest('#btnSettings, #btnCalcOpen');
+      if (openers){ playSound('modal','modalOpen'); return; }
+
+      var tabBtn = e.target.closest('.tab-btn, .settings-tab, .theme-card');
+      if (tabBtn){ playSound('ui','click'); return; }
+
+      var anyBtn = e.target.closest('button');
+      if (anyBtn){ playSound('ui','click'); }
+    }, true);
   }
 
   function bindCalculator(){
@@ -5328,6 +5892,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   loadState();
   loadUiSettings();
   loadLanguage();
+  loadSoundSettings();
   if (!uiSettings.customColors) uiSettings.customColors = defaultCustomColors();
   bindSimpleFields();
   bindTabs();
@@ -5336,6 +5901,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindCalculator();
   bindTetrisControls();
   bindGearEasterEgg();
+  bindSoundSettingsUI();
+  bindGlobalSounds();
+  var __tetrisMusicEl = document.getElementById('tetrisMusicAudio');
+  if (__tetrisMusicEl){
+    __tetrisMusicEl.addEventListener('error', function(){
+      tetrisMusicFileFailed = true;
+    });
+  }
   initIOSInstallHint();
   bindLockButtons();
   bindCustomThemeInputs();
