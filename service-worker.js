@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnd-sheet-cache-v9';
+const CACHE_NAME = 'dnd-sheet-cache-v19-tetris';
 const ASSETS = [
   './index.html',
   './manifest.json',

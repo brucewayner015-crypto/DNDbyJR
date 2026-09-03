@@ -28,8 +28,9 @@
   --font-body:'Spectral', serif;
   --font-mono:'JetBrains Mono', monospace;
 }
-*{box-sizing:border-box;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;min-height:100%;}
+.char-card, .btn-back, button{touch-action:manipulation;-webkit-touch-callout:none;}
 body{
   background:
     radial-gradient(ellipse 900px 500px at 20% -10%, rgba(185,144,63,0.10), transparent 60%),
@@ -39,7 +40,7 @@ body{
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
 }
-.wrap{max-width:640px;margin:0 auto;padding:18px 16px 40px;}
+.wrap{max-width:640px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));}
 
 .dm-header{
   display:flex;align-items:center;gap:10px;margin-bottom:18px;
