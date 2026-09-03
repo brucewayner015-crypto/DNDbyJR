@@ -800,6 +800,7 @@ body{
   align-items:baseline;
   gap:10px;
   margin-bottom:10px;
+  touch-action:none;
 }
 
 .ios-install-hint{
@@ -846,12 +847,12 @@ body{
 .spine-top input.name-input:focus{outline:none;border-bottom-color:var(--gold-bright);}
 .gear-btn{
   flex-shrink:0;
-  width:32px;height:32px;
+  width:42px;height:42px;
   border-radius:50%;
   background:radial-gradient(circle at 35% 25%, var(--chrome-radial-1), var(--chrome-radial-2) 75%);
   border:1px solid var(--gold);
   color:var(--gold-bright);
-  font-size:16px;
+  font-size:21px;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
   padding:0;
@@ -1746,6 +1747,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .modal-card.wide{max-width:380px;}
 .modal-icon{font-size:28px;margin-bottom:8px;}
+.gear-emoji-icon{
+  font-size:46px;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:none;
+}
+.gear-emoji-icon::before{
+  content:"⚙";
+  pointer-events:none;
+}
 
 /* ---------- CALCULATOR (floating, resizable window) ---------- */
 .calc-float.card{
@@ -1941,6 +1953,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .tetris-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
 .tetris-drop-btn{grid-column:span 4;font-size:12px;}
+.tetris-title-btns{display:flex;gap:6px;flex-shrink:0;}
+.tetris-leaderboard-list{
+  max-height:340px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:5px;
+  padding-top:2px;
+}
+.tetris-leaderboard-row{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;
+  background:linear-gradient(180deg, var(--chrome-1), var(--chrome-2));
+  border:1px solid var(--gold);
+  border-radius:var(--radius-s);
+}
+.tetris-leaderboard-row.is-me{border-color:var(--emerald-bright);box-shadow:0 0 0 1px var(--emerald-bright);}
+.tetris-leaderboard-row .lb-rank{
+  font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--gold);
+  width:20px;flex-shrink:0;text-align:center;
+}
+.tetris-leaderboard-row .lb-name{
+  flex:1;font-family:var(--font-body);font-size:13px;color:var(--parchment);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;
+}
+.tetris-leaderboard-row .lb-score{
+  font-family:var(--font-mono);font-weight:700;font-size:13px;color:var(--gold-bright);
+  flex-shrink:0;
+}
 
 
 /* ---------- SETTINGS MODAL (tabbed) ---------- */
@@ -2609,27 +2647,35 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="modal-card wide tetris-modal">
     <h2 class="tetris-title">
       <span>🎲 Тайная игра</span>
-      <button class="h2-edit-btn" id="tetrisCloseBtn" aria-label="Закрыть" title="Закрыть">✕</button>
+      <span class="tetris-title-btns">
+        <button class="h2-edit-btn" id="tetrisLeaderboardBtn" aria-label="Таблица рекордов" title="Таблица рекордов">🏆</button>
+        <button class="h2-edit-btn" id="tetrisCloseBtn" aria-label="Закрыть" title="Закрыть">✕</button>
+      </span>
     </h2>
-    <div class="tetris-hud">
+    <div class="tetris-hud" id="tetrisHud">
       <div><span class="tetris-hud-label">Счёт</span><span id="tetrisScore">0</span></div>
       <div><span class="tetris-hud-label">Рекорд</span><span id="tetrisBest">0</span></div>
       <div><span class="tetris-hud-label">Уровень</span><span id="tetrisLevel">1</span></div>
       <div><span class="tetris-hud-label">Далее</span><span id="tetrisNext">—</span></div>
     </div>
-    <div class="tetris-board-wrap">
+    <div class="tetris-board-wrap" id="tetrisBoardWrap">
       <canvas id="tetrisCanvas"></canvas>
       <div class="tetris-gameover" id="tetrisGameOver" style="display:none;">
         <div>Игра окончена</div>
         <button class="util-btn" id="tetrisRestart">Заново</button>
       </div>
     </div>
-    <div class="tetris-controls">
+    <div class="tetris-controls" id="tetrisControls">
       <button class="calc-key" id="tetrisLeft" aria-label="Влево">◀</button>
       <button class="calc-key" id="tetrisRotateBtn" aria-label="Повернуть">⟳</button>
       <button class="calc-key" id="tetrisRight" aria-label="Вправо">▶</button>
       <button class="calc-key calc-key-eq" id="tetrisDown" aria-label="Вниз">▼</button>
       <button class="calc-key calc-key-op tetris-drop-btn" id="tetrisDrop">⤓ Бросить</button>
+    </div>
+
+    <div class="tetris-leaderboard" id="tetrisLeaderboard" style="display:none;">
+      <div class="tetris-leaderboard-list" id="tetrisLeaderboardList"></div>
+      <button class="util-btn" id="tetrisLeaderboardBack" style="width:100%;margin-top:10px;">← Назад к игре</button>
     </div>
   </div>
 </div>
@@ -2647,7 +2693,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 <div class="modal-overlay" id="settingsOverlay">
   <div class="modal-card wide settings-modal">
-    <div class="modal-icon">⚙</div>
+    <div class="modal-icon gear-emoji-icon" id="settingsGearIcon"></div>
 
     <div class="settings-tabs settings-tabs-6">
       <button class="settings-tab active" data-settings-pane="theme"><span class="settings-tab-ico">🎨</span><span data-i18n="settings.tabTheme">Тема</span></button>
@@ -3711,7 +3757,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var CALC_POS_KEY = 'dnd5e_calc_layout';
 
   /* ---------------- TETRIS (hidden minigame) ---------------- */
-  var TETRIS_COLS = 9, TETRIS_ROWS = 14, TETRIS_BLOCK = 22;
+  var TETRIS_COLS = 10, TETRIS_ROWS = 20, TETRIS_BLOCK = 17;
   var TETROMINO_TYPES = ['I','O','T','S','Z','J','L'];
   var TETROMINO_COLOR_VAR = {I:'--gold-bright', O:'--gold', T:'--wax-bright', S:'--emerald-bright', Z:'--wax', J:'--parchment-2', L:'--ink-soft'};
   var TETROMINO_SHAPES = {
@@ -3822,12 +3868,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
     tetrisDraw();
     updateTetrisHUD();
   }
+  function tetrisSyncScore(){
+    if (!fbDb || !fbUser) return;
+    var name = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
+    if (!name) name = 'Без имени';
+    try{
+      fbDb.collection('tetris_scores').doc(fbUser.uid).set({
+        name: name,
+        score: tetrisBest,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(err){ console.warn('Tetris score sync failed', err); });
+    }catch(e){ console.warn(e); }
+  }
   function tetrisGameOver(){
     tetrisState.over = true;
     clearInterval(tetrisTimer);
     if (tetrisState.score > tetrisBest){
       tetrisBest = tetrisState.score;
       try{ localStorage.setItem('dnd5e_tetris_best', String(tetrisBest)); }catch(e){}
+      tetrisSyncScore();
     }
     updateTetrisHUD();
     var goEl = document.getElementById('tetrisGameOver');
@@ -3907,6 +3966,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
     };
     var goEl = document.getElementById('tetrisGameOver');
     if (goEl) goEl.style.display = 'none';
+    var lbEl = document.getElementById('tetrisLeaderboard');
+    if (lbEl && lbEl.style.display !== 'none') tetrisHideLeaderboard();
     updateTetrisHUD();
     updateTetrisSpeed();
     tetrisDraw();
@@ -3932,8 +3993,54 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (overlay) overlay.classList.remove('active');
     clearInterval(tetrisTimer);
   }
+  function tetrisLoadLeaderboard(){
+    var listEl = document.getElementById('tetrisLeaderboardList');
+    if (!listEl) return;
+    if (!fbDb){
+      listEl.innerHTML = '<div class="calc-history-empty">Нет подключения к облаку</div>';
+      return;
+    }
+    listEl.innerHTML = '<div class="calc-history-empty">Загрузка…</div>';
+    fbDb.collection('tetris_scores').orderBy('score','desc').limit(30).get().then(function(snap){
+      if (snap.empty){
+        listEl.innerHTML = '<div class="calc-history-empty">Пока никто не играл</div>';
+        return;
+      }
+      listEl.innerHTML = '';
+      var rank = 0;
+      snap.forEach(function(doc){
+        rank++;
+        var d = doc.data();
+        var row = document.createElement('div');
+        row.className = 'tetris-leaderboard-row' + (fbUser && doc.id === fbUser.uid ? ' is-me' : '');
+        row.innerHTML = '<span class="lb-rank">'+rank+'</span><span class="lb-name">'+escAttr(d.name||'—')+'</span><span class="lb-score">'+(d.score||0)+'</span>';
+        listEl.appendChild(row);
+      });
+    }).catch(function(err){
+      console.warn('Tetris leaderboard load failed', err);
+      listEl.innerHTML = '<div class="calc-history-empty">Не удалось загрузить</div>';
+    });
+  }
+  function tetrisShowLeaderboard(){
+    document.getElementById('tetrisHud').style.display = 'none';
+    document.getElementById('tetrisBoardWrap').style.display = 'none';
+    document.getElementById('tetrisControls').style.display = 'none';
+    document.getElementById('tetrisLeaderboard').style.display = 'block';
+    clearInterval(tetrisTimer);
+    tetrisLoadLeaderboard();
+  }
+  function tetrisHideLeaderboard(){
+    document.getElementById('tetrisLeaderboard').style.display = 'none';
+    document.getElementById('tetrisHud').style.display = 'grid';
+    document.getElementById('tetrisBoardWrap').style.display = 'flex';
+    document.getElementById('tetrisControls').style.display = 'grid';
+    if (tetrisState && !tetrisState.over) updateTetrisSpeed();
+  }
+
   function bindTetrisControls(){
     document.getElementById('tetrisCloseBtn').addEventListener('click', closeTetris);
+    document.getElementById('tetrisLeaderboardBtn').addEventListener('click', tetrisShowLeaderboard);
+    document.getElementById('tetrisLeaderboardBack').addEventListener('click', tetrisHideLeaderboard);
     document.getElementById('tetrisLeft').addEventListener('click', function(){ if (tetrisState && !tetrisState.over){ tetrisTryMoveSilent(-1,0); tetrisDraw(); } });
     document.getElementById('tetrisRight').addEventListener('click', function(){ if (tetrisState && !tetrisState.over){ tetrisTryMoveSilent(1,0); tetrisDraw(); } });
     document.getElementById('tetrisRotateBtn').addEventListener('click', tetrisRotate);
@@ -3971,67 +4078,102 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- GEAR EASTER EGG (two-finger twist to open Tetris) ---------------- */
   function triggerGearEasterEgg(){
-    var gear = document.getElementById('btnSettings');
+    var gear = document.getElementById('settingsGearIcon');
+    var settingsOverlay = document.getElementById('settingsOverlay');
     if (!gear) return;
     gear.classList.add('gear-spin-away');
     setTimeout(function(){
       gear.classList.remove('gear-spin-away');
+      gear.style.transform = '';
+      if (settingsOverlay) settingsOverlay.classList.remove('active');
       openTetris();
     }, 600);
   }
+
   function bindGearEasterEgg(){
-    var gear = document.getElementById('btnSettings');
-    var header = document.querySelector('.spine-top');
-    if (!gear || !header) return;
-    var tracking = false, pivotId = null, otherId = null, lastAngle = 0, totalRotation = 0;
+    var gear = document.getElementById('settingsGearIcon');
+    var area = document.getElementById('settingsOverlay');
+    if (!gear || !area) return;
+
+    var activePointers = {};
+    var pivotId = null, otherId = null, lastAngle = 0, totalRotation = 0, tracking = false;
+    var longPressTimer = null;
 
     function dist(x1,y1,x2,y2){ return Math.hypot(x2-x1, y2-y1); }
     function gearCenter(){
       var r = gear.getBoundingClientRect();
       return { x: r.left + r.width/2, y: r.top + r.height/2 };
     }
+    function resetTracking(){
+      tracking = false;
+      pivotId = null; otherId = null; totalRotation = 0;
+      gear.style.transform = '';
+    }
 
-    header.addEventListener('touchstart', function(e){
-      if (e.touches.length !== 2){ tracking = false; gear.style.transform = ''; return; }
-      var c = gearCenter();
-      var t1 = e.touches[0], t2 = e.touches[1];
-      var d1 = dist(t1.clientX,t1.clientY,c.x,c.y);
-      var d2 = dist(t2.clientX,t2.clientY,c.x,c.y);
-      if (Math.min(d1,d2) > 55){ tracking = false; return; }
-      var pivotTouch = d1 <= d2 ? t1 : t2;
-      var otherTouch = d1 <= d2 ? t2 : t1;
-      pivotId = pivotTouch.identifier;
-      otherId = otherTouch.identifier;
-      lastAngle = Math.atan2(otherTouch.clientY - pivotTouch.clientY, otherTouch.clientX - pivotTouch.clientX);
-      totalRotation = 0;
-      tracking = true;
-    }, {passive:true});
-
-    header.addEventListener('touchmove', function(e){
-      if (!tracking) return;
-      var pivotTouch = null, otherTouch = null;
-      for (var i=0; i<e.touches.length; i++){
-        if (e.touches[i].identifier === pivotId) pivotTouch = e.touches[i];
-        if (e.touches[i].identifier === otherId) otherTouch = e.touches[i];
+    area.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'mouse') return;
+      activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var ids = Object.keys(activePointers);
+      if (ids.length === 2){
+        var c = gearCenter();
+        var p1 = activePointers[ids[0]], p2 = activePointers[ids[1]];
+        var d1 = dist(p1.x,p1.y,c.x,c.y);
+        var d2 = dist(p2.x,p2.y,c.x,c.y);
+        pivotId = d1 <= d2 ? ids[0] : ids[1];
+        otherId = d1 <= d2 ? ids[1] : ids[0];
+        var pv = activePointers[pivotId], ov = activePointers[otherId];
+        lastAngle = Math.atan2(ov.y - pv.y, ov.x - pv.x);
+        totalRotation = 0;
+        tracking = true;
+      } else if (ids.length > 2){
+        resetTracking();
       }
-      if (!pivotTouch || !otherTouch) return;
-      var angle = Math.atan2(otherTouch.clientY - pivotTouch.clientY, otherTouch.clientX - pivotTouch.clientX);
+    });
+
+    area.addEventListener('pointermove', function(e){
+      if (!(e.pointerId in activePointers)) return;
+      activePointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (!tracking) return;
+      var pv = activePointers[pivotId], ov = activePointers[otherId];
+      if (!pv || !ov) return;
+      var angle = Math.atan2(ov.y - pv.y, ov.x - pv.x);
       var delta = angle - lastAngle;
       while (delta > Math.PI) delta -= 2*Math.PI;
       while (delta < -Math.PI) delta += 2*Math.PI;
       totalRotation += delta;
       lastAngle = angle;
       gear.style.transform = 'rotate(' + (totalRotation * 180/Math.PI) + 'deg)';
-      if (Math.abs(totalRotation) >= Math.PI * 1.7){
-        tracking = false;
-        gear.style.transform = '';
+      if (Math.abs(totalRotation) >= Math.PI * 0.5){
+        resetTracking();
         triggerGearEasterEgg();
       }
-    }, {passive:true});
+    });
 
-    function endTrack(){ tracking = false; gear.style.transform = ''; }
-    header.addEventListener('touchend', endTrack, {passive:true});
-    header.addEventListener('touchcancel', endTrack, {passive:true});
+    function onPointerEnd(e){
+      delete activePointers[e.pointerId];
+      if (Object.keys(activePointers).length < 2) resetTracking();
+    }
+    area.addEventListener('pointerup', onPointerEnd);
+    area.addEventListener('pointercancel', onPointerEnd);
+    area.addEventListener('pointerleave', onPointerEnd);
+
+    /* fallback: long-press the gear icon itself with one finger for ~1.2s */
+    gear.addEventListener('pointerdown', function(e){
+      if (e.pointerType === 'mouse') return;
+      longPressTimer = setTimeout(function(){
+        longPressTimer = null;
+        resetTracking();
+        triggerGearEasterEgg();
+      }, 1200);
+    });
+    function cancelLongPress(){ if (longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; } }
+    gear.addEventListener('pointerup', cancelLongPress);
+    gear.addEventListener('pointercancel', cancelLongPress);
+    gear.addEventListener('pointermove', function(e){
+      if (!longPressTimer) return;
+      var r = gear.getBoundingClientRect();
+      if (e.clientX < r.left-20 || e.clientX > r.right+20 || e.clientY < r.top-20 || e.clientY > r.bottom+20) cancelLongPress();
+    });
   }
 
   function bindCalculator(){
