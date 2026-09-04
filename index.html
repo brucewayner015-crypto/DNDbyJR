@@ -3921,8 +3921,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
   function tetrisRemoveRows(rows){
     var sorted = rows.slice().sort(function(a,b){ return b-a; });
-    sorted.forEach(function(r){
-      tetrisState.board.splice(r,1);
+    sorted.forEach(function(r, idx){
+      tetrisState.board.splice(r + idx, 1);
       tetrisState.board.unshift(new Array(TETRIS_COLS).fill(0));
     });
     var cleared = rows.length;
