@@ -1719,13 +1719,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-  transition:opacity .22s ease, visibility 0s linear .22s, backdrop-filter .22s ease;
+  transition:opacity .2s ease, visibility 0s linear .2s;
 }
 .modal-overlay.active{
   opacity:1;
   visibility:visible;
   pointer-events:auto;
-  transition:opacity .22s ease, visibility 0s linear 0s, backdrop-filter .22s ease;
+  transition:opacity .2s ease, visibility 0s linear 0s;
 }
 .modal-card{
   background:linear-gradient(180deg, var(--parchment), var(--parchment-2));
@@ -1738,9 +1738,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   box-shadow:0 12px 30px rgba(0,0,0,0.5);
   max-height:88vh;
   overflow-y:auto;
-  transform:scale(0.9) translateY(10px);
+  transform:scale(0.96) translateY(6px);
   opacity:0;
-  transition:transform .26s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+  transition:transform .18s ease-out, opacity .18s ease;
 }
 .modal-overlay.active .modal-card{
   transform:scale(1) translateY(0);
@@ -2020,6 +2020,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-radius:6px;
   flex-shrink:0;
 }
+.chat-attach-preview{flex-direction:column;align-items:stretch;}
+.chat-attach-preview-row{display:flex;align-items:center;gap:8px;}
+.chat-upload-bar{
+  height:5px;border-radius:3px;
+  background:rgba(0,0,0,0.2);
+  overflow:hidden;
+  margin-top:6px;
+}
+.chat-upload-bar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transition:width .15s ease;
+}
 .chat-reply-preview-bar{display:none;}
 .chat-reply-preview-body{flex:1;min-width:0;}
 .chat-reply-preview-name{font-family:var(--font-display);font-weight:700;font-size:10.5px;color:var(--gold);}
@@ -2087,6 +2100,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
   display:none;
 }
 .chat-btn-badge.show{display:block;}
+
+.img-lightbox{
+  position:fixed;inset:0;
+  background:rgba(5,3,2,0.94);
+  z-index:150;
+  display:none;
+  align-items:center;justify-content:center;
+  padding:24px;
+  opacity:0;
+  transition:opacity .18s ease;
+}
+.img-lightbox.show{display:flex;opacity:1;}
+.img-lightbox img{
+  max-width:100%;max-height:100%;
+  border-radius:8px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  object-fit:contain;
+}
+.img-lightbox-close{
+  position:absolute;top:16px;right:16px;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);
+  color:#fff;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:1;
+}
 
 
 /* ---------- GEAR EASTER EGG (twist gesture) ---------- */
@@ -2886,8 +2925,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
   </div>
 
   <div class="chat-attach-preview" id="chatAttachPreview" style="display:none;">
-    <div class="chat-attach-preview-body" id="chatAttachPreviewBody"></div>
-    <button class="chat-reply-cancel" id="chatAttachCancel" aria-label="Убрать вложение">✕</button>
+    <div class="chat-attach-preview-row">
+      <div class="chat-attach-preview-body" id="chatAttachPreviewBody"></div>
+      <button class="chat-reply-cancel" id="chatAttachCancel" aria-label="Убрать вложение">✕</button>
+    </div>
+    <div class="chat-upload-bar" id="chatUploadBar" style="display:none;"><div class="chat-upload-bar-fill" id="chatUploadBarFill"></div></div>
   </div>
 
   <div class="chat-recording-bar" id="chatRecordingBar" style="display:none;">
@@ -2908,6 +2950,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="chat-resize-handle" id="chatResizeHandle" aria-hidden="true">
     <svg viewBox="0 0 20 20" width="16" height="16"><path d="M18 4L4 18M18 11L11 18M18 18L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
   </div>
+</div>
+
+<div class="img-lightbox" id="imgLightbox">
+  <button class="img-lightbox-close" id="imgLightboxClose" aria-label="Закрыть">✕</button>
+  <img id="imgLightboxImg" src="" alt="">
 </div>
 
 <div class="modal-overlay" id="tetrisOverlay">
@@ -4208,6 +4255,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (el) el.style.display = 'none';
   }
 
+  function openImgLightbox(src){
+    var box = document.getElementById('imgLightbox');
+    var img = document.getElementById('imgLightboxImg');
+    img.src = src;
+    box.style.display = 'flex';
+    void box.offsetWidth;
+    box.classList.add('show');
+  }
+  function closeImgLightbox(){
+    var box = document.getElementById('imgLightbox');
+    box.classList.remove('show');
+    setTimeout(function(){
+      if (!box.classList.contains('show')){ box.style.display = 'none'; document.getElementById('imgLightboxImg').src = ''; }
+    }, 200);
+  }
+  function bindImgLightbox(){
+    document.getElementById('imgLightboxClose').addEventListener('click', closeImgLightbox);
+    document.getElementById('imgLightbox').addEventListener('click', function(e){
+      if (e.target.id === 'imgLightbox') closeImgLightbox();
+    });
+  }
+
   function bindChatMessagesDelegation(){
     var wrap = document.getElementById('chatMessages');
     wrap.addEventListener('click', function(e){
@@ -4222,7 +4291,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var replyQuote = e.target.closest('.chat-msg-reply');
       if (replyQuote){ chatScrollToMessage(replyQuote.dataset.scrollTo); return; }
       var img = e.target.closest('.chat-msg-media img');
-      if (img){ window.open(img.src, '_blank'); return; }
+      if (img){ openImgLightbox(img.src); return; }
     });
   }
 
@@ -4284,6 +4353,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function chatRenderAttachPreview(){
     var box = document.getElementById('chatAttachPreview');
     var body = document.getElementById('chatAttachPreviewBody');
+    var barWrap = document.getElementById('chatUploadBar');
+    var barFill = document.getElementById('chatUploadBarFill');
+    if (barWrap){ barWrap.style.display = 'none'; }
+    if (barFill){ barFill.style.width = '0%'; }
     if (!chatPendingMedia){ box.style.display = 'none'; return; }
     var m = chatPendingMedia;
     var icon = m.type==='video' ? '🎬' : (m.type==='audio' ? '🎵' : '📄');
@@ -4342,7 +4415,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var CLOUDINARY_CLOUD_NAME = 'gc5h7ln0';
   var CLOUDINARY_UPLOAD_PRESET = 'Dndsheet';
 
-  function chatUploadMedia(fileOrBlob, name){
+  function chatUploadMedia(fileOrBlob, name, onProgress){
     if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'ВАШ_CLOUD_NAME'){
       return Promise.reject(new Error('Cloudinary не настроен — впишите CLOUDINARY_CLOUD_NAME и CLOUDINARY_UPLOAD_PRESET в коде'));
     }
@@ -4350,11 +4423,23 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var form = new FormData();
     form.append('file', fileOrBlob, name);
     form.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    return fetch(url, { method:'POST', body: form }).then(function(res){
-      if (!res.ok) return res.text().then(function(t){ throw new Error('Cloudinary upload failed: '+res.status+' '+t); });
-      return res.json();
-    }).then(function(data){
-      return data.secure_url;
+    return new Promise(function(resolve, reject){
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.upload.onprogress = function(e){
+        if (onProgress && e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = function(){
+        var data;
+        try{ data = JSON.parse(xhr.responseText); }catch(e){ data = null; }
+        if (xhr.status >= 200 && xhr.status < 300 && data && data.secure_url){
+          resolve(data.secure_url);
+        } else {
+          reject(new Error('Cloudinary upload failed: ' + xhr.status + ' ' + xhr.responseText));
+        }
+      };
+      xhr.onerror = function(){ reject(new Error('Сетевая ошибка при загрузке файла')); };
+      xhr.send(form);
     });
   }
 
@@ -4396,14 +4481,21 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
 
     if (chatPendingMedia){
-      chatUploadMedia(chatPendingMedia.file, chatPendingMedia.name).then(function(url){
+      var barWrap = document.getElementById('chatUploadBar');
+      var barFill = document.getElementById('chatUploadBarFill');
+      if (barWrap){ barWrap.style.display = 'block'; barFill.style.width = '0%'; }
+      chatUploadMedia(chatPendingMedia.file, chatPendingMedia.name, function(pct){
+        if (barFill) barFill.style.width = pct + '%';
+      }).then(function(url){
         payload.mediaUrl = url;
         payload.mediaType = chatPendingMedia.type;
         payload.mediaName = chatPendingMedia.name;
+        if (barWrap) barWrap.style.display = 'none';
         finalize();
       }).catch(function(err){
         console.warn('chat upload failed', err);
         sendBtn.disabled = false;
+        if (barWrap) barWrap.style.display = 'none';
         alert('Не удалось загрузить файл: ' + (err && err.message ? err.message : err));
       });
     } else {
@@ -6523,6 +6615,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindCalculator();
   bindTetrisControls();
   bindChatUI();
+  bindImgLightbox();
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
