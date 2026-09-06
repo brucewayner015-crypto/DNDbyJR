@@ -3527,7 +3527,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-1';
+  var APP_VERSION = '2026.09.07-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4930,6 +4930,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (chatCurrentThread.type === 'dm'){
       payload.threadId = chatCurrentThread.threadId;
       payload.recipientId = chatCurrentThread.recipientId;
+      payload.participants = [fbUser.uid, chatCurrentThread.recipientId];
     }
 
     var sendBtn = document.getElementById('chatSendMicBtn');
@@ -5017,13 +5018,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
     chatCloseListUIOnly();
     appCloseModal();
   }
+  var chatConvListRenderId = 0;
   function chatRenderConvList(){
     var wrap = document.getElementById('chatConvList');
+    var myRenderId = ++chatConvListRenderId;
     if (!fbDb || !fbUser){
       wrap.innerHTML = '<div class="chat-gallery-empty">Подключение к облаку…</div>';
       return;
     }
-    wrap.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
+    if (!wrap.querySelector('.chat-list-item')){
+      wrap.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
+    }
 
     var entries = [{type:'group', uid:null, name:'Общий чат'}].concat(
       chatKnownPlayers.filter(function(p){ return !fbUser || p.uid !== fbUser.uid; })
@@ -5043,6 +5048,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
 
     Promise.all(lookups).then(function(results){
+      if (myRenderId !== chatConvListRenderId) return;
       wrap.innerHTML = '';
       results.forEach(function(r){
         var item = document.createElement('div');
