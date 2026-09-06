@@ -831,24 +831,6 @@ body{
   display:flex;align-items:center;justify-content:center;
   padding:0;
 }
-.avatar-btn{
-  flex-shrink:0;
-  width:38px;height:38px;border-radius:50%;
-  background:radial-gradient(circle at 35% 25%, var(--chrome-radial-1), var(--chrome-radial-2) 75%);
-  border:1px solid var(--gold);
-  padding:0;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;position:relative;
-}
-.avatar-btn:active{transform:scale(0.92);}
-.avatar-btn-img{
-  position:absolute;inset:0;
-  background-size:cover;background-position:center;
-  display:none;
-}
-.avatar-btn-img.show{display:block;}
-.avatar-btn-fallback{font-size:16px;color:var(--gold-bright);}
-.avatar-btn-img.show + .avatar-btn-fallback{display:none;}
 .spine-top input.name-input{
   font-family:var(--font-deco);
   font-size:calc(22px * var(--ui-font-scale));
@@ -1928,12 +1910,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   z-index:120;
   display:flex;
   flex-direction:column;
-  /* Lightened vs. the app's base leather background so message bubbles and
-     their text stay easy to read — a pure near-black background made the
-     translucent "is-me" bubbles below almost illegible. */
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.06), transparent 60%),
-    linear-gradient(180deg, var(--leather-2), var(--chrome-1) 60%, var(--leather-1));
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.03), transparent 60%),
+    linear-gradient(180deg, var(--leather-1), var(--leather-2) 60%, var(--leather-edge));
 }
 .chat-header{
   flex:0 0 auto;
@@ -1989,42 +1968,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
   flex:0 0 auto;
   padding:7px 10px 6px;
   border-radius:10px;
-  background:linear-gradient(180deg, var(--parchment), var(--parchment-2));
+  background:#f3e9d2;
   border:1px solid var(--parchment-shadow);
   max-width:82%;
   min-width:0;
   align-self:flex-start;
   box-shadow:0 2px 6px rgba(0,0,0,0.25);
-  /* Long-pressing message text was triggering Android's native text
-     selection + "Search the web" popup. Messages have their own reply/copy
-     affordances, so we don't need free-text selection here. */
-  -webkit-touch-callout:none;
   -webkit-user-select:none;
   user-select:none;
-}
-.chat-list-item, .chat-list-item *{
   -webkit-touch-callout:none;
-  -webkit-user-select:none;
-  user-select:none;
+  touch-action:pan-y;
 }
 .chat-msg.is-me{
   align-self:flex-end;
-  /* Opaque and light (not the old translucent gold-over-dark-background),
-     so the dark ink text stays readable regardless of what's behind it. */
-  background:linear-gradient(180deg, #f6e7bf, #ecd89e);
-  border-color:var(--gold-bright);
+  background:#f6dfa3;
+  border-color:var(--gold);
 }
-.chat-msg-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:2px;}
-.chat-msg-avatar{
-  flex-shrink:0;width:18px;height:18px;border-radius:50%;
-  background-size:cover;background-position:center;
-  border:1px solid var(--parchment-shadow);
-}
-.chat-msg-name{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:var(--gold);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat-msg-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px;}
+.chat-msg-name{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:#8a6218;}
 .chat-msg.is-me .chat-msg-name{display:none;}
-.chat-msg-time{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-soft);opacity:0.7;flex-shrink:0;white-space:nowrap;}
-.chat-msg-time .chat-sent-check{margin-left:3px;color:var(--emerald);}
-.chat-msg-text{font-family:var(--font-body);font-size:13.5px;color:var(--ink);line-height:1.4;white-space:pre-wrap;word-break:break-word;}
+.chat-msg-time{font-family:var(--font-mono);font-size:9.5px;color:#6b5a3e;opacity:0.75;flex-shrink:0;white-space:nowrap;}
+.chat-msg-time .chat-sent-check{margin-left:3px;color:#2c6e4f;}
+.chat-msg-text{font-family:var(--font-body);font-size:13.5px;color:#2c2011;line-height:1.4;white-space:pre-wrap;word-break:break-word;}
 .chat-mention{color:var(--wax);font-weight:700;}
 .chat-msg-reply{
   display:block;
@@ -2036,18 +2001,52 @@ input[type=checkbox]:active{transform:scale(0.88);}
   cursor:pointer;
   font-size:11px;
 }
-.chat-msg-reply .r-name{font-weight:700;color:var(--gold);display:block;font-size:10px;}
-.chat-msg-reply .r-text{color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+.chat-msg-reply .r-name{font-weight:700;color:#8a6218;display:block;font-size:10px;}
+.chat-msg-reply .r-text{color:#6b5a3e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
 .chat-msg.flash-highlight{animation:chatFlash 1.1s ease;}
 @keyframes chatFlash{0%,100%{box-shadow:0 2px 6px rgba(0,0,0,0.25);}30%{box-shadow:0 0 0 3px var(--gold-bright);}}
 .chat-msg-footer{display:flex;justify-content:flex-end;margin-top:2px;}
 .chat-msg-reply-btn{
-  background:none;border:none;color:var(--ink-soft);font-size:11.5px;cursor:pointer;padding:3px 5px;opacity:0.6;
+  background:none;border:none;color:#6b5a3e;font-size:11.5px;cursor:pointer;padding:3px 5px;opacity:0.7;
 }
 .chat-msg-media{margin-top:5px;max-width:230px;}
 .chat-msg-media img{max-width:100%;max-height:200px;width:auto;height:auto;border-radius:8px;display:block;cursor:pointer;border:1px solid var(--parchment-shadow);}
 .chat-msg-media video{max-width:100%;max-height:200px;border-radius:8px;display:block;}
-.chat-msg-media audio{width:100%;max-width:230px;height:34px;}
+.chat-audio-player{
+  display:flex;align-items:center;gap:8px;
+  margin-top:5px;
+  padding:6px 10px 6px 6px;
+  background:rgba(0,0,0,0.08);
+  border-radius:18px;
+  max-width:230px;
+}
+.chat-audio-play{
+  flex-shrink:0;
+  width:30px;height:30px;border-radius:50%;
+  border:none;
+  background:#b9903f;
+  color:#fff;
+  font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+  padding-left:2px;
+}
+.chat-audio-play.playing{padding-left:0;}
+.chat-audio-track{
+  flex:1;height:4px;border-radius:2px;
+  background:rgba(0,0,0,0.18);
+  position:relative;
+  cursor:pointer;
+}
+.chat-audio-fill{
+  position:absolute;top:0;left:0;height:100%;width:0%;
+  background:#8a6218;
+  border-radius:2px;
+}
+.chat-audio-time{
+  flex-shrink:0;
+  font-family:var(--font-mono);font-size:10.5px;color:#6b5a3e;
+}
 .chat-file-chip{
   display:flex;align-items:center;gap:6px;
   padding:7px 10px;
@@ -2185,13 +2184,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .chat-list-avatar{
   flex-shrink:0;
   width:44px;height:44px;border-radius:50%;
-  background-color:var(--leather-2);
-  background-image:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
-  background-size:cover;background-position:center;
+  background:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
   border:2px solid var(--gold);
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--gold-bright);
+  overflow:hidden;
 }
+.chat-list-avatar img{width:100%;height:100%;object-fit:cover;}
+.chat-my-avatar-btn{
+  flex-shrink:0;
+  width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
+  border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  cursor:pointer;padding:0;
+  font-size:17px;
+}
+.chat-my-avatar-btn img{width:100%;height:100%;object-fit:cover;}
 .chat-list-body{flex:1;min-width:0;}
 .chat-list-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--parchment);}
 .chat-list-preview{font-size:12px;color:var(--parchment);opacity:0.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
@@ -2746,11 +2756,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   <header class="spine">
     <div class="spine-top">
-      <button class="avatar-btn" id="btnAvatarPick" aria-label="Аватар" title="Выбрать аватар" type="button">
-        <span class="avatar-btn-img" id="avatarBtnImg"></span>
-        <span class="avatar-btn-fallback" id="avatarBtnFallback">👤</span>
-      </button>
-      <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
       <input class="name-input" id="f_name" placeholder="Имя персонажа" data-i18n-ph="ph.name" data-field="meta.name">
       <button class="gear-btn" id="btnChatOpen" aria-label="Чат" title="Чат">💬<span class="chat-btn-badge" id="chatBadge"></span></button>
       <button class="gear-btn" id="btnCalcOpen" aria-label="Калькулятор" data-i18n-title="calc.title" title="Калькулятор">🧮</button>
@@ -3057,6 +3062,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
     <div class="chat-header-title">
       <span class="chat-header-name">💬 Чаты</span>
     </div>
+    <button class="chat-my-avatar-btn" id="chatMyAvatarBtn" aria-label="Моя аватарка" title="Изменить аватарку">
+      <span id="chatMyAvatarPreview">👤</span>
+    </button>
+    <input type="file" id="chatAvatarFileInput" accept="image/*" style="display:none;">
   </div>
   <div class="chat-list" id="chatConvList"></div>
 </div>
@@ -3518,7 +3527,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.06-4';
+  var APP_VERSION = '2026.09.07-1';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -3532,7 +3541,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var slots = [];
     for (var i=1;i<=9;i++){ slots.push({total:0,cur:0}); }
     return {
-      meta:{name:'',klass:'',level:1,race:'',background:'',alignment:'',player:'',xp:0,avatarUrl:''},
+      meta:{name:'',klass:'',level:1,race:'',background:'',alignment:'',player:'',xp:0},
       abilities: abilities,
       inspiration:false,
       saves: saves,
@@ -3641,7 +3650,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
         fbDb.collection('characters').doc(fbUser.uid).set({
           state: state,
           characterName: (state.meta && state.meta.name) ? state.meta.name : '',
-          avatarUrl: (state.meta && state.meta.avatarUrl) ? state.meta.avatarUrl : '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(function(){
           setAccountStatus('ok', 'Подключено — лист синхронизируется');
@@ -4278,13 +4286,41 @@ input[type=checkbox]:active{transform:scale(0.88);}
     calcRender();
   }
 
+  /* ---------------- BACK-BUTTON HANDLING (Android hardware/gesture back closes overlays, not the app) ---------------- */
+  var appModalStack = [];
+  var appBackInternal = false;
+
+  function appPushHistory(){
+    history.pushState({appModalMarker:true, t:Date.now()}, '', location.href);
+  }
+  function appPopHistory(){
+    appBackInternal = true;
+    history.back();
+  }
+  function appOpenModal(closeUIOnlyFn){
+    appModalStack.push({closeUIOnly: closeUIOnlyFn});
+    appPushHistory();
+  }
+  function appCloseModal(){
+    if (appModalStack.length){
+      appModalStack.pop();
+      appPopHistory();
+    }
+  }
+  window.addEventListener('popstate', function(){
+    if (appBackInternal){ appBackInternal = false; return; }
+    if (appModalStack.length){
+      var top = appModalStack.pop();
+      top.closeUIOnly();
+    }
+  });
+
   var CALC_MIN_SCALE = 0.45, CALC_MAX_SCALE = 1.9, CALC_BASE_WIDTH = 300;
 
   /* ---------------- CHAT (full-screen, WhatsApp-style: list + group + DMs) ---------------- */
   var chatUnsubscribe = null;
-  var chatKnownPlayers = []; // [{uid, name, avatarUrl}]
+  var chatKnownPlayers = []; // [{uid, name}]
   var chatNameByUid = {};
-  var chatAvatarByUid = {};
   var chatReplyTarget = null;
   var chatPendingMedia = null;
   var chatMediaRecorder = null, chatRecordedChunks = [], chatRecordingStartTime = 0, chatRecordingTimer = null;
@@ -4306,15 +4342,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return fbDb.collection('characters').get().then(function(snap){
       chatKnownPlayers = [];
       chatNameByUid = {};
-      chatAvatarByUid = {};
       snap.forEach(function(doc){
         var d = doc.data();
         var n = (d.characterName || '').trim();
         if (!n) return;
-        var avatarUrl = d.avatarUrl || '';
-        chatKnownPlayers.push({uid: doc.id, name: n, avatarUrl: avatarUrl});
+        chatKnownPlayers.push({uid: doc.id, name: n, avatarUrl: d.avatarUrl || null});
         chatNameByUid[doc.id] = n;
-        if (avatarUrl) chatAvatarByUid[doc.id] = avatarUrl;
       });
     }).catch(function(){});
   }
@@ -4372,7 +4405,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
       return '<div class="chat-msg-media" data-media-type="video"><video src="'+escAttr(d.mediaUrl)+'" preload="metadata"></video></div>';
     }
     if (d.mediaType === 'audio'){
-      return '<div class="chat-msg-media"><audio src="'+escAttr(d.mediaUrl)+'" controls></audio></div>';
+      return '<div class="chat-audio-player" data-src="'+escAttr(d.mediaUrl)+'">' +
+        '<button class="chat-audio-play" aria-label="Играть">▶</button>' +
+        '<div class="chat-audio-track"><div class="chat-audio-fill"></div></div>' +
+        '<span class="chat-audio-time">0:00</span>' +
+      '</div>';
     }
     return '<div class="chat-msg-media"><a class="chat-file-chip" href="'+escAttr(d.mediaUrl)+'" target="_blank" rel="noopener"><span class="fc-icon">📄</span><span class="fc-name">'+escAttr(d.mediaName||'файл')+'</span></a></div>';
   }
@@ -4392,10 +4429,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         '<span class="r-name">'+escAttr(d.replyToName||'—')+'</span>' +
         '<span class="r-text">'+escAttr(d.replyToText||'медиа')+'</span></div>';
     }
-    var avatarUrl = !isMe ? chatAvatarByUid[d.senderId] : '';
-    html += '<div class="chat-msg-head">' +
-      (avatarUrl ? '<span class="chat-msg-avatar" style="background-image:url(\''+escAttr(avatarUrl)+'\')"></span>' : '') +
-      '<span class="chat-msg-name">'+escAttr(d.senderName||'—')+'</span></div>';
+    html += '<div class="chat-msg-head"><span class="chat-msg-name">'+escAttr(d.senderName||'—')+'</span></div>';
     if (d.text) html += '<div class="chat-msg-text">'+chatFormatText(d.text)+'</div>';
     if (d.mediaUrl) html += chatBuildMediaHtml(d);
     html += '<div class="chat-msg-footer">' +
@@ -4430,46 +4464,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
     batch.commit().catch(function(err){ console.warn('mark read failed', err); });
   }
 
-  // Rebuilds the whole message list from chatMsgData, sorted by createdAt.
-  // We can't rely on the Firestore query itself to hand us messages in order
-  // (DM queries deliberately skip `orderBy` to avoid needing a composite
-  // index — see chatOpenThread), so we sort client-side every time instead.
-  function chatRerenderMessages(){
-    var wrap = document.getElementById('chatMessages');
-    if (!wrap) return;
-    var ids = Object.keys(chatMsgData);
-    if (!ids.length){
-      wrap.innerHTML = '<div class="chat-empty">Пока никто не писал. Начните разговор!</div>';
-      chatMsgElements = {};
-      chatLastDateKey = null;
-      return;
-    }
-    ids.sort(function(a,b){
-      var da = chatMsgData[a].createdAt, db = chatMsgData[b].createdAt;
-      var ta = (da && da.toMillis) ? da.toMillis() : Infinity;
-      var tb = (db && db.toMillis) ? db.toMillis() : Infinity;
-      if (ta !== tb) return ta - tb;
-      return a < b ? -1 : (a > b ? 1 : 0);
-    });
-    wrap.innerHTML = '';
-    chatMsgElements = {};
-    chatLastDateKey = null;
-    ids.forEach(function(id){
-      var data = chatMsgData[id];
-      var dateKey = chatDateKey(data.createdAt);
-      if (dateKey && dateKey !== chatLastDateKey){
-        var sep = document.createElement('div');
-        sep.className = 'chat-date-sep';
-        sep.textContent = chatDateLabel(data.createdAt);
-        wrap.appendChild(sep);
-        chatLastDateKey = dateKey;
-      }
-      var el = chatBuildMessageEl(id, data);
-      wrap.appendChild(el);
-      chatMsgElements[id] = el;
-    });
-  }
-
   function chatApplySnapshot(snap){
     var wrap = document.getElementById('chatMessages');
     if (!wrap) return;
@@ -4480,16 +4474,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
     snap.docChanges().forEach(function(change){
       var id = change.doc.id;
       if (change.type === 'removed'){
+        var existing = chatMsgElements[id];
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+        delete chatMsgElements[id];
         delete chatMsgData[id];
         return;
       }
       var data = change.doc.data();
-      var isNewFromOther = !chatMsgData[id] && change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid);
-      if (isNewFromOther) receivedFromOther = true;
       chatMsgData[id] = data;
+      var el = chatBuildMessageEl(id, data);
+
+      if (change.type === 'modified' && chatMsgElements[id] && chatMsgElements[id].parentNode){
+        chatMsgElements[id].parentNode.replaceChild(el, chatMsgElements[id]);
+        chatMsgElements[id] = el;
+        return;
+      }
+      if (chatMsgElements[id]) return;
+
+      var dateKey = chatDateKey(data.createdAt);
+      if (dateKey && dateKey !== chatLastDateKey){
+        var sep = document.createElement('div');
+        sep.className = 'chat-date-sep';
+        sep.textContent = chatDateLabel(data.createdAt);
+        wrap.appendChild(sep);
+        chatLastDateKey = dateKey;
+      }
+      wrap.appendChild(el);
+      chatMsgElements[id] = el;
+      if (change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid)) receivedFromOther = true;
     });
 
-    chatRerenderMessages();
+    var emptyEl = wrap.querySelector('.chat-empty');
+    var hasMessages = Object.keys(chatMsgElements).length > 0;
+    if (!hasMessages && !emptyEl){
+      wrap.innerHTML = '<div class="chat-empty">Пока никто не писал. Начните разговор!</div>';
+    } else if (hasMessages && emptyEl){
+      emptyEl.remove();
+    }
 
     if (wasAtBottom || !chatIsOpen){
       wrap.scrollTop = wrap.scrollHeight;
@@ -4549,6 +4570,57 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('chatSeenPopup').style.display = 'none';
   }
 
+  var chatActiveAudio = null, chatActiveAudioBtn = null;
+  function chatFormatAudioTime(sec){
+    sec = Math.floor(sec||0);
+    var m = Math.floor(sec/60), s = sec%60;
+    return m+':'+(s<10?'0':'')+s;
+  }
+  function chatStopActiveAudio(){
+    if (chatActiveAudio){ chatActiveAudio.pause(); }
+    if (chatActiveAudioBtn){ chatActiveAudioBtn.textContent = '▶'; chatActiveAudioBtn.classList.remove('playing'); }
+    chatActiveAudio = null; chatActiveAudioBtn = null;
+  }
+  function chatToggleAudio(playerEl){
+    var btn = playerEl.querySelector('.chat-audio-play');
+    var fill = playerEl.querySelector('.chat-audio-fill');
+    var timeEl = playerEl.querySelector('.chat-audio-time');
+    var src = playerEl.dataset.src;
+
+    if (chatActiveAudioBtn === btn){
+      if (chatActiveAudio.paused){ chatActiveAudio.play(); btn.textContent = '⏸'; btn.classList.add('playing'); }
+      else { chatActiveAudio.pause(); btn.textContent = '▶'; btn.classList.remove('playing'); }
+      return;
+    }
+
+    chatStopActiveAudio();
+    chatActiveAudio = new Audio(src);
+    chatActiveAudioBtn = btn;
+    btn.textContent = '⏸';
+    btn.classList.add('playing');
+
+    chatActiveAudio.addEventListener('timeupdate', function(){
+      if (chatActiveAudio.duration) fill.style.width = (chatActiveAudio.currentTime/chatActiveAudio.duration*100) + '%';
+      timeEl.textContent = chatFormatAudioTime(chatActiveAudio.currentTime);
+    });
+    chatActiveAudio.addEventListener('loadedmetadata', function(){
+      timeEl.textContent = chatFormatAudioTime(chatActiveAudio.duration);
+    });
+    chatActiveAudio.addEventListener('ended', function(){
+      btn.textContent = '▶'; btn.classList.remove('playing');
+      fill.style.width = '0%';
+      chatActiveAudio = null; chatActiveAudioBtn = null;
+    });
+    chatActiveAudio.play().catch(function(err){ console.warn('audio play failed', err); });
+  }
+  function chatSeekAudio(playerEl, clientX){
+    if (chatActiveAudioBtn !== playerEl.querySelector('.chat-audio-play') || !chatActiveAudio) return;
+    var track = playerEl.querySelector('.chat-audio-track');
+    var rect = track.getBoundingClientRect();
+    var pct = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    if (chatActiveAudio.duration) chatActiveAudio.currentTime = pct * chatActiveAudio.duration;
+  }
+
   function bindChatMessagesDelegation(){
     var wrap = document.getElementById('chatMessages');
     wrap.addEventListener('click', function(e){
@@ -4569,6 +4641,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (srcEl) openLightboxMedia(srcEl.src || srcEl.currentSrc, type);
         return;
       }
+      var audioPlay = e.target.closest('.chat-audio-play');
+      if (audioPlay){ chatToggleAudio(audioPlay.closest('.chat-audio-player')); return; }
+      var audioTrack = e.target.closest('.chat-audio-track');
+      if (audioTrack){ chatSeekAudio(audioTrack.closest('.chat-audio-player'), e.clientX); return; }
     });
 
     var longPressTimer = null, longPressEl = null;
@@ -4607,8 +4683,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
     box.style.display = 'flex';
     void box.offsetWidth;
     box.classList.add('show');
+    appOpenModal(closeImgLightboxUIOnly);
   }
-  function closeImgLightbox(){
+  function closeImgLightboxUIOnly(){
     var box = document.getElementById('imgLightbox');
     var vid = document.getElementById('imgLightboxVideo');
     box.classList.remove('show');
@@ -4621,6 +4698,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }
     }, 200);
   }
+  function closeImgLightbox(){
+    closeImgLightboxUIOnly();
+    appCloseModal();
+  }
   function bindImgLightbox(){
     document.getElementById('imgLightboxClose').addEventListener('click', closeImgLightbox);
     document.getElementById('imgLightbox').addEventListener('click', function(e){
@@ -4629,30 +4710,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---- media gallery ---- */
+  function chatCloseGalleryUIOnly(){
+    document.getElementById('chatGalleryScreen').style.display = 'none';
+  }
+  function chatCloseGallery(){
+    chatCloseGalleryUIOnly();
+    appCloseModal();
+  }
   function chatOpenGallery(){
     var screen = document.getElementById('chatGalleryScreen');
     var grid = document.getElementById('chatGalleryGrid');
     grid.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
     screen.style.display = 'flex';
+    appOpenModal(chatCloseGalleryUIOnly);
     var col = chatCollectionFor(chatCurrentThread);
-    // Same composite-index caveat as chatOpenThread — for DMs we skip
-    // orderBy and sort the results ourselves after fetching.
-    var query = chatCurrentThread.type === 'dm'
-      ? fbDb.collection(col).where('threadId','==',chatCurrentThread.threadId).limit(300)
-      : fbDb.collection(col).orderBy('createdAt','desc').limit(300);
+    var query = fbDb.collection(col).orderBy('createdAt','desc').limit(300);
+    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
     query.get().then(function(snap){
       var items = [];
       snap.forEach(function(doc){
         var d = doc.data();
         if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) items.push(d);
       });
-      if (chatCurrentThread.type === 'dm'){
-        items.sort(function(a,b){
-          var ta = (a.createdAt && a.createdAt.toMillis) ? a.createdAt.toMillis() : 0;
-          var tb = (b.createdAt && b.createdAt.toMillis) ? b.createdAt.toMillis() : 0;
-          return tb - ta;
-        });
-      }
       if (!items.length){ grid.innerHTML = '<div class="chat-gallery-empty">Медиа пока нет</div>'; return; }
       grid.innerHTML = '';
       items.forEach(function(d){
@@ -4828,45 +4907,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
-  /* ---- avatar picker ---- */
-  function refreshAvatarButton(){
-    var img = document.getElementById('avatarBtnImg');
-    if (!img) return;
-    var url = (state.meta && state.meta.avatarUrl) ? state.meta.avatarUrl : '';
-    if (url){
-      img.style.backgroundImage = 'url("'+url+'")';
-      img.classList.add('show');
-    } else {
-      img.style.backgroundImage = '';
-      img.classList.remove('show');
-    }
-  }
-  function bindAvatarPicker(){
-    var btn = document.getElementById('btnAvatarPick');
-    var fileInput = document.getElementById('avatarFileInput');
-    if (!btn || !fileInput) return;
-    btn.addEventListener('click', function(){ fileInput.click(); });
-    fileInput.addEventListener('change', function(e){
-      var file = e.target.files && e.target.files[0];
-      if (!file) return;
-      var prevLabel = btn.querySelector('.avatar-btn-fallback');
-      var prevText = prevLabel ? prevLabel.textContent : '';
-      if (prevLabel) prevLabel.textContent = '…';
-      chatUploadMedia(file, file.name, function(){}).then(function(url){
-        state.meta.avatarUrl = url;
-        refreshAvatarButton();
-        saveState();
-        if (prevLabel) prevLabel.textContent = prevText;
-        fileInput.value = '';
-      }).catch(function(err){
-        console.warn('avatar upload failed', err);
-        alert('Не удалось загрузить аватар: ' + (err && err.message ? err.message : err));
-        if (prevLabel) prevLabel.textContent = prevText;
-        fileInput.value = '';
-      });
-    });
-  }
-
   function chatSendMessage(){
     var input = document.getElementById('chatInput');
     var text = input.value.trim();
@@ -4935,13 +4975,47 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---- conversation list ---- */
+  function chatLoadMyAvatar(){
+    var preview = document.getElementById('chatMyAvatarPreview');
+    if (!fbDb || !fbUser || !preview) return;
+    fbDb.collection('characters').doc(fbUser.uid).get().then(function(doc){
+      var url = doc.exists ? doc.data().avatarUrl : null;
+      preview.innerHTML = url ? '<img src="'+escAttr(url)+'">' : '👤';
+    }).catch(function(){});
+  }
+  function chatPickAvatar(){ document.getElementById('chatAvatarFileInput').click(); }
+  function chatHandleAvatarSelected(e){
+    var file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !fbDb || !fbUser) return;
+    if (file.type.indexOf('image/') !== 0){ alert('Выберите картинку.'); return; }
+    var preview = document.getElementById('chatMyAvatarPreview');
+    preview.innerHTML = '⏳';
+    chatUploadMedia(file, file.name).then(function(url){
+      return fbDb.collection('characters').doc(fbUser.uid).set({avatarUrl: url}, {merge:true});
+    }).then(function(){
+      chatLoadMyAvatar();
+      chatLoadKnownPlayers().then(chatRenderConvList);
+    }).catch(function(err){
+      console.warn('avatar upload failed', err);
+      alert('Не удалось загрузить аватарку: ' + (err && err.message ? err.message : err));
+      chatLoadMyAvatar();
+    });
+  }
+
   function chatOpenList(){
     document.getElementById('chatListScreen').style.display = 'flex';
     chatMarkAllRead();
+    chatLoadMyAvatar();
     chatLoadKnownPlayers().then(chatRenderConvList);
+    appOpenModal(chatCloseListUIOnly);
+  }
+  function chatCloseListUIOnly(){
+    document.getElementById('chatListScreen').style.display = 'none';
   }
   function chatCloseList(){
-    document.getElementById('chatListScreen').style.display = 'none';
+    chatCloseListUIOnly();
+    appCloseModal();
   }
   function chatRenderConvList(){
     var wrap = document.getElementById('chatConvList');
@@ -4951,32 +5025,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
     wrap.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
 
-    var entries = [{type:'group', uid:null, name:'Общий чат', avatarUrl:''}].concat(
+    var entries = [{type:'group', uid:null, name:'Общий чат'}].concat(
       chatKnownPlayers.filter(function(p){ return !fbUser || p.uid !== fbUser.uid; })
-        .map(function(p){ return {type:'dm', uid:p.uid, name:p.name, avatarUrl:p.avatarUrl||''}; })
+        .map(function(p){ return {type:'dm', uid:p.uid, name:p.name, avatarUrl:p.avatarUrl}; })
     );
-
-    function pickLatest(snap){
-      var last = null;
-      snap.forEach(function(doc){
-        var d = doc.data();
-        var t = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : 0;
-        var lastT = last && last.createdAt && last.createdAt.toMillis ? last.createdAt.toMillis() : -1;
-        if (!last || t > lastT) last = d;
-      });
-      return last;
-    }
 
     var lookups = entries.map(function(entry){
       var col = entry.type === 'group' ? 'chat_messages' : 'dm_messages';
-      // Deliberately avoid combining `where` + `orderBy` on different fields here —
-      // that requires a Firestore composite index. We fetch a bounded batch and
-      // sort client-side instead, so DM previews work even without one.
       var q = entry.type === 'group'
         ? fbDb.collection(col).orderBy('createdAt','desc').limit(1)
-        : fbDb.collection(col).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).limit(50);
+        : fbDb.collection(col).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).orderBy('createdAt','desc').limit(1);
       return q.get().then(function(snap){
-        var last = entry.type === 'group' ? (function(){ var l=null; snap.forEach(function(doc){ l = doc.data(); }); return l; })() : pickLatest(snap);
+        var last = null;
+        snap.forEach(function(doc){ last = doc.data(); });
         return { entry: entry, last: last };
       }).catch(function(){ return { entry: entry, last: null }; });
     });
@@ -4987,9 +5048,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         var item = document.createElement('div');
         item.className = 'chat-list-item';
         var initials = r.entry.type === 'group' ? '👥' : r.entry.name.slice(0,2).toUpperCase();
-        var avatarHtml = r.entry.avatarUrl
-          ? '<div class="chat-list-avatar" style="background-image:url(\''+escAttr(r.entry.avatarUrl)+'\')"></div>'
-          : '<div class="chat-list-avatar">'+initials+'</div>';
+        var avatarHtml = r.entry.avatarUrl ? '<img src="'+escAttr(r.entry.avatarUrl)+'">' : initials;
         var preview = '';
         var time = '';
         if (r.last){
@@ -4997,7 +5056,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           time = chatFormatTime(r.last.createdAt);
         }
         item.innerHTML =
-          avatarHtml +
+          '<div class="chat-list-avatar">'+avatarHtml+'</div>' +
           '<div class="chat-list-body">' +
             '<div class="chat-list-name">'+escAttr(r.entry.name)+'</div>' +
             '<div class="chat-list-preview">'+escAttr(preview || 'Нет сообщений')+'</div>' +
@@ -5018,6 +5077,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   /* ---- thread open/close ---- */
   function chatOpenThread(thread){
     if (!fbDb || !fbUser){ alert('Нет подключения к облаку. Попробуйте через пару секунд.'); return; }
+    chatStopActiveAudio();
     chatCurrentThread = thread;
     chatMsgElements = {};
     chatMsgData = {};
@@ -5036,40 +5096,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     if (chatUnsubscribe){ chatUnsubscribe(); chatUnsubscribe = null; }
     var col = chatCollectionFor(thread);
-    // Group chat can safely use orderBy (single field — no composite index
-    // needed). DMs combine `where('threadId', ...)` with a timestamp order,
-    // which Firestore only allows with a composite index that may not exist
-    // in this project, so we deliberately skip orderBy there and sort the
-    // messages ourselves in chatRerenderMessages().
     var query = thread.type === 'group'
       ? fbDb.collection(col).orderBy('createdAt','asc').limitToLast(150)
-      : fbDb.collection(col).where('threadId','==', thread.threadId).limit(300);
+      : fbDb.collection(col).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
     chatUnsubscribe = query.onSnapshot(function(snap){ chatApplySnapshot(snap); },
                                         function(err){
                                           console.warn('chat listener error', err);
-                                          alert('Не удалось загрузить сообщения. Проверьте подключение и попробуйте снова.');
+                                          var wrap = document.getElementById('chatMessages');
+                                          if (wrap) wrap.innerHTML = '<div class="chat-empty">Ошибка загрузки сообщений:<br>'+escAttr(err.message||err)+'</div>';
                                         });
 
-    chatCloseList();
+    chatCloseListUIOnly();
     document.getElementById('chatFullscreen').style.display = 'flex';
     chatIsOpen = true;
     var wrap = document.getElementById('chatMessages');
     requestAnimationFrame(function(){ wrap.scrollTop = wrap.scrollHeight; });
+    appOpenModal(chatCloseThreadUIOnly);
   }
-  function chatCloseThread(){
+  function chatCloseThreadUIOnly(){
+    chatStopActiveAudio();
     document.getElementById('chatFullscreen').style.display = 'none';
     chatIsOpen = false;
-    chatOpenList();
+    document.getElementById('chatListScreen').style.display = 'flex';
+    chatRenderConvList();
+  }
+  function chatCloseThread(){
+    chatCloseThreadUIOnly();
+    appCloseModal();
   }
 
   function bindChatUI(){
     document.getElementById('btnChatOpen').addEventListener('click', chatOpenList);
     document.getElementById('chatListCloseBtn').addEventListener('click', chatCloseList);
+    document.getElementById('chatMyAvatarBtn').addEventListener('click', chatPickAvatar);
+    document.getElementById('chatAvatarFileInput').addEventListener('change', chatHandleAvatarSelected);
     document.getElementById('chatCloseBtn').addEventListener('click', chatCloseThread);
     document.getElementById('chatGalleryBtn').addEventListener('click', chatOpenGallery);
-    document.getElementById('chatGalleryCloseBtn').addEventListener('click', function(){
-      document.getElementById('chatGalleryScreen').style.display = 'none';
-    });
+    document.getElementById('chatGalleryCloseBtn').addEventListener('click', chatCloseGallery);
 
     bindChatMessagesDelegation();
     bindImgLightbox();
@@ -5533,12 +5596,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
     overlay.classList.add('active');
     tetrisResetGame();
     tetrisStartMusic();
+    appOpenModal(closeTetrisUIOnly);
   }
-  function closeTetris(){
+  function closeTetrisUIOnly(){
     var overlay = document.getElementById('tetrisOverlay');
     if (overlay) overlay.classList.remove('active');
     clearInterval(tetrisTimer);
     tetrisStopMusic();
+  }
+  function closeTetris(){
+    closeTetrisUIOnly();
+    appCloseModal();
   }
   function tetrisLoadLeaderboard(){
     var listEl = document.getElementById('tetrisLeaderboardList');
@@ -5967,12 +6035,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
       requestAnimationFrame(clampPosition);
       void panel.offsetWidth;
       panel.classList.add('calc-visible');
+      appOpenModal(closeCalcUIOnly);
     }
-    function closeCalc(){
+    function closeCalcUIOnly(){
       panel.classList.remove('calc-visible');
       setTimeout(function(){
         if (!panel.classList.contains('calc-visible')) panel.style.display = 'none';
       }, 200);
+    }
+    function closeCalc(){
+      closeCalcUIOnly();
+      appCloseModal();
     }
     function toggleCalc(){
       if (panel.classList.contains('calc-visible')) closeCalc();
@@ -6730,14 +6803,15 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function bindSettingsModal(){
     var overlay = document.getElementById('settingsOverlay');
+    function closeSettingsUIOnly(){ overlay.classList.remove('active'); }
+    function closeSettings(){ closeSettingsUIOnly(); appCloseModal(); }
     document.getElementById('btnSettings').addEventListener('click', function(){
       overlay.classList.add('active');
+      appOpenModal(closeSettingsUIOnly);
     });
-    document.getElementById('settingsCloseBtn').addEventListener('click', function(){
-      overlay.classList.remove('active');
-    });
+    document.getElementById('settingsCloseBtn').addEventListener('click', closeSettings);
     overlay.addEventListener('click', function(e){
-      if (e.target === overlay) overlay.classList.remove('active');
+      if (e.target === overlay) closeSettings();
     });
 
     var settingsTabs = document.querySelectorAll('.settings-tab');
@@ -7080,8 +7154,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindCalculator();
   bindTetrisControls();
   bindChatUI();
-  bindAvatarPicker();
-  refreshAvatarButton();
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
