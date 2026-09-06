@@ -1930,6 +1930,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   flex:1;
   min-height:0;
   overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
   display:flex;flex-direction:column;gap:10px;
   padding:4px 4px 6px;
   background:rgba(0,0,0,0.15);
@@ -1946,7 +1948,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.28));
   border:1px solid var(--parchment-shadow);
   max-width:88%;
-  animation:cardRise .22s ease both;
 }
 .chat-msg.is-me{
   align-self:flex-end;
@@ -3352,7 +3353,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.06-1';
+  var APP_VERSION = '2026.09.06-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4207,6 +4208,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function chatRenderMessages(docs){
     var wrap = document.getElementById('chatMessages');
     if (!wrap) return;
+    var prevScrollTop = wrap.scrollTop;
     var wasAtBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 60;
 
     if (!docs.length){
@@ -4227,6 +4229,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var panelVisible = panelEl && panelEl.classList.contains('calc-visible');
     if (wasAtBottom || !panelVisible){
       wrap.scrollTop = wrap.scrollHeight;
+    } else {
+      wrap.scrollTop = prevScrollTop;
     }
     if (isNewMessage && !panelVisible){
       var lastData = docs[docs.length-1].data();
