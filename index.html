@@ -831,6 +831,24 @@ body{
   display:flex;align-items:center;justify-content:center;
   padding:0;
 }
+.avatar-btn{
+  flex-shrink:0;
+  width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 35% 25%, var(--chrome-radial-1), var(--chrome-radial-2) 75%);
+  border:1px solid var(--gold);
+  padding:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+.avatar-btn:active{transform:scale(0.92);}
+.avatar-btn-img{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  display:none;
+}
+.avatar-btn-img.show{display:block;}
+.avatar-btn-fallback{font-size:16px;color:var(--gold-bright);}
+.avatar-btn-img.show + .avatar-btn-fallback{display:none;}
 .spine-top input.name-input{
   font-family:var(--font-deco);
   font-size:calc(22px * var(--ui-font-scale));
@@ -1910,9 +1928,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   z-index:120;
   display:flex;
   flex-direction:column;
+  /* Lightened vs. the app's base leather background so message bubbles and
+     their text stay easy to read — a pure near-black background made the
+     translucent "is-me" bubbles below almost illegible. */
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.03), transparent 60%),
-    linear-gradient(180deg, var(--leather-1), var(--leather-2) 60%, var(--leather-edge));
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(180deg, var(--leather-2), var(--chrome-1) 60%, var(--leather-1));
 }
 .chat-header{
   flex:0 0 auto;
@@ -1974,14 +1995,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
   min-width:0;
   align-self:flex-start;
   box-shadow:0 2px 6px rgba(0,0,0,0.25);
+  /* Long-pressing message text was triggering Android's native text
+     selection + "Search the web" popup. Messages have their own reply/copy
+     affordances, so we don't need free-text selection here. */
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+.chat-list-item, .chat-list-item *{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
 }
 .chat-msg.is-me{
   align-self:flex-end;
-  background:linear-gradient(180deg, rgba(224,181,99,0.32), rgba(224,181,99,0.18));
-  border-color:var(--gold);
+  /* Opaque and light (not the old translucent gold-over-dark-background),
+     so the dark ink text stays readable regardless of what's behind it. */
+  background:linear-gradient(180deg, #f6e7bf, #ecd89e);
+  border-color:var(--gold-bright);
 }
-.chat-msg-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px;}
-.chat-msg-name{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:var(--gold);}
+.chat-msg-head{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:2px;}
+.chat-msg-avatar{
+  flex-shrink:0;width:18px;height:18px;border-radius:50%;
+  background-size:cover;background-position:center;
+  border:1px solid var(--parchment-shadow);
+}
+.chat-msg-name{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:var(--gold);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .chat-msg.is-me .chat-msg-name{display:none;}
 .chat-msg-time{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-soft);opacity:0.7;flex-shrink:0;white-space:nowrap;}
 .chat-msg-time .chat-sent-check{margin-left:3px;color:var(--emerald);}
@@ -2146,7 +2185,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .chat-list-avatar{
   flex-shrink:0;
   width:44px;height:44px;border-radius:50%;
-  background:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
+  background-color:var(--leather-2);
+  background-image:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
+  background-size:cover;background-position:center;
   border:2px solid var(--gold);
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--gold-bright);
@@ -2705,6 +2746,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   <header class="spine">
     <div class="spine-top">
+      <button class="avatar-btn" id="btnAvatarPick" aria-label="Аватар" title="Выбрать аватар" type="button">
+        <span class="avatar-btn-img" id="avatarBtnImg"></span>
+        <span class="avatar-btn-fallback" id="avatarBtnFallback">👤</span>
+      </button>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
       <input class="name-input" id="f_name" placeholder="Имя персонажа" data-i18n-ph="ph.name" data-field="meta.name">
       <button class="gear-btn" id="btnChatOpen" aria-label="Чат" title="Чат">💬<span class="chat-btn-badge" id="chatBadge"></span></button>
       <button class="gear-btn" id="btnCalcOpen" aria-label="Калькулятор" data-i18n-title="calc.title" title="Калькулятор">🧮</button>
@@ -3486,7 +3532,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var slots = [];
     for (var i=1;i<=9;i++){ slots.push({total:0,cur:0}); }
     return {
-      meta:{name:'',klass:'',level:1,race:'',background:'',alignment:'',player:'',xp:0},
+      meta:{name:'',klass:'',level:1,race:'',background:'',alignment:'',player:'',xp:0,avatarUrl:''},
       abilities: abilities,
       inspiration:false,
       saves: saves,
@@ -3595,6 +3641,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         fbDb.collection('characters').doc(fbUser.uid).set({
           state: state,
           characterName: (state.meta && state.meta.name) ? state.meta.name : '',
+          avatarUrl: (state.meta && state.meta.avatarUrl) ? state.meta.avatarUrl : '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(function(){
           setAccountStatus('ok', 'Подключено — лист синхронизируется');
@@ -4235,8 +4282,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- CHAT (full-screen, WhatsApp-style: list + group + DMs) ---------------- */
   var chatUnsubscribe = null;
-  var chatKnownPlayers = []; // [{uid, name}]
+  var chatKnownPlayers = []; // [{uid, name, avatarUrl}]
   var chatNameByUid = {};
+  var chatAvatarByUid = {};
   var chatReplyTarget = null;
   var chatPendingMedia = null;
   var chatMediaRecorder = null, chatRecordedChunks = [], chatRecordingStartTime = 0, chatRecordingTimer = null;
@@ -4258,11 +4306,15 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return fbDb.collection('characters').get().then(function(snap){
       chatKnownPlayers = [];
       chatNameByUid = {};
+      chatAvatarByUid = {};
       snap.forEach(function(doc){
-        var n = (doc.data().characterName || '').trim();
+        var d = doc.data();
+        var n = (d.characterName || '').trim();
         if (!n) return;
-        chatKnownPlayers.push({uid: doc.id, name: n});
+        var avatarUrl = d.avatarUrl || '';
+        chatKnownPlayers.push({uid: doc.id, name: n, avatarUrl: avatarUrl});
         chatNameByUid[doc.id] = n;
+        if (avatarUrl) chatAvatarByUid[doc.id] = avatarUrl;
       });
     }).catch(function(){});
   }
@@ -4340,7 +4392,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
         '<span class="r-name">'+escAttr(d.replyToName||'—')+'</span>' +
         '<span class="r-text">'+escAttr(d.replyToText||'медиа')+'</span></div>';
     }
-    html += '<div class="chat-msg-head"><span class="chat-msg-name">'+escAttr(d.senderName||'—')+'</span></div>';
+    var avatarUrl = !isMe ? chatAvatarByUid[d.senderId] : '';
+    html += '<div class="chat-msg-head">' +
+      (avatarUrl ? '<span class="chat-msg-avatar" style="background-image:url(\''+escAttr(avatarUrl)+'\')"></span>' : '') +
+      '<span class="chat-msg-name">'+escAttr(d.senderName||'—')+'</span></div>';
     if (d.text) html += '<div class="chat-msg-text">'+chatFormatText(d.text)+'</div>';
     if (d.mediaUrl) html += chatBuildMediaHtml(d);
     html += '<div class="chat-msg-footer">' +
@@ -4375,6 +4430,46 @@ input[type=checkbox]:active{transform:scale(0.88);}
     batch.commit().catch(function(err){ console.warn('mark read failed', err); });
   }
 
+  // Rebuilds the whole message list from chatMsgData, sorted by createdAt.
+  // We can't rely on the Firestore query itself to hand us messages in order
+  // (DM queries deliberately skip `orderBy` to avoid needing a composite
+  // index — see chatOpenThread), so we sort client-side every time instead.
+  function chatRerenderMessages(){
+    var wrap = document.getElementById('chatMessages');
+    if (!wrap) return;
+    var ids = Object.keys(chatMsgData);
+    if (!ids.length){
+      wrap.innerHTML = '<div class="chat-empty">Пока никто не писал. Начните разговор!</div>';
+      chatMsgElements = {};
+      chatLastDateKey = null;
+      return;
+    }
+    ids.sort(function(a,b){
+      var da = chatMsgData[a].createdAt, db = chatMsgData[b].createdAt;
+      var ta = (da && da.toMillis) ? da.toMillis() : Infinity;
+      var tb = (db && db.toMillis) ? db.toMillis() : Infinity;
+      if (ta !== tb) return ta - tb;
+      return a < b ? -1 : (a > b ? 1 : 0);
+    });
+    wrap.innerHTML = '';
+    chatMsgElements = {};
+    chatLastDateKey = null;
+    ids.forEach(function(id){
+      var data = chatMsgData[id];
+      var dateKey = chatDateKey(data.createdAt);
+      if (dateKey && dateKey !== chatLastDateKey){
+        var sep = document.createElement('div');
+        sep.className = 'chat-date-sep';
+        sep.textContent = chatDateLabel(data.createdAt);
+        wrap.appendChild(sep);
+        chatLastDateKey = dateKey;
+      }
+      var el = chatBuildMessageEl(id, data);
+      wrap.appendChild(el);
+      chatMsgElements[id] = el;
+    });
+  }
+
   function chatApplySnapshot(snap){
     var wrap = document.getElementById('chatMessages');
     if (!wrap) return;
@@ -4385,43 +4480,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
     snap.docChanges().forEach(function(change){
       var id = change.doc.id;
       if (change.type === 'removed'){
-        var existing = chatMsgElements[id];
-        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
-        delete chatMsgElements[id];
         delete chatMsgData[id];
         return;
       }
       var data = change.doc.data();
+      var isNewFromOther = !chatMsgData[id] && change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid);
+      if (isNewFromOther) receivedFromOther = true;
       chatMsgData[id] = data;
-      var el = chatBuildMessageEl(id, data);
-
-      if (change.type === 'modified' && chatMsgElements[id] && chatMsgElements[id].parentNode){
-        chatMsgElements[id].parentNode.replaceChild(el, chatMsgElements[id]);
-        chatMsgElements[id] = el;
-        return;
-      }
-      if (chatMsgElements[id]) return;
-
-      var dateKey = chatDateKey(data.createdAt);
-      if (dateKey && dateKey !== chatLastDateKey){
-        var sep = document.createElement('div');
-        sep.className = 'chat-date-sep';
-        sep.textContent = chatDateLabel(data.createdAt);
-        wrap.appendChild(sep);
-        chatLastDateKey = dateKey;
-      }
-      wrap.appendChild(el);
-      chatMsgElements[id] = el;
-      if (change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid)) receivedFromOther = true;
     });
 
-    var emptyEl = wrap.querySelector('.chat-empty');
-    var hasMessages = Object.keys(chatMsgElements).length > 0;
-    if (!hasMessages && !emptyEl){
-      wrap.innerHTML = '<div class="chat-empty">Пока никто не писал. Начните разговор!</div>';
-    } else if (hasMessages && emptyEl){
-      emptyEl.remove();
-    }
+    chatRerenderMessages();
 
     if (wasAtBottom || !chatIsOpen){
       wrap.scrollTop = wrap.scrollHeight;
@@ -4567,14 +4635,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
     grid.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
     screen.style.display = 'flex';
     var col = chatCollectionFor(chatCurrentThread);
-    var query = fbDb.collection(col).orderBy('createdAt','desc').limit(300);
-    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
+    // Same composite-index caveat as chatOpenThread — for DMs we skip
+    // orderBy and sort the results ourselves after fetching.
+    var query = chatCurrentThread.type === 'dm'
+      ? fbDb.collection(col).where('threadId','==',chatCurrentThread.threadId).limit(300)
+      : fbDb.collection(col).orderBy('createdAt','desc').limit(300);
     query.get().then(function(snap){
       var items = [];
       snap.forEach(function(doc){
         var d = doc.data();
         if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) items.push(d);
       });
+      if (chatCurrentThread.type === 'dm'){
+        items.sort(function(a,b){
+          var ta = (a.createdAt && a.createdAt.toMillis) ? a.createdAt.toMillis() : 0;
+          var tb = (b.createdAt && b.createdAt.toMillis) ? b.createdAt.toMillis() : 0;
+          return tb - ta;
+        });
+      }
       if (!items.length){ grid.innerHTML = '<div class="chat-gallery-empty">Медиа пока нет</div>'; return; }
       grid.innerHTML = '';
       items.forEach(function(d){
@@ -4750,6 +4828,45 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  /* ---- avatar picker ---- */
+  function refreshAvatarButton(){
+    var img = document.getElementById('avatarBtnImg');
+    if (!img) return;
+    var url = (state.meta && state.meta.avatarUrl) ? state.meta.avatarUrl : '';
+    if (url){
+      img.style.backgroundImage = 'url("'+url+'")';
+      img.classList.add('show');
+    } else {
+      img.style.backgroundImage = '';
+      img.classList.remove('show');
+    }
+  }
+  function bindAvatarPicker(){
+    var btn = document.getElementById('btnAvatarPick');
+    var fileInput = document.getElementById('avatarFileInput');
+    if (!btn || !fileInput) return;
+    btn.addEventListener('click', function(){ fileInput.click(); });
+    fileInput.addEventListener('change', function(e){
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var prevLabel = btn.querySelector('.avatar-btn-fallback');
+      var prevText = prevLabel ? prevLabel.textContent : '';
+      if (prevLabel) prevLabel.textContent = '…';
+      chatUploadMedia(file, file.name, function(){}).then(function(url){
+        state.meta.avatarUrl = url;
+        refreshAvatarButton();
+        saveState();
+        if (prevLabel) prevLabel.textContent = prevText;
+        fileInput.value = '';
+      }).catch(function(err){
+        console.warn('avatar upload failed', err);
+        alert('Не удалось загрузить аватар: ' + (err && err.message ? err.message : err));
+        if (prevLabel) prevLabel.textContent = prevText;
+        fileInput.value = '';
+      });
+    });
+  }
+
   function chatSendMessage(){
     var input = document.getElementById('chatInput');
     var text = input.value.trim();
@@ -4834,19 +4951,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
     wrap.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
 
-    var entries = [{type:'group', uid:null, name:'Общий чат'}].concat(
+    var entries = [{type:'group', uid:null, name:'Общий чат', avatarUrl:''}].concat(
       chatKnownPlayers.filter(function(p){ return !fbUser || p.uid !== fbUser.uid; })
-        .map(function(p){ return {type:'dm', uid:p.uid, name:p.name}; })
+        .map(function(p){ return {type:'dm', uid:p.uid, name:p.name, avatarUrl:p.avatarUrl||''}; })
     );
+
+    function pickLatest(snap){
+      var last = null;
+      snap.forEach(function(doc){
+        var d = doc.data();
+        var t = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : 0;
+        var lastT = last && last.createdAt && last.createdAt.toMillis ? last.createdAt.toMillis() : -1;
+        if (!last || t > lastT) last = d;
+      });
+      return last;
+    }
 
     var lookups = entries.map(function(entry){
       var col = entry.type === 'group' ? 'chat_messages' : 'dm_messages';
+      // Deliberately avoid combining `where` + `orderBy` on different fields here —
+      // that requires a Firestore composite index. We fetch a bounded batch and
+      // sort client-side instead, so DM previews work even without one.
       var q = entry.type === 'group'
         ? fbDb.collection(col).orderBy('createdAt','desc').limit(1)
-        : fbDb.collection(col).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).orderBy('createdAt','desc').limit(1);
+        : fbDb.collection(col).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).limit(50);
       return q.get().then(function(snap){
-        var last = null;
-        snap.forEach(function(doc){ last = doc.data(); });
+        var last = entry.type === 'group' ? (function(){ var l=null; snap.forEach(function(doc){ l = doc.data(); }); return l; })() : pickLatest(snap);
         return { entry: entry, last: last };
       }).catch(function(){ return { entry: entry, last: null }; });
     });
@@ -4857,6 +4987,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
         var item = document.createElement('div');
         item.className = 'chat-list-item';
         var initials = r.entry.type === 'group' ? '👥' : r.entry.name.slice(0,2).toUpperCase();
+        var avatarHtml = r.entry.avatarUrl
+          ? '<div class="chat-list-avatar" style="background-image:url(\''+escAttr(r.entry.avatarUrl)+'\')"></div>'
+          : '<div class="chat-list-avatar">'+initials+'</div>';
         var preview = '';
         var time = '';
         if (r.last){
@@ -4864,7 +4997,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           time = chatFormatTime(r.last.createdAt);
         }
         item.innerHTML =
-          '<div class="chat-list-avatar">'+initials+'</div>' +
+          avatarHtml +
           '<div class="chat-list-body">' +
             '<div class="chat-list-name">'+escAttr(r.entry.name)+'</div>' +
             '<div class="chat-list-preview">'+escAttr(preview || 'Нет сообщений')+'</div>' +
@@ -4903,11 +5036,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     if (chatUnsubscribe){ chatUnsubscribe(); chatUnsubscribe = null; }
     var col = chatCollectionFor(thread);
+    // Group chat can safely use orderBy (single field — no composite index
+    // needed). DMs combine `where('threadId', ...)` with a timestamp order,
+    // which Firestore only allows with a composite index that may not exist
+    // in this project, so we deliberately skip orderBy there and sort the
+    // messages ourselves in chatRerenderMessages().
     var query = thread.type === 'group'
       ? fbDb.collection(col).orderBy('createdAt','asc').limitToLast(150)
-      : fbDb.collection(col).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
+      : fbDb.collection(col).where('threadId','==', thread.threadId).limit(300);
     chatUnsubscribe = query.onSnapshot(function(snap){ chatApplySnapshot(snap); },
-                                        function(err){ console.warn('chat listener error', err); });
+                                        function(err){
+                                          console.warn('chat listener error', err);
+                                          alert('Не удалось загрузить сообщения. Проверьте подключение и попробуйте снова.');
+                                        });
 
     chatCloseList();
     document.getElementById('chatFullscreen').style.display = 'flex';
@@ -6939,6 +7080,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindCalculator();
   bindTetrisControls();
   bindChatUI();
+  bindAvatarPicker();
+  refreshAvatarButton();
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
