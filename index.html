@@ -3527,7 +3527,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-2';
+  var APP_VERSION = '2026.09.07-3';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4725,7 +4725,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     appOpenModal(chatCloseGalleryUIOnly);
     var col = chatCollectionFor(chatCurrentThread);
     var query = fbDb.collection(col).orderBy('createdAt','desc').limit(300);
-    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
+    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
     query.get().then(function(snap){
       var items = [];
       snap.forEach(function(doc){
@@ -4745,7 +4745,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       });
     }).catch(function(err){
       console.warn('gallery load failed', err);
-      grid.innerHTML = '<div class="chat-gallery-empty">Не удалось загрузить</div>';
+      grid.innerHTML = '<div class="chat-gallery-empty">Ошибка: '+escAttr(err.message||err)+'</div>';
     });
   }
 
@@ -5039,7 +5039,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var col = entry.type === 'group' ? 'chat_messages' : 'dm_messages';
       var q = entry.type === 'group'
         ? fbDb.collection(col).orderBy('createdAt','desc').limit(1)
-        : fbDb.collection(col).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).orderBy('createdAt','desc').limit(1);
+        : fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).orderBy('createdAt','desc').limit(1);
       return q.get().then(function(snap){
         var last = null;
         snap.forEach(function(doc){ last = doc.data(); });
@@ -5104,7 +5104,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var col = chatCollectionFor(thread);
     var query = thread.type === 'group'
       ? fbDb.collection(col).orderBy('createdAt','asc').limitToLast(150)
-      : fbDb.collection(col).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
+      : fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
     chatUnsubscribe = query.onSnapshot(function(snap){ chatApplySnapshot(snap); },
                                         function(err){
                                           console.warn('chat listener error', err);
