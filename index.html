@@ -846,6 +846,7 @@ body{
 .spine-top input.name-input::placeholder{color:rgba(224,181,99,0.4);}
 .spine-top input.name-input:focus{outline:none;border-bottom-color:var(--gold-bright);}
 .gear-btn{
+  position:relative;
   flex-shrink:0;
   width:42px;height:42px;
   border-radius:50%;
@@ -1901,6 +1902,196 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .calc-resize-handle:active{opacity:1;}
 
+/* ---------- CHAT (floating, resizable window) ---------- */
+.chat-float.card{
+  position:fixed;
+  width:320px;
+  height:420px;
+  margin:0;
+  padding:12px 12px 10px;
+  z-index:91;
+  transform-origin:top left;
+  border:3px solid var(--gold);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,0.5),
+    0 2px 6px rgba(0,0,0,0.3),
+    inset 0 0 0 1px rgba(224,181,99,0.25);
+  opacity:0;
+  display:flex;flex-direction:column;
+  transition:opacity .2s ease;
+}
+.chat-float.card.calc-visible{opacity:1;}
+.chat-float h2{
+  cursor:move;touch-action:none;
+  flex-shrink:0;
+  margin-bottom:8px;
+}
+.chat-float input, .chat-float textarea{user-select:text;-webkit-user-select:text;}
+
+.chat-messages{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;
+  padding:4px 4px 6px;
+  background:rgba(0,0,0,0.15);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);
+}
+.chat-empty{
+  margin:auto;
+  font-size:12.5px;color:var(--ink-soft);opacity:0.6;font-style:italic;text-align:center;padding:20px;
+}
+.chat-msg{
+  padding:7px 10px;
+  border-radius:var(--radius-s);
+  background:linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.28));
+  border:1px solid var(--parchment-shadow);
+  max-width:88%;
+  animation:cardRise .22s ease both;
+}
+.chat-msg.is-me{
+  align-self:flex-end;
+  background:linear-gradient(180deg, rgba(224,181,99,0.28), rgba(224,181,99,0.14));
+  border-color:var(--gold);
+}
+.chat-msg-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:3px;}
+.chat-msg-name{font-family:var(--font-display);font-weight:700;font-size:11.5px;color:var(--gold);}
+.chat-msg-time{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-soft);opacity:0.7;flex-shrink:0;}
+.chat-msg-text{font-family:var(--font-body);font-size:13px;color:var(--ink);line-height:1.4;white-space:pre-wrap;word-break:break-word;}
+.chat-mention{color:var(--wax);font-weight:700;}
+.chat-msg-reply{
+  display:block;
+  border-left:3px solid var(--gold);
+  padding:3px 7px;
+  margin-bottom:5px;
+  background:rgba(0,0,0,0.06);
+  border-radius:4px;
+  cursor:pointer;
+  font-size:11px;
+}
+.chat-msg-reply .r-name{font-weight:700;color:var(--gold);display:block;font-size:10px;}
+.chat-msg-reply .r-text{color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+.chat-msg.flash-highlight{animation:chatFlash 1.1s ease;}
+@keyframes chatFlash{0%,100%{box-shadow:none;}30%{box-shadow:0 0 0 3px var(--gold-bright);}}
+.chat-msg-footer{display:flex;justify-content:flex-end;margin-top:3px;}
+.chat-msg-reply-btn{
+  background:none;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;padding:2px 5px;opacity:0.65;
+}
+.chat-msg-media{margin-top:5px;}
+.chat-msg-media img{max-width:100%;max-height:180px;border-radius:6px;display:block;cursor:pointer;border:1px solid var(--parchment-shadow);}
+.chat-msg-media video{max-width:100%;max-height:180px;border-radius:6px;display:block;}
+.chat-msg-media audio{width:100%;max-width:220px;height:32px;}
+.chat-file-chip{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 9px;
+  background:rgba(0,0,0,0.08);
+  border:1px solid var(--parchment-shadow);
+  border-radius:6px;
+  text-decoration:none;
+  font-size:11.5px;color:var(--ink);
+  max-width:100%;
+}
+.chat-file-chip .fc-icon{font-size:16px;flex-shrink:0;}
+.chat-file-chip .fc-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chat-upload-progress{
+  font-size:10.5px;color:var(--ink-soft);font-style:italic;margin-top:3px;
+}
+
+.chat-mention-dropdown{
+  position:relative;
+  max-height:120px;overflow-y:auto;
+  background:var(--parchment);
+  border:1px solid var(--gold);
+  border-radius:var(--radius-s);
+  margin-bottom:6px;
+  flex-shrink:0;
+}
+.chat-mention-item{
+  padding:7px 10px;
+  font-size:12.5px;color:var(--ink);
+  cursor:pointer;
+}
+.chat-mention-item:hover, .chat-mention-item.active{background:rgba(224,181,99,0.25);}
+
+.chat-reply-preview, .chat-attach-preview, .chat-recording-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;
+  margin-bottom:6px;
+  background:rgba(0,0,0,0.08);
+  border-left:3px solid var(--gold);
+  border-radius:6px;
+  flex-shrink:0;
+}
+.chat-reply-preview-bar{display:none;}
+.chat-reply-preview-body{flex:1;min-width:0;}
+.chat-reply-preview-name{font-family:var(--font-display);font-weight:700;font-size:10.5px;color:var(--gold);}
+.chat-reply-preview-text{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chat-reply-cancel{
+  flex-shrink:0;background:none;border:none;color:var(--ink-soft);font-size:14px;cursor:pointer;padding:2px 4px;
+}
+.chat-attach-preview-body{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink);}
+.chat-attach-preview-body img{width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;}
+.chat-rec-dot{
+  width:9px;height:9px;border-radius:50%;background:var(--wax);flex-shrink:0;
+  animation:accountPulse 1s ease-in-out infinite;
+}
+.chat-rec-hint{flex:1;font-size:11.5px;color:var(--ink-soft);font-style:italic;}
+
+.chat-compose{
+  display:flex;align-items:flex-end;gap:6px;
+  flex-shrink:0;
+}
+.chat-icon-btn{
+  flex-shrink:0;
+  width:34px;height:34px;
+  border-radius:50%;
+  border:1px solid var(--gold);
+  background:linear-gradient(180deg, var(--btn-wood-1), var(--btn-wood-2));
+  color:var(--parchment);
+  font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+}
+.chat-icon-btn:active{transform:scale(0.92);}
+.chat-icon-btn.active{background:linear-gradient(180deg, var(--wax-bright), var(--wax));}
+#chatInput{
+  flex:1;min-height:34px;max-height:90px;
+  padding:7px 10px;
+  font-size:max(14px, calc(13px * var(--ui-font-scale)));
+  border-radius:16px;
+  resize:none;
+}
+.chat-send-btn{
+  flex-shrink:0;
+  width:34px;height:34px;
+  border-radius:50%;
+  border:1px solid var(--gold);
+  background:linear-gradient(180deg, var(--emerald-bright), var(--emerald));
+  color:#fff;
+  font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+}
+.chat-send-btn:active{transform:scale(0.92);}
+.chat-resize-handle{
+  position:absolute;right:4px;bottom:4px;
+  width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gold);opacity:0.6;
+  cursor:nwse-resize;touch-action:none;
+}
+.chat-resize-handle:active{opacity:1;}
+.chat-btn-badge{
+  position:absolute;top:-2px;right:-2px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--wax-bright);
+  border:1.5px solid var(--leather-edge);
+  display:none;
+}
+.chat-btn-badge.show{display:block;}
+
+
 /* ---------- GEAR EASTER EGG (twist gesture) ---------- */
 @keyframes gearSpinAway{
   0%{transform:rotate(0deg) scale(1);}
@@ -1953,6 +2144,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
   color:var(--gold-bright);
   font-family:var(--font-display);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;
+}
+.tetris-restart-btn{
+  flex:none;
+  width:auto;
+  min-width:110px;
+  padding:9px 22px;
 }
 .tetris-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
 .tetris-drop-btn{grid-column:span 4;font-size:12px;}
@@ -2371,6 +2568,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <header class="spine">
     <div class="spine-top">
       <input class="name-input" id="f_name" placeholder="Имя персонажа" data-i18n-ph="ph.name" data-field="meta.name">
+      <button class="gear-btn" id="btnChatOpen" aria-label="Чат" title="Чат">💬<span class="chat-btn-badge" id="chatBadge"></span></button>
       <button class="gear-btn" id="btnCalcOpen" aria-label="Калькулятор" data-i18n-title="calc.title" title="Калькулятор">🧮</button>
       <button class="gear-btn" id="btnSettings" aria-label="Настройки" title="Настройки">⚙</button>
     </div>
@@ -2669,6 +2867,52 @@ input[type=checkbox]:active{transform:scale(0.88);}
   </div>
 </div>
 
+<div class="chat-float card" id="chatFloat" style="display:none;">
+  <h2 id="chatDragHandle">
+    <span>💬 Чат</span>
+    <button class="h2-edit-btn" id="chatCloseBtn" aria-label="Закрыть" title="Закрыть">✕</button>
+  </h2>
+
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-empty" id="chatEmpty">Пока никто не писал. Начните разговор!</div>
+  </div>
+
+  <div class="chat-mention-dropdown" id="chatMentionDropdown" style="display:none;"></div>
+
+  <div class="chat-reply-preview" id="chatReplyPreview" style="display:none;">
+    <div class="chat-reply-preview-bar"></div>
+    <div class="chat-reply-preview-body">
+      <div class="chat-reply-preview-name" id="chatReplyPreviewName"></div>
+      <div class="chat-reply-preview-text" id="chatReplyPreviewText"></div>
+    </div>
+    <button class="chat-reply-cancel" id="chatReplyCancel" aria-label="Отменить ответ">✕</button>
+  </div>
+
+  <div class="chat-attach-preview" id="chatAttachPreview" style="display:none;">
+    <div class="chat-attach-preview-body" id="chatAttachPreviewBody"></div>
+    <button class="chat-reply-cancel" id="chatAttachCancel" aria-label="Убрать вложение">✕</button>
+  </div>
+
+  <div class="chat-recording-bar" id="chatRecordingBar" style="display:none;">
+    <span class="chat-rec-dot"></span>
+    <span id="chatRecordingTime">0:00</span>
+    <span class="chat-rec-hint">Запись голосового…</span>
+    <button class="chat-reply-cancel" id="chatRecCancel" aria-label="Отменить запись">✕</button>
+  </div>
+
+  <div class="chat-compose">
+    <button class="chat-icon-btn" id="chatAttachBtn" aria-label="Прикрепить файл" title="Прикрепить файл">📎</button>
+    <button class="chat-icon-btn" id="chatMicBtn" aria-label="Голосовое сообщение" title="Голосовое сообщение">🎤</button>
+    <textarea id="chatInput" placeholder="Сообщение…" rows="1"></textarea>
+    <button class="chat-send-btn" id="chatSendBtn" aria-label="Отправить">➤</button>
+  </div>
+  <input type="file" id="chatFileInput" style="display:none;">
+
+  <div class="chat-resize-handle" id="chatResizeHandle" aria-hidden="true">
+    <svg viewBox="0 0 20 20" width="16" height="16"><path d="M18 4L4 18M18 11L11 18M18 18L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </div>
+</div>
+
 <div class="modal-overlay" id="tetrisOverlay">
   <div class="modal-card wide tetris-modal">
     <h2 class="tetris-title">
@@ -2688,7 +2932,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       <canvas id="tetrisCanvas"></canvas>
       <div class="tetris-gameover" id="tetrisGameOver" style="display:none;">
         <div>Игра окончена</div>
-        <button class="util-btn" id="tetrisRestart">Заново</button>
+        <button class="util-btn tetris-restart-btn" id="tetrisRestart">Заново</button>
       </div>
     </div>
     <div class="tetris-controls" id="tetrisControls">
@@ -2766,21 +3010,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
         <div class="sound-vol-row">
           <label for="sndVol_calc">Калькулятор</label>
           <input type="range" min="0" max="100" id="sndVol_calc" class="sound-slider">
-        </div>
-
-        <div class="settings-divider"></div>
-
-        <p class="settings-hint" style="margin-bottom:8px;">Тетрис</p>
-        <label class="inline-check" style="margin-bottom:10px;">
-          <input type="checkbox" id="sndTetrisMusicToggle" checked> <span>Музыка в игре</span>
-        </label>
-        <div class="sound-vol-row">
-          <label for="sndVol_tetrisMusic">Громкость музыки</label>
-          <input type="range" min="0" max="100" id="sndVol_tetrisMusic" class="sound-slider">
-        </div>
-        <div class="sound-vol-row">
-          <label for="sndVol_tetrisSfx">Звуки игры</label>
-          <input type="range" min="0" max="100" id="sndVol_tetrisSfx" class="sound-slider">
         </div>
       </div>
 
@@ -3181,6 +3410,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           updateAccountUidUI();
           setAccountStatus('ok', 'Подключено — лист синхронизируется');
           syncToCloud();
+          initChat();
         }
       });
       auth.signInAnonymously().catch(function(err){
@@ -3838,6 +4068,491 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   var CALC_MIN_SCALE = 0.45, CALC_MAX_SCALE = 1.9, CALC_BASE_WIDTH = 300;
+
+  /* ---------------- GENERIC FLOATING PANEL (reused by chat) ---------------- */
+  function bindFloatingPanel(opts){
+    var scale = 1, left = null, top = null;
+
+    function applyScale(){ opts.panel.style.transform = 'scale(' + scale + ')'; }
+    function clampPosition(){
+      var rect = opts.panel.getBoundingClientRect();
+      var maxLeft = Math.max(4, window.innerWidth - rect.width - 4);
+      var maxTop = Math.max(4, window.innerHeight - rect.height - 4);
+      left = Math.min(Math.max(4, left), maxLeft);
+      top = Math.min(Math.max(4, top), maxTop);
+      opts.panel.style.left = left + 'px';
+      opts.panel.style.top = top + 'px';
+    }
+    function saveLayout(){
+      try{ localStorage.setItem(opts.posKey, JSON.stringify({left:left, top:top, scale:scale})); }catch(e){}
+    }
+    function loadLayout(){
+      try{
+        var raw = localStorage.getItem(opts.posKey);
+        if (raw){
+          var d = JSON.parse(raw);
+          if (typeof d.left === 'number') left = d.left;
+          if (typeof d.top === 'number') top = d.top;
+          if (typeof d.scale === 'number') scale = Math.min(opts.maxScale, Math.max(opts.minScale, d.scale));
+        }
+      }catch(e){}
+    }
+    function open(){
+      opts.panel.style.display = 'block';
+      if (left === null || top === null){
+        left = Math.max(8, window.innerWidth - opts.baseWidth - 16);
+        top = Math.max(70, window.innerHeight * 0.12);
+      }
+      applyScale();
+      opts.panel.style.left = left + 'px';
+      opts.panel.style.top = top + 'px';
+      requestAnimationFrame(clampPosition);
+      void opts.panel.offsetWidth;
+      opts.panel.classList.add('calc-visible');
+      if (opts.onOpen) opts.onOpen();
+    }
+    function close(){
+      opts.panel.classList.remove('calc-visible');
+      setTimeout(function(){
+        if (!opts.panel.classList.contains('calc-visible')) opts.panel.style.display = 'none';
+      }, 200);
+      if (opts.onClose) opts.onClose();
+    }
+    function toggle(){
+      if (opts.panel.classList.contains('calc-visible')) close();
+      else open();
+    }
+
+    opts.openBtn.addEventListener('click', toggle);
+    opts.closeBtn.addEventListener('click', close);
+
+    var dragState = null;
+    opts.dragHandle.addEventListener('pointerdown', function(e){
+      if (e.target.closest('button')) return;
+      var rect = opts.panel.getBoundingClientRect();
+      dragState = { startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
+      opts.dragHandle.setPointerCapture(e.pointerId);
+    });
+    opts.dragHandle.addEventListener('pointermove', function(e){
+      if (!dragState) return;
+      left = dragState.startLeft + (e.clientX - dragState.startX);
+      top = dragState.startTop + (e.clientY - dragState.startY);
+      clampPosition();
+    });
+    function endDrag(){ if (!dragState) return; dragState = null; saveLayout(); }
+    opts.dragHandle.addEventListener('pointerup', endDrag);
+    opts.dragHandle.addEventListener('pointercancel', endDrag);
+
+    var resizeState = null;
+    opts.resizeHandle.addEventListener('pointerdown', function(e){
+      e.stopPropagation();
+      resizeState = { startX: e.clientX, startScale: scale };
+      opts.resizeHandle.setPointerCapture(e.pointerId);
+    });
+    opts.resizeHandle.addEventListener('pointermove', function(e){
+      if (!resizeState) return;
+      var newScale = resizeState.startScale + (e.clientX - resizeState.startX) / opts.baseWidth;
+      scale = Math.min(opts.maxScale, Math.max(opts.minScale, newScale));
+      applyScale();
+      clampPosition();
+    });
+    function endResize(){ if (!resizeState) return; resizeState = null; saveLayout(); }
+    opts.resizeHandle.addEventListener('pointerup', endResize);
+    opts.resizeHandle.addEventListener('pointercancel', endResize);
+
+    window.addEventListener('resize', function(){
+      if (opts.panel.style.display === 'block') clampPosition();
+    });
+
+    loadLayout();
+    return { open: open, close: close, toggle: toggle };
+  }
+
+  /* ---------------- CHAT ---------------- */
+  var chatUnsubscribe = null;
+  var chatKnownNames = [];
+  var chatLastMsgCount = 0;
+  var chatReplyTarget = null;
+  var chatPendingMedia = null;
+  var chatMediaRecorder = null, chatRecordedChunks = [], chatRecordingStartTime = 0, chatRecordingTimer = null;
+  var chatPanelCtl = null;
+
+  function initChat(){
+    if (!fbDb || chatUnsubscribe) return;
+    chatUnsubscribe = fbDb.collection('chat_messages').orderBy('createdAt','asc').limitToLast(150)
+      .onSnapshot(function(snap){
+        chatRenderMessages(snap.docs);
+      }, function(err){ console.warn('chat listener error', err); });
+  }
+
+  function chatLoadKnownNames(){
+    if (!fbDb) return;
+    fbDb.collection('characters').get().then(function(snap){
+      chatKnownNames = [];
+      snap.forEach(function(doc){
+        var n = doc.data().characterName;
+        if (n && n.trim()) chatKnownNames.push(n.trim());
+      });
+    }).catch(function(){});
+  }
+
+  function chatShowBadge(){
+    var badge = document.getElementById('chatBadge');
+    if (badge) badge.classList.add('show');
+  }
+  function chatMarkAllRead(){
+    var badge = document.getElementById('chatBadge');
+    if (badge) badge.classList.remove('show');
+  }
+
+  function chatFormatTime(ts){
+    if (!ts || !ts.toDate) return '';
+    var d = ts.toDate();
+    var hh = d.getHours(), mm = d.getMinutes();
+    return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+  }
+
+  function chatFormatText(text){
+    var esc = escAttr(text);
+    var names = chatKnownNames.slice().sort(function(a,b){ return b.length - a.length; });
+    names.forEach(function(name){
+      var escName = escAttr(name);
+      var safe = escName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var re = new RegExp('@' + safe, 'g');
+      esc = esc.replace(re, '<span class="chat-mention">@'+escName+'</span>');
+    });
+    return esc;
+  }
+
+  function chatBuildMediaHtml(d){
+    if (d.mediaType === 'image'){
+      return '<div class="chat-msg-media"><img src="'+escAttr(d.mediaUrl)+'" alt=""></div>';
+    }
+    if (d.mediaType === 'video'){
+      return '<div class="chat-msg-media"><video src="'+escAttr(d.mediaUrl)+'" controls preload="metadata"></video></div>';
+    }
+    if (d.mediaType === 'audio'){
+      return '<div class="chat-msg-media"><audio src="'+escAttr(d.mediaUrl)+'" controls></audio></div>';
+    }
+    return '<div class="chat-msg-media"><a class="chat-file-chip" href="'+escAttr(d.mediaUrl)+'" target="_blank" rel="noopener"><span class="fc-icon">📄</span><span class="fc-name">'+escAttr(d.mediaName||'файл')+'</span></a></div>';
+  }
+
+  function chatBuildMessageEl(id, d){
+    var el = document.createElement('div');
+    el.className = 'chat-msg' + (fbUser && d.senderId === fbUser.uid ? ' is-me' : '');
+    el.dataset.msgId = id;
+
+    var html = '';
+    if (d.replyTo){
+      html += '<div class="chat-msg-reply" data-scroll-to="'+escAttr(d.replyTo)+'">' +
+        '<span class="r-name">'+escAttr(d.replyToName||'—')+'</span>' +
+        '<span class="r-text">'+escAttr(d.replyToText||'медиа')+'</span></div>';
+    }
+    html += '<div class="chat-msg-head"><span class="chat-msg-name">'+escAttr(d.senderName||'—')+'</span>' +
+      '<span class="chat-msg-time">'+chatFormatTime(d.createdAt)+'</span></div>';
+    if (d.text) html += '<div class="chat-msg-text">'+chatFormatText(d.text)+'</div>';
+    if (d.mediaUrl) html += chatBuildMediaHtml(d);
+    html += '<div class="chat-msg-footer"><button class="chat-msg-reply-btn" data-reply-id="'+escAttr(id)+'">↩ Ответить</button></div>';
+
+    el.innerHTML = html;
+    return el;
+  }
+
+  function chatRenderMessages(docs){
+    var wrap = document.getElementById('chatMessages');
+    if (!wrap) return;
+    var wasAtBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 60;
+
+    if (!docs.length){
+      wrap.innerHTML = '<div class="chat-empty" id="chatEmpty">Пока никто не писал. Начните разговор!</div>';
+      chatLastMsgCount = 0;
+      return;
+    }
+
+    wrap.innerHTML = '';
+    docs.forEach(function(doc){
+      wrap.appendChild(chatBuildMessageEl(doc.id, doc.data()));
+    });
+
+    var isNewMessage = docs.length > chatLastMsgCount;
+    chatLastMsgCount = docs.length;
+
+    var panelEl = document.getElementById('chatFloat');
+    var panelVisible = panelEl && panelEl.classList.contains('calc-visible');
+    if (wasAtBottom || !panelVisible){
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+    if (isNewMessage && !panelVisible){
+      var lastData = docs[docs.length-1].data();
+      if (!fbUser || lastData.senderId !== fbUser.uid) chatShowBadge();
+    }
+  }
+
+  function chatScrollToMessage(id){
+    var el = document.querySelector('.chat-msg[data-msg-id="'+id+'"]');
+    if (!el) return;
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.remove('flash-highlight');
+    void el.offsetWidth;
+    el.classList.add('flash-highlight');
+  }
+
+  function chatSetReply(id, name, text){
+    chatReplyTarget = {id:id, name:name, text:text};
+    document.getElementById('chatReplyPreviewName').textContent = name;
+    document.getElementById('chatReplyPreviewText').textContent = text || '[медиа]';
+    document.getElementById('chatReplyPreview').style.display = 'flex';
+    document.getElementById('chatInput').focus();
+  }
+  function chatClearReply(){
+    chatReplyTarget = null;
+    var el = document.getElementById('chatReplyPreview');
+    if (el) el.style.display = 'none';
+  }
+
+  function bindChatMessagesDelegation(){
+    var wrap = document.getElementById('chatMessages');
+    wrap.addEventListener('click', function(e){
+      var replyBtn = e.target.closest('.chat-msg-reply-btn');
+      if (replyBtn){
+        var msgEl = replyBtn.closest('.chat-msg');
+        var nameEl = msgEl.querySelector('.chat-msg-name');
+        var textEl = msgEl.querySelector('.chat-msg-text');
+        chatSetReply(replyBtn.dataset.replyId, nameEl ? nameEl.textContent : '—', textEl ? textEl.textContent : '');
+        return;
+      }
+      var replyQuote = e.target.closest('.chat-msg-reply');
+      if (replyQuote){ chatScrollToMessage(replyQuote.dataset.scrollTo); return; }
+      var img = e.target.closest('.chat-msg-media img');
+      if (img){ window.open(img.src, '_blank'); return; }
+    });
+  }
+
+  /* ---- mentions autocomplete ---- */
+  function chatDetectMentionQuery(){
+    var el = document.getElementById('chatInput');
+    var pos = el.selectionStart;
+    var m = el.value.slice(0, pos).match(/@([^\s@]*)$/);
+    return m ? m[1] : null;
+  }
+  function chatUpdateMentionDropdown(){
+    var query = chatDetectMentionQuery();
+    var dropdown = document.getElementById('chatMentionDropdown');
+    if (query === null || !chatKnownNames.length){
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+      return;
+    }
+    var q = query.toLowerCase();
+    var matches = chatKnownNames.filter(function(n){ return n.toLowerCase().indexOf(q) === 0; });
+    if (!matches.length){ dropdown.style.display = 'none'; dropdown.innerHTML = ''; return; }
+    dropdown.innerHTML = '';
+    matches.slice(0,6).forEach(function(name){
+      var item = document.createElement('div');
+      item.className = 'chat-mention-item';
+      item.textContent = name;
+      item.addEventListener('mousedown', function(e){ e.preventDefault(); chatInsertMention(name); });
+      dropdown.appendChild(item);
+    });
+    dropdown.style.display = 'block';
+  }
+  function chatInsertMention(name){
+    var el = document.getElementById('chatInput');
+    var val = el.value, pos = el.selectionStart;
+    var m = val.slice(0, pos).match(/@([^\s@]*)$/);
+    if (!m) return;
+    var start = pos - m[0].length;
+    el.value = val.slice(0,start) + '@' + name + ' ' + val.slice(pos);
+    var newPos = start + name.length + 2;
+    el.setSelectionRange(newPos, newPos);
+    el.focus();
+    autoGrow(el);
+    document.getElementById('chatMentionDropdown').style.display = 'none';
+  }
+
+  /* ---- attachments ---- */
+  function chatPickFile(){ document.getElementById('chatFileInput').click(); }
+  function chatHandleFileSelected(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var type = 'file';
+    if (file.type.indexOf('image/') === 0) type = 'image';
+    else if (file.type.indexOf('video/') === 0) type = 'video';
+    else if (file.type.indexOf('audio/') === 0) type = 'audio';
+    chatPendingMedia = { file:file, type:type, name:file.name };
+    chatRenderAttachPreview();
+    e.target.value = '';
+  }
+  function chatRenderAttachPreview(){
+    var box = document.getElementById('chatAttachPreview');
+    var body = document.getElementById('chatAttachPreviewBody');
+    if (!chatPendingMedia){ box.style.display = 'none'; return; }
+    var m = chatPendingMedia;
+    var icon = m.type==='video' ? '🎬' : (m.type==='audio' ? '🎵' : '📄');
+    if (m.type === 'image'){
+      body.innerHTML = '<img src="'+URL.createObjectURL(m.file)+'"><span>'+escAttr(m.name)+'</span>';
+    } else {
+      body.innerHTML = '<span>'+icon+'</span><span>'+escAttr(m.name)+'</span>';
+    }
+    box.style.display = 'flex';
+  }
+  function chatCancelAttach(){ chatPendingMedia = null; chatRenderAttachPreview(); }
+
+  /* ---- audio recording ---- */
+  function chatStartRecording(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      alert('Запись голоса не поддерживается этим браузером.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      chatRecordedChunks = [];
+      chatMediaRecorder = new MediaRecorder(stream);
+      chatMediaRecorder.ondataavailable = function(e){ if (e.data.size>0) chatRecordedChunks.push(e.data); };
+      chatMediaRecorder.onstop = function(){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        if (chatRecordedChunks.length){
+          var blob = new Blob(chatRecordedChunks, {type: chatMediaRecorder.mimeType || 'audio/webm'});
+          chatPendingMedia = { file: blob, type:'audio', name:'Голосовое.webm' };
+          chatRenderAttachPreview();
+        }
+      };
+      chatMediaRecorder.start();
+      chatRecordingStartTime = Date.now();
+      document.getElementById('chatRecordingBar').style.display = 'flex';
+      document.getElementById('chatMicBtn').classList.add('active');
+      chatRecordingTimer = setInterval(function(){
+        var sec = Math.floor((Date.now()-chatRecordingStartTime)/1000);
+        var mm = Math.floor(sec/60), ss = sec%60;
+        document.getElementById('chatRecordingTime').textContent = mm+':'+(ss<10?'0':'')+ss;
+      }, 250);
+    }).catch(function(err){
+      console.warn('mic access denied', err);
+      alert('Не удалось получить доступ к микрофону.');
+    });
+  }
+  function chatStopRecording(save){
+    if (chatMediaRecorder && chatMediaRecorder.state !== 'inactive'){
+      if (!save) chatRecordedChunks = [];
+      chatMediaRecorder.stop();
+    }
+    clearInterval(chatRecordingTimer);
+    document.getElementById('chatRecordingBar').style.display = 'none';
+    document.getElementById('chatMicBtn').classList.remove('active');
+  }
+
+  /* ---- upload + send (via Cloudinary, unsigned upload preset — no server needed) ---- */
+  var CLOUDINARY_CLOUD_NAME = 'Dndsheet';
+  var CLOUDINARY_UPLOAD_PRESET = 'Dndsheet';
+
+  function chatUploadMedia(fileOrBlob, name){
+    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'ВАШ_CLOUD_NAME'){
+      return Promise.reject(new Error('Cloudinary не настроен — впишите CLOUDINARY_CLOUD_NAME и CLOUDINARY_UPLOAD_PRESET в коде'));
+    }
+    var url = 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/auto/upload';
+    var form = new FormData();
+    form.append('file', fileOrBlob, name);
+    form.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    return fetch(url, { method:'POST', body: form }).then(function(res){
+      if (!res.ok) return res.text().then(function(t){ throw new Error('Cloudinary upload failed: '+res.status+' '+t); });
+      return res.json();
+    }).then(function(data){
+      return data.secure_url;
+    });
+  }
+
+  function chatSendMessage(){
+    var input = document.getElementById('chatInput');
+    var text = input.value.trim();
+    if (!text && !chatPendingMedia) return;
+    if (!fbDb || !fbUser){ alert('Нет подключения к облаку.'); return; }
+
+    var name = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
+    if (!name) name = 'Без имени';
+
+    var payload = {
+      senderId: fbUser.uid,
+      senderName: name,
+      text: text,
+      replyTo: chatReplyTarget ? chatReplyTarget.id : null,
+      replyToName: chatReplyTarget ? chatReplyTarget.name : null,
+      replyToText: chatReplyTarget ? chatReplyTarget.text : null,
+      mediaUrl: null, mediaType: null, mediaName: null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    var sendBtn = document.getElementById('chatSendBtn');
+    sendBtn.disabled = true;
+
+    function finalize(){
+      fbDb.collection('chat_messages').add(payload).then(function(){
+        input.value = '';
+        autoGrow(input);
+        chatClearReply();
+        chatCancelAttach();
+        sendBtn.disabled = false;
+      }).catch(function(err){
+        console.warn('chat send failed', err);
+        sendBtn.disabled = false;
+        alert('Не удалось отправить сообщение.');
+      });
+    }
+
+    if (chatPendingMedia){
+      chatUploadMedia(chatPendingMedia.file, chatPendingMedia.name).then(function(url){
+        payload.mediaUrl = url;
+        payload.mediaType = chatPendingMedia.type;
+        payload.mediaName = chatPendingMedia.name;
+        finalize();
+      }).catch(function(err){
+        console.warn('chat upload failed', err);
+        sendBtn.disabled = false;
+        alert('Не удалось загрузить файл.');
+      });
+    } else {
+      finalize();
+    }
+  }
+
+  function bindChatUI(){
+    chatPanelCtl = bindFloatingPanel({
+      panel: document.getElementById('chatFloat'),
+      openBtn: document.getElementById('btnChatOpen'),
+      dragHandle: document.getElementById('chatDragHandle'),
+      resizeHandle: document.getElementById('chatResizeHandle'),
+      closeBtn: document.getElementById('chatCloseBtn'),
+      posKey: 'dnd5e_chat_layout',
+      baseWidth: 320,
+      minScale: 0.55,
+      maxScale: 1.7,
+      onOpen: function(){
+        chatMarkAllRead();
+        chatLoadKnownNames();
+        var wrap = document.getElementById('chatMessages');
+        requestAnimationFrame(function(){ wrap.scrollTop = wrap.scrollHeight; });
+      }
+    });
+
+    bindChatMessagesDelegation();
+
+    var input = document.getElementById('chatInput');
+    input.addEventListener('input', function(){ autoGrow(input); chatUpdateMentionDropdown(); });
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); chatSendMessage(); }
+    });
+
+    document.getElementById('chatSendBtn').addEventListener('click', chatSendMessage);
+    document.getElementById('chatReplyCancel').addEventListener('click', chatClearReply);
+    document.getElementById('chatAttachCancel').addEventListener('click', chatCancelAttach);
+    document.getElementById('chatAttachBtn').addEventListener('click', chatPickFile);
+    document.getElementById('chatFileInput').addEventListener('change', chatHandleFileSelected);
+
+    document.getElementById('chatMicBtn').addEventListener('click', function(){
+      if (chatMediaRecorder && chatMediaRecorder.state === 'recording') chatStopRecording(true);
+      else chatStartRecording();
+    });
+    document.getElementById('chatRecCancel').addEventListener('click', function(){ chatStopRecording(false); });
+  }
+
   var CALC_POS_KEY = 'dnd5e_calc_layout';
 
   /* ---------------- TETRIS (hidden minigame) ---------------- */
@@ -4608,41 +5323,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
         playSound(cat, cat==='data'?'add':(cat==='toggle'?'toggle':(cat==='modal'?'modalOpen':'click')));
       });
     });
-    var tetrisMusicToggle = document.getElementById('sndTetrisMusicToggle');
-    if (tetrisMusicToggle){
-      tetrisMusicToggle.checked = soundSettings.tetrisMusic;
-      tetrisMusicToggle.addEventListener('change', function(){
-        soundSettings.tetrisMusic = tetrisMusicToggle.checked;
-        saveSoundSettings();
-        if (!soundSettings.tetrisMusic) tetrisStopMusic();
-        else if (typeof tetrisState !== 'undefined' && tetrisState && document.getElementById('tetrisOverlay').classList.contains('active')) tetrisStartMusic();
-      });
-    }
-    var musicVol = document.getElementById('sndVol_tetrisMusic');
-    if (musicVol){
-      musicVol.value = Math.round(soundSettings.tetrisMusicVol*100);
-      musicVol.style.setProperty('--fill', musicVol.value+'%');
-      musicVol.addEventListener('input', function(){
-        soundSettings.tetrisMusicVol = musicVol.value/100;
-        musicVol.style.setProperty('--fill', musicVol.value+'%');
-        var audioEl = tetrisGetMusicAudioEl();
-        if (audioEl) audioEl.volume = soundSettings.tetrisMusicVol;
-      });
-      musicVol.addEventListener('change', saveSoundSettings);
-    }
-    var sfxVol = document.getElementById('sndVol_tetrisSfx');
-    if (sfxVol){
-      sfxVol.value = Math.round(soundSettings.tetrisSfxVol*100);
-      sfxVol.style.setProperty('--fill', sfxVol.value+'%');
-      sfxVol.addEventListener('input', function(){
-        soundSettings.tetrisSfxVol = sfxVol.value/100;
-        sfxVol.style.setProperty('--fill', sfxVol.value+'%');
-      });
-      sfxVol.addEventListener('change', function(){
-        saveSoundSettings();
-        tetrisSfx('move');
-      });
-    }
     renderSoundThemeGrid();
   }
 
@@ -5836,6 +6516,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindSectionsUI();
   bindCalculator();
   bindTetrisControls();
+  bindChatUI();
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
