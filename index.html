@@ -1905,12 +1905,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
 /* ---------- CHAT (floating, resizable window) ---------- */
 .chat-float.card{
   position:fixed;
-  width:320px;
-  height:420px;
   margin:0;
   padding:12px 12px 10px;
   z-index:91;
-  transform-origin:top left;
   border:3px solid var(--gold);
   box-shadow:
     0 12px 30px rgba(0,0,0,0.5),
@@ -4069,105 +4066,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var CALC_MIN_SCALE = 0.45, CALC_MAX_SCALE = 1.9, CALC_BASE_WIDTH = 300;
 
-  /* ---------------- GENERIC FLOATING PANEL (reused by chat) ---------------- */
-  function bindFloatingPanel(opts){
-    var scale = 1, left = null, top = null;
-
-    function applyScale(){ opts.panel.style.transform = 'scale(' + scale + ')'; }
-    function clampPosition(){
-      var rect = opts.panel.getBoundingClientRect();
-      var maxLeft = Math.max(4, window.innerWidth - rect.width - 4);
-      var maxTop = Math.max(4, window.innerHeight - rect.height - 4);
-      left = Math.min(Math.max(4, left), maxLeft);
-      top = Math.min(Math.max(4, top), maxTop);
-      opts.panel.style.left = left + 'px';
-      opts.panel.style.top = top + 'px';
-    }
-    function saveLayout(){
-      try{ localStorage.setItem(opts.posKey, JSON.stringify({left:left, top:top, scale:scale})); }catch(e){}
-    }
-    function loadLayout(){
-      try{
-        var raw = localStorage.getItem(opts.posKey);
-        if (raw){
-          var d = JSON.parse(raw);
-          if (typeof d.left === 'number') left = d.left;
-          if (typeof d.top === 'number') top = d.top;
-          if (typeof d.scale === 'number') scale = Math.min(opts.maxScale, Math.max(opts.minScale, d.scale));
-        }
-      }catch(e){}
-    }
-    function open(){
-      opts.panel.style.display = 'block';
-      if (left === null || top === null){
-        left = Math.max(8, window.innerWidth - opts.baseWidth - 16);
-        top = Math.max(70, window.innerHeight * 0.12);
-      }
-      applyScale();
-      opts.panel.style.left = left + 'px';
-      opts.panel.style.top = top + 'px';
-      requestAnimationFrame(clampPosition);
-      void opts.panel.offsetWidth;
-      opts.panel.classList.add('calc-visible');
-      if (opts.onOpen) opts.onOpen();
-    }
-    function close(){
-      opts.panel.classList.remove('calc-visible');
-      setTimeout(function(){
-        if (!opts.panel.classList.contains('calc-visible')) opts.panel.style.display = 'none';
-      }, 200);
-      if (opts.onClose) opts.onClose();
-    }
-    function toggle(){
-      if (opts.panel.classList.contains('calc-visible')) close();
-      else open();
-    }
-
-    opts.openBtn.addEventListener('click', toggle);
-    opts.closeBtn.addEventListener('click', close);
-
-    var dragState = null;
-    opts.dragHandle.addEventListener('pointerdown', function(e){
-      if (e.target.closest('button')) return;
-      var rect = opts.panel.getBoundingClientRect();
-      dragState = { startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
-      opts.dragHandle.setPointerCapture(e.pointerId);
-    });
-    opts.dragHandle.addEventListener('pointermove', function(e){
-      if (!dragState) return;
-      left = dragState.startLeft + (e.clientX - dragState.startX);
-      top = dragState.startTop + (e.clientY - dragState.startY);
-      clampPosition();
-    });
-    function endDrag(){ if (!dragState) return; dragState = null; saveLayout(); }
-    opts.dragHandle.addEventListener('pointerup', endDrag);
-    opts.dragHandle.addEventListener('pointercancel', endDrag);
-
-    var resizeState = null;
-    opts.resizeHandle.addEventListener('pointerdown', function(e){
-      e.stopPropagation();
-      resizeState = { startX: e.clientX, startScale: scale };
-      opts.resizeHandle.setPointerCapture(e.pointerId);
-    });
-    opts.resizeHandle.addEventListener('pointermove', function(e){
-      if (!resizeState) return;
-      var newScale = resizeState.startScale + (e.clientX - resizeState.startX) / opts.baseWidth;
-      scale = Math.min(opts.maxScale, Math.max(opts.minScale, newScale));
-      applyScale();
-      clampPosition();
-    });
-    function endResize(){ if (!resizeState) return; resizeState = null; saveLayout(); }
-    opts.resizeHandle.addEventListener('pointerup', endResize);
-    opts.resizeHandle.addEventListener('pointercancel', endResize);
-
-    window.addEventListener('resize', function(){
-      if (opts.panel.style.display === 'block') clampPosition();
-    });
-
-    loadLayout();
-    return { open: open, close: close, toggle: toggle };
-  }
-
   /* ---------------- CHAT ---------------- */
   var chatUnsubscribe = null;
   var chatKnownNames = [];
@@ -4506,7 +4404,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }).catch(function(err){
         console.warn('chat upload failed', err);
         sendBtn.disabled = false;
-        alert('Не удалось загрузить файл.');
+        alert('Не удалось загрузить файл: ' + (err && err.message ? err.message : err));
       });
     } else {
       finalize();
@@ -4514,23 +4412,128 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function bindChatUI(){
-    chatPanelCtl = bindFloatingPanel({
-      panel: document.getElementById('chatFloat'),
-      openBtn: document.getElementById('btnChatOpen'),
-      dragHandle: document.getElementById('chatDragHandle'),
-      resizeHandle: document.getElementById('chatResizeHandle'),
-      closeBtn: document.getElementById('chatCloseBtn'),
-      posKey: 'dnd5e_chat_layout',
-      baseWidth: 320,
-      minScale: 0.55,
-      maxScale: 1.7,
-      onOpen: function(){
-        chatMarkAllRead();
-        chatLoadKnownNames();
-        var wrap = document.getElementById('chatMessages');
-        requestAnimationFrame(function(){ wrap.scrollTop = wrap.scrollHeight; });
+    var panel = document.getElementById('chatFloat');
+    var openBtn = document.getElementById('btnChatOpen');
+    var dragHandle = document.getElementById('chatDragHandle');
+    var resizeHandle = document.getElementById('chatResizeHandle');
+    var closeBtn = document.getElementById('chatCloseBtn');
+    var CHAT_POS_KEY = 'dnd5e_chat_layout_v2';
+    var MIN_W = 260, MIN_H = 300;
+    var left = null, top = null, panelW = 320, panelH = 420;
+
+    function viewportH(){ return window.visualViewport ? window.visualViewport.height : window.innerHeight; }
+    function applySize(){
+      panel.style.width = panelW + 'px';
+      panel.style.height = panelH + 'px';
+    }
+    function clampPosition(){
+      var maxW = Math.max(MIN_W, window.innerWidth - 16);
+      var maxH = Math.max(MIN_H, viewportH() - 16);
+      panelW = Math.min(panelW, maxW);
+      panelH = Math.min(panelH, maxH);
+      applySize();
+      var vh = viewportH();
+      var maxLeft = Math.max(4, window.innerWidth - panelW - 4);
+      var maxTop = Math.max(4, vh - panelH - 4);
+      left = Math.min(Math.max(4, left), maxLeft);
+      top = Math.min(Math.max(4, top), maxTop);
+      panel.style.left = left + 'px';
+      panel.style.top = top + 'px';
+    }
+    function saveLayout(){
+      try{ localStorage.setItem(CHAT_POS_KEY, JSON.stringify({left:left, top:top, w:panelW, h:panelH})); }catch(e){}
+    }
+    function loadLayout(){
+      try{
+        var raw = localStorage.getItem(CHAT_POS_KEY);
+        if (raw){
+          var d = JSON.parse(raw);
+          if (typeof d.left === 'number') left = d.left;
+          if (typeof d.top === 'number') top = d.top;
+          if (typeof d.w === 'number') panelW = Math.max(MIN_W, d.w);
+          if (typeof d.h === 'number') panelH = Math.max(MIN_H, d.h);
+        }
+      }catch(e){}
+    }
+
+    function open(){
+      panel.style.display = 'block';
+      if (left === null || top === null){
+        left = Math.max(8, window.innerWidth - panelW - 16);
+        top = Math.max(70, window.innerHeight * 0.1);
       }
+      applySize();
+      panel.style.left = left + 'px';
+      panel.style.top = top + 'px';
+      requestAnimationFrame(clampPosition);
+      void panel.offsetWidth;
+      panel.classList.add('calc-visible');
+      chatMarkAllRead();
+      chatLoadKnownNames();
+      var wrap = document.getElementById('chatMessages');
+      requestAnimationFrame(function(){ wrap.scrollTop = wrap.scrollHeight; });
+    }
+    function close(){
+      panel.classList.remove('calc-visible');
+      setTimeout(function(){
+        if (!panel.classList.contains('calc-visible')) panel.style.display = 'none';
+      }, 200);
+    }
+    function toggle(){
+      if (panel.classList.contains('calc-visible')) close();
+      else open();
+    }
+
+    openBtn.addEventListener('click', toggle);
+    closeBtn.addEventListener('click', close);
+
+    var dragState = null;
+    dragHandle.addEventListener('pointerdown', function(e){
+      if (e.target.closest('button')) return;
+      var rect = panel.getBoundingClientRect();
+      dragState = { startX:e.clientX, startY:e.clientY, startLeft:rect.left, startTop:rect.top };
+      dragHandle.setPointerCapture(e.pointerId);
     });
+    dragHandle.addEventListener('pointermove', function(e){
+      if (!dragState) return;
+      left = dragState.startLeft + (e.clientX - dragState.startX);
+      top = dragState.startTop + (e.clientY - dragState.startY);
+      clampPosition();
+    });
+    function endDrag(){ if (!dragState) return; dragState = null; saveLayout(); }
+    dragHandle.addEventListener('pointerup', endDrag);
+    dragHandle.addEventListener('pointercancel', endDrag);
+
+    var resizeState = null;
+    resizeHandle.addEventListener('pointerdown', function(e){
+      e.stopPropagation();
+      resizeState = { startX:e.clientX, startY:e.clientY, startW:panelW, startH:panelH };
+      resizeHandle.setPointerCapture(e.pointerId);
+    });
+    resizeHandle.addEventListener('pointermove', function(e){
+      if (!resizeState) return;
+      var maxW = Math.max(MIN_W, window.innerWidth - 16);
+      var maxH = Math.max(MIN_H, viewportH() - 16);
+      panelW = Math.min(maxW, Math.max(MIN_W, resizeState.startW + (e.clientX - resizeState.startX)));
+      panelH = Math.min(maxH, Math.max(MIN_H, resizeState.startH + (e.clientY - resizeState.startY)));
+      applySize();
+      clampPosition();
+    });
+    function endResize(){ if (!resizeState) return; resizeState = null; saveLayout(); }
+    resizeHandle.addEventListener('pointerup', endResize);
+    resizeHandle.addEventListener('pointercancel', endResize);
+
+    window.addEventListener('resize', function(){
+      if (panel.style.display === 'block') clampPosition();
+    });
+    if (window.visualViewport){
+      window.visualViewport.addEventListener('resize', function(){
+        if (panel.style.display === 'block') clampPosition();
+      });
+    }
+
+    loadLayout();
+    chatPanelCtl = { open:open, close:close, toggle:toggle };
 
     bindChatMessagesDelegation();
 
@@ -4538,6 +4541,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
     input.addEventListener('input', function(){ autoGrow(input); chatUpdateMentionDropdown(); });
     input.addEventListener('keydown', function(e){
       if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); chatSendMessage(); }
+    });
+    input.addEventListener('focus', function(){
+      setTimeout(clampPosition, 300);
     });
 
     document.getElementById('chatSendBtn').addEventListener('click', chatSendMessage);
