@@ -2068,6 +2068,33 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .chat-file-chip .fc-icon{font-size:17px;flex-shrink:0;}
 .chat-file-chip .fc-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
+.item-offer-card{
+  margin-top:5px;
+  padding:10px 12px;
+  background:linear-gradient(180deg, rgba(224,181,99,0.22), rgba(224,181,99,0.1));
+  border:1px solid var(--gold);
+  border-radius:10px;
+  min-width:180px;
+}
+.item-offer-head{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.item-offer-icon{font-size:17px;}
+.item-offer-name{font-family:var(--font-display);font-weight:700;font-size:13.5px;color:#6b4a12;}
+.item-offer-qty{font-family:var(--font-mono);font-size:11px;color:#6b5a3e;}
+.item-offer-notes{font-size:11.5px;color:#6b5a3e;margin-bottom:6px;white-space:pre-wrap;}
+.item-offer-status{font-size:11.5px;color:#4a7a5a;font-style:italic;}
+.item-offer-accept-btn{
+  width:100%;
+  margin-top:2px;
+  padding:7px;
+  border-radius:8px;
+  border:1px solid #8a6218;
+  background:linear-gradient(180deg,#e0b563,#b9903f);
+  color:#2c2011;
+  font-weight:700;font-size:12.5px;
+  cursor:pointer;
+}
+.item-offer-accept-btn:active{transform:scale(0.97);}
+
 .chat-mention-dropdown{
   flex:0 0 auto;
   max-height:140px;overflow-y:auto;
@@ -2213,6 +2240,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .chat-list-body{flex:1;min-width:0;}
 .chat-list-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--parchment);}
 .chat-list-preview{font-size:12px;color:var(--parchment);opacity:0.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+#itemSendPlayerList .chat-list-name{color:var(--ink);}
+#itemSendPlayerList .chat-list-item{border-bottom-color:var(--parchment-shadow);}
+#itemSendPlayerList .chat-list-item:active{background:rgba(0,0,0,0.06);}
+.item-received-toast{
+  position:fixed;
+  left:50%;top:16px;
+  transform:translateX(-50%) translateY(-140%);
+  z-index:170;
+  background:var(--parchment);
+  border:2px solid var(--gold);
+  border-radius:var(--radius-s);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  padding:10px 16px;
+  font-size:13px;color:var(--ink);
+  max-width:90%;
+  transition:transform .3s ease;
+  pointer-events:none;
+}
+.item-received-toast.show{transform:translateX(-50%) translateY(0);}
 .chat-list-meta{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
 .chat-list-time{font-family:var(--font-mono);font-size:10px;color:var(--parchment);opacity:0.55;}
 .chat-list-unread{
@@ -3524,6 +3570,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
   </div>
 </div>
 
+<div class="modal-overlay" id="itemSendOverlay">
+  <div class="modal-card">
+    <p class="modal-text" style="margin-bottom:12px;">Кому отправить предмет?</p>
+    <div id="itemSendPlayerList" class="chat-list" style="max-height:280px;overflow-y:auto;"></div>
+    <div class="modal-actions" style="margin-top:12px;">
+      <button class="modal-btn cancel" id="itemSendCancelBtn">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div class="item-received-toast" id="itemReceivedToast"></div>
+
 <div class="modal-overlay" id="settingsOverlay">
   <div class="modal-card wide settings-modal">
     <div class="modal-icon gear-emoji-icon" id="settingsGearIcon"></div>
@@ -3876,7 +3934,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-14';
+  var APP_VERSION = '2026.09.07-16';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4347,6 +4405,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         '<div class="dyn-item-controls">' +
           '<button type="button" class="sec-btn" data-act="up"'+(idx===0?' disabled':'')+' aria-label="Выше">▲</button>' +
           '<button type="button" class="sec-btn" data-act="down"'+(idx===state.items.length-1?' disabled':'')+' aria-label="Ниже">▼</button>' +
+          '<button type="button" class="sec-btn" data-act="send" aria-label="Отправить другому игроку" title="Отправить другому игроку">📤</button>' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
         '<div class="dyn-grid" style="grid-template-columns:1.6fr 0.6fr;">' +
@@ -4373,6 +4432,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (idx === state.items.length-1) return;
         var tmp = state.items[idx+1]; state.items[idx+1] = state.items[idx]; state.items[idx] = tmp;
         preserveScroll(function(){ saveState(); renderItems(); });
+      });
+      div.querySelector('[data-act="send"]').addEventListener('click', function(){
+        itemOpenSendPicker(item, idx);
       });
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteItem', item.name || t('noname')), function(){
@@ -4756,6 +4818,107 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }).catch(function(){});
   }
 
+  /* ---------------- ITEM TRANSFERS (send items via DM, recipient must accept) ---------------- */
+  var itemSendPendingItem = null, itemSendPendingIdx = null;
+
+  function itemOpenSendPicker(item, idx){
+    if (!fbDb || !fbUser){ alert('Нет подключения к облаку.'); return; }
+    itemSendPendingItem = item;
+    itemSendPendingIdx = idx;
+    var overlay = document.getElementById('itemSendOverlay');
+    var list = document.getElementById('itemSendPlayerList');
+    list.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
+    overlay.classList.add('active');
+    appOpenModal(itemCloseSendPickerUIOnly);
+    chatLoadKnownPlayers().then(function(){
+      var others = chatKnownPlayers.filter(function(p){ return p.uid !== fbUser.uid; });
+      if (!others.length){
+        list.innerHTML = '<div class="chat-gallery-empty">Другие игроки пока не найдены.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      others.forEach(function(p){
+        var row = document.createElement('div');
+        row.className = 'chat-list-item';
+        var avatarHtml = p.avatarUrl ? '<img src="'+escAttr(p.avatarUrl)+'">' : p.name.slice(0,2).toUpperCase();
+        row.innerHTML =
+          '<div class="chat-list-avatar">'+avatarHtml+'</div>' +
+          '<div class="chat-list-body"><div class="chat-list-name">'+escAttr(p.name)+'</div></div>';
+        row.addEventListener('click', function(){ itemSendTo(p); });
+        list.appendChild(row);
+      });
+    });
+  }
+  function itemCloseSendPickerUIOnly(){
+    document.getElementById('itemSendOverlay').classList.remove('active');
+    itemSendPendingItem = null;
+    itemSendPendingIdx = null;
+  }
+  function itemCloseSendPicker(){
+    itemCloseSendPickerUIOnly();
+    appCloseModal();
+  }
+
+  function itemSendTo(player){
+    var item = itemSendPendingItem, idx = itemSendPendingIdx;
+    if (!item || !fbDb || !fbUser) return;
+    var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
+    var threadId = chatComputeThreadId(fbUser.uid, player.uid);
+    var payload = {
+      senderId: fbUser.uid, senderName: myName,
+      text: '',
+      replyTo: null, replyToName: null, replyToText: null,
+      mediaUrl: null, mediaType: null, mediaName: null,
+      itemOffer: {
+        itemName: item.name || '', itemQty: item.qty || 1, itemNotes: item.notes || '',
+        claimed: false, claimedBy: null
+      },
+      threadId: threadId,
+      recipientId: player.uid,
+      participants: [fbUser.uid, player.uid],
+      readBy: [fbUser.uid],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    fbDb.collection('dm_messages').add(payload).then(function(){
+      var i = state.items.indexOf(item);
+      if (i > -1) state.items.splice(i,1);
+      preserveScroll(function(){ saveState(); renderItems(); });
+      itemCloseSendPicker();
+      showItemToast('Отправлено «'+(item.name||t('noname'))+'» игроку '+player.name+' — ждём подтверждения в чате');
+    }).catch(function(err){
+      alert('Не удалось отправить предмет: ' + (err.message||err));
+    });
+  }
+
+  function chatAcceptItemOffer(msgId){
+    var d = chatMsgData[msgId];
+    if (!d || !d.itemOffer || d.itemOffer.claimed) return;
+    if (!fbDb || !fbUser) return;
+    var col = chatCollectionFor(chatCurrentThread);
+    var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
+    fbDb.collection(col).doc(msgId).update({
+      'itemOffer.claimed': true,
+      'itemOffer.claimedBy': myName
+    }).then(function(){
+      if (!Array.isArray(state.items)) state.items = [];
+      state.items.push({name: d.itemOffer.itemName||'', qty: d.itemOffer.itemQty||1, notes: d.itemOffer.itemNotes||''});
+      saveState();
+      if (typeof renderItems === 'function') renderItems();
+      showItemToast('Принято «'+(d.itemOffer.itemName||t('noname'))+'»');
+    }).catch(function(err){
+      alert('Не удалось принять предмет: ' + (err.message||err));
+    });
+  }
+
+  function showItemToast(text){
+    var el = document.getElementById('itemReceivedToast');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.add('show');
+    clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(function(){ el.classList.remove('show'); }, 3500);
+  }
+
   function chatShowBadge(){
     var badge = document.getElementById('chatBadge');
     if (badge) badge.classList.add('show');
@@ -4818,6 +4981,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return '<div class="chat-msg-media"><a class="chat-file-chip" href="'+escAttr(d.mediaUrl)+'" target="_blank" rel="noopener"><span class="fc-icon">📄</span><span class="fc-name">'+escAttr(d.mediaName||'файл')+'</span></a></div>';
   }
 
+  function chatBuildItemOfferHtml(id, d, isMe){
+    var o = d.itemOffer;
+    var qtyHtml = (o.itemQty && o.itemQty !== 1) ? ' <span class="item-offer-qty">×'+escAttr(o.itemQty)+'</span>' : '';
+    var notesHtml = o.itemNotes ? '<div class="item-offer-notes">'+escAttr(o.itemNotes)+'</div>' : '';
+    var actionHtml;
+    if (o.claimed){
+      actionHtml = '<div class="item-offer-status">✓ Принято'+(o.claimedBy?(' — '+escAttr(o.claimedBy)):'')+'</div>';
+    } else if (isMe){
+      actionHtml = '<div class="item-offer-status">Ожидает принятия…</div>';
+    } else {
+      actionHtml = '<button type="button" class="item-offer-accept-btn" data-msg-id="'+escAttr(id)+'">Принять предмет</button>';
+    }
+    return '<div class="item-offer-card">' +
+      '<div class="item-offer-head"><span class="item-offer-icon">🎁</span><span class="item-offer-name">'+escAttr(o.itemName||t('noname'))+'</span>'+qtyHtml+'</div>' +
+      notesHtml +
+      actionHtml +
+    '</div>';
+  }
+
   function chatBuildMessageEl(id, d){
     var el = document.createElement('div');
     var isMe = fbUser && d.senderId === fbUser.uid;
@@ -4835,6 +5017,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
     html += '<div class="chat-msg-head"><span class="chat-msg-name">'+escAttr(d.senderName||'—')+'</span></div>';
     if (d.text) html += '<div class="chat-msg-text">'+chatFormatText(d.text)+'</div>';
+    if (d.itemOffer) html += chatBuildItemOfferHtml(id, d, isMe);
     if (d.mediaUrl) html += chatBuildMediaHtml(d);
     html += '<div class="chat-msg-footer">' +
       '<button class="chat-msg-reply-btn" data-reply-id="'+escAttr(id)+'">↩</button>' +
@@ -5049,6 +5232,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (audioPlay){ chatToggleAudio(audioPlay.closest('.chat-audio-player')); return; }
       var audioTrack = e.target.closest('.chat-audio-track');
       if (audioTrack){ chatSeekAudio(audioTrack.closest('.chat-audio-player'), e.clientX); return; }
+      var acceptBtn = e.target.closest('.item-offer-accept-btn');
+      if (acceptBtn){ chatAcceptItemOffer(acceptBtn.dataset.msgId); return; }
     });
 
     var longPressTimer = null, longPressEl = null;
@@ -5541,7 +5726,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         var preview = '';
         var time = '';
         if (r.last){
-          preview = r.last.mediaUrl && !r.last.text ? (r.last.mediaType === 'image' ? '📷 Фото' : r.last.mediaType === 'video' ? '🎬 Видео' : r.last.mediaType === 'audio' ? '🎵 Голосовое' : '📄 Файл') : (r.last.text || '');
+          preview = r.last.itemOffer ? ('🎁 '+(r.last.itemOffer.itemName||t('noname'))) :
+            (r.last.mediaUrl && !r.last.text ? (r.last.mediaType === 'image' ? '📷 Фото' : r.last.mediaType === 'video' ? '🎬 Видео' : r.last.mediaType === 'audio' ? '🎵 Голосовое' : '📄 Файл') : (r.last.text || ''));
           time = chatFormatTime(r.last.createdAt);
         }
         item.innerHTML =
@@ -8264,6 +8450,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindTetrisControls();
   bindChatUI();
   bindMapUI();
+  document.getElementById('itemSendCancelBtn').addEventListener('click', itemCloseSendPicker);
+  document.getElementById('itemSendOverlay').addEventListener('click', function(e){
+    if (e.target === this) itemCloseSendPicker();
+  });
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
