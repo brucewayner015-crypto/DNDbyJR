@@ -2277,11 +2277,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .map-pin{
   position:absolute;
-  transform:translate(-50%,-100%);
+  transform:translate(-50%,-100%) scale(var(--pin-inv-scale, 1));
+  transform-origin:50% 100%;
   cursor:pointer;
-  font-size:28px;
   line-height:1;
-  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.7));
+}
+.map-pin-badge{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;
+  border-radius:50% 50% 50% 0;
+  transform:rotate(45deg);
+  border:2px solid rgba(255,255,255,0.85);
+  box-shadow:0 2px 5px rgba(0,0,0,0.6);
+  background:#c0392b;
+}
+.map-pin-badge span{
+  display:block;
+  transform:rotate(-45deg);
+  font-size:15px;
+  line-height:1;
 }
 .map-pin-label{
   position:absolute;
@@ -2334,6 +2348,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-radius:6px;padding:7px;font-size:12px;cursor:pointer;
 }
 #mapAddPinBtn.active{background:linear-gradient(180deg, var(--wax-bright), var(--wax));}
+
+.map-pin-settings-popup{
+  position:absolute;
+  top:56px;right:10px;
+  z-index:20;
+  width:220px;
+  background:var(--parchment);
+  border:2px solid var(--gold);
+  border-radius:var(--radius-s);
+  box-shadow:0 10px 24px rgba(0,0,0,0.5);
+  padding:12px 14px 14px;
+}
+.map-pin-settings-title{
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:12.5px;color:var(--ink);
+  margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--parchment-shadow);
+}
+.map-pin-settings-popup label{
+  display:block;font-family:var(--font-display);font-size:10px;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--ink-soft);margin-bottom:5px;margin-top:10px;
+}
+.map-pin-settings-popup label:first-of-type{margin-top:0;}
+.map-pin-color-row, .map-pin-icon-row{display:flex;flex-wrap:wrap;gap:6px;}
+.map-pin-color-swatch{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid rgba(0,0,0,0.15);
+  cursor:pointer;
+}
+.map-pin-color-swatch.selected{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold);}
+.map-pin-icon-swatch{
+  width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.06);
+  font-size:15px;
+  cursor:pointer;
+}
+.map-pin-icon-swatch.selected{background:var(--gold);}
 
 #mapSwitchBtn{cursor:pointer;}
 
@@ -3349,7 +3400,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
       <span class="chat-header-sub">Сменить карту ▾</span>
     </div>
     <button class="chat-gallery-btn" id="mapSearchBtn" aria-label="Поиск метки" title="Поиск метки">🔍</button>
+    <button class="chat-gallery-btn" id="mapPinSettingsBtn" aria-label="Настройки меток" title="Настройки меток">⚙</button>
     <button class="chat-gallery-btn" id="mapAddPinBtn" aria-label="Добавить метку" title="Добавить постоянную метку">📍</button>
+  </div>
+
+  <div class="map-pin-settings-popup" id="mapPinSettingsPopup" style="display:none;">
+    <div class="map-pin-settings-title">Настройки меток<button class="chat-reply-cancel" id="mapPinSettingsClose" aria-label="Закрыть">✕</button></div>
+    <label>Размер</label>
+    <input type="range" min="18" max="44" id="mapPinSizeSlider">
+    <label>Цвет новых меток</label>
+    <div class="map-pin-color-row" id="mapPinColorRow"></div>
+    <label>Иконка новых меток</label>
+    <div class="map-pin-icon-row" id="mapPinIconRow"></div>
   </div>
 
   <div class="map-search-bar" id="mapSearchBar" style="display:none;">
@@ -3807,7 +3869,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-8';
+  var APP_VERSION = '2026.09.07-9';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5503,9 +5565,61 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var mapPanStart = null, mapPinchStart = null;
   var mapPingLocalTimers = {};
   var MAP_LAST_ID_KEY = 'dnd5e_last_map_id';
+  var MAP_PIN_SETTINGS_KEY = 'dnd5e_map_pin_settings';
+  var MAP_PIN_COLORS = ['#c0392b','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#2c3e50','#ecf0f1'];
+  var MAP_PIN_ICONS = ['📍','🚩','⭐','💀','🏰','⚔️','🔥','❗'];
+  var mapPinSettings = { size: 30, color: '#c0392b', icon: '📍' };
+
+  function loadMapPinSettings(){
+    try{
+      var raw = localStorage.getItem(MAP_PIN_SETTINGS_KEY);
+      if (raw){
+        var d = JSON.parse(raw);
+        if (typeof d.size === 'number') mapPinSettings.size = d.size;
+        if (typeof d.color === 'string') mapPinSettings.color = d.color;
+        if (typeof d.icon === 'string') mapPinSettings.icon = d.icon;
+      }
+    }catch(e){}
+  }
+  function saveMapPinSettings(){
+    try{ localStorage.setItem(MAP_PIN_SETTINGS_KEY, JSON.stringify(mapPinSettings)); }catch(e){}
+  }
+
+  function mapRenderPinSettingsPopup(){
+    document.getElementById('mapPinSizeSlider').value = mapPinSettings.size;
+    var colorRow = document.getElementById('mapPinColorRow');
+    colorRow.innerHTML = '';
+    MAP_PIN_COLORS.forEach(function(c){
+      var sw = document.createElement('div');
+      sw.className = 'map-pin-color-swatch' + (c === mapPinSettings.color ? ' selected' : '');
+      sw.style.background = c;
+      sw.addEventListener('click', function(){
+        mapPinSettings.color = c;
+        saveMapPinSettings();
+        mapRenderPinSettingsPopup();
+        mapRenderPins();
+      });
+      colorRow.appendChild(sw);
+    });
+    var iconRow = document.getElementById('mapPinIconRow');
+    iconRow.innerHTML = '';
+    MAP_PIN_ICONS.forEach(function(ic){
+      var sw = document.createElement('div');
+      sw.className = 'map-pin-icon-swatch' + (ic === mapPinSettings.icon ? ' selected' : '');
+      sw.textContent = ic;
+      sw.addEventListener('click', function(){
+        mapPinSettings.icon = ic;
+        saveMapPinSettings();
+        mapRenderPinSettingsPopup();
+      });
+      iconRow.appendChild(sw);
+    });
+  }
 
   function mapApplyTransform(){
     document.getElementById('mapTransform').style.transform = 'translate('+mapTx+'px,'+mapTy+'px) scale('+mapScale+')';
+    var pinsLayer = document.getElementById('mapPinsLayer');
+    if (pinsLayer) pinsLayer.style.setProperty('--pin-inv-scale', (1/mapScale));
   }
 
   function mapClampPan(){
@@ -5592,13 +5706,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var layer = document.getElementById('mapPinsLayer');
     if (!layer || !mapImgNaturalW) return;
     layer.innerHTML = '';
+    var sizePx = mapPinSettings.size + 'px';
     Object.keys(mapPinsData).forEach(function(id){
       var p = mapPinsData[id];
       var el = document.createElement('div');
       el.className = 'map-pin';
       el.style.left = (p.x*100) + '%';
       el.style.top = (p.y*100) + '%';
-      el.innerHTML = (p.icon||'📍') + '<span class="map-pin-label">'+escAttr(p.label||'')+'</span>';
+      el.innerHTML =
+        '<div class="map-pin-badge" style="width:'+sizePx+';height:'+sizePx+';background:'+escAttr(p.color||mapPinSettings.color)+';">' +
+          '<span style="font-size:'+Math.round(mapPinSettings.size*0.5)+'px;">'+(p.icon||mapPinSettings.icon)+'</span>' +
+        '</div>' +
+        '<span class="map-pin-label">'+escAttr(p.label||'')+'</span>';
       el.addEventListener('click', function(e){ e.stopPropagation(); mapShowPinPopup(id, p); });
       layer.appendChild(el);
     });
@@ -5645,7 +5764,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
           x: pct.x, y: pct.y,
           label: values.label,
           description: values.description,
-          icon: '📍',
+          icon: mapPinSettings.icon,
+          color: mapPinSettings.color,
           createdByName: name,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
@@ -5658,10 +5778,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
   /* ---- temporary pings (quick point-at, auto-disappear) ---- */
   function mapShowPingLocally(id, data){
     if (mapPingLocalTimers[id]) return;
-    if (data.createdAt && data.createdAt.toDate){
-      var age = Date.now() - data.createdAt.toDate().getTime();
-      if (age > 5000) return;
-    }
     var layer = document.getElementById('mapPingsLayer');
     if (!layer) return;
     var el = document.createElement('div');
@@ -5758,7 +5874,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
       mapRenderPins();
     }, function(err){ console.warn('map pins error', err); });
 
+    var mapPingsFirstSnapshot = true;
     mapUnsubscribePings = fbDb.collection('map_pings').where('mapId','==',id).onSnapshot(function(snap){
+      if (mapPingsFirstSnapshot){
+        mapPingsFirstSnapshot = false;
+        return;
+      }
       snap.docChanges().forEach(function(change){
         if (change.type === 'added') mapShowPingLocally(change.doc.id, change.doc.data());
       });
@@ -5847,6 +5968,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function bindMapUI(){
+    loadMapPinSettings();
     document.getElementById('btnMapOpen').addEventListener('click', mapOpenFromHeader);
     document.getElementById('mapListCloseBtn').addEventListener('click', mapCloseList);
     document.getElementById('mapListAddBtn').addEventListener('click', mapStartUpload);
@@ -5863,6 +5985,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('mapAddPinBtn').addEventListener('click', function(){
       mapPinPlacementMode = !mapPinPlacementMode;
       this.classList.toggle('active', mapPinPlacementMode);
+    });
+    document.getElementById('mapPinSettingsBtn').addEventListener('click', function(){
+      var popup = document.getElementById('mapPinSettingsPopup');
+      var show = popup.style.display === 'none';
+      if (show){ mapRenderPinSettingsPopup(); popup.style.display = 'block'; }
+      else { popup.style.display = 'none'; }
+    });
+    document.getElementById('mapPinSettingsClose').addEventListener('click', function(){
+      document.getElementById('mapPinSettingsPopup').style.display = 'none';
+    });
+    document.getElementById('mapPinSizeSlider').addEventListener('input', function(){
+      mapPinSettings.size = parseInt(this.value, 10);
+      saveMapPinSettings();
+      mapRenderPins();
     });
     document.getElementById('mapPinPopupClose').addEventListener('click', function(){
       document.getElementById('mapPinPopup').style.display = 'none';
