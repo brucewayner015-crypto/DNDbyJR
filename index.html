@@ -2245,6 +2245,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   overflow:hidden;
   background:#0a0704;
   touch-action:none;
+  contain:layout style paint;
 }
 .map-empty{
   position:absolute;inset:0;
@@ -2261,7 +2262,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   position:absolute;
   top:0;left:0;
   transform-origin:0 0;
-  will-change:transform;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
 }
 .map-transform img{
   display:block;
@@ -3869,7 +3871,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-10';
+  var APP_VERSION = '2026.09.07-11';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
