@@ -859,6 +859,10 @@ body{
   padding:0;
 }
 .gear-btn:active{transform:rotate(20deg);}
+[data-btn-shape="round"] .gear-btn{border-radius:14px;}
+[data-btn-shape="square"] .gear-btn{border-radius:5px;}
+[data-btn-shape="round"] .gear-btn:active,
+[data-btn-shape="square"] .gear-btn:active{transform:scale(0.92);}
 
 /* ---------- SETTINGS MODAL EXTRAS ---------- */
 .scale-control{
@@ -2234,6 +2238,104 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .chat-gallery-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--parchment);opacity:0.5;font-style:italic;}
 
+/* ---------- MAP (campaign/world map viewer with pins) ---------- */
+.map-viewport{
+  flex:1 1 auto;
+  min-height:0;
+  position:relative;
+  overflow:hidden;
+  background:#0a0704;
+  touch-action:none;
+}
+.map-empty{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;
+  color:var(--parchment);
+  opacity:0.6;
+  font-style:italic;
+  font-size:13px;
+  padding:20px;
+  line-height:1.6;
+}
+.map-transform{
+  position:absolute;
+  top:0;left:0;
+  transform-origin:0 0;
+  will-change:transform;
+}
+.map-transform img{
+  display:block;
+  max-width:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+}
+.map-pins{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+}
+.map-pin{
+  position:absolute;
+  transform:translate(-50%,-100%);
+  cursor:pointer;
+  font-size:28px;
+  line-height:1;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.7));
+}
+.map-pin-label{
+  position:absolute;
+  top:100%;left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  font-family:var(--font-display);font-size:10px;font-weight:700;
+  color:#fff;
+  background:rgba(0,0,0,0.65);
+  padding:1px 6px;border-radius:6px;
+  margin-top:2px;
+}
+.map-zoom-controls{
+  position:absolute;
+  bottom:16px;right:12px;
+  display:flex;flex-direction:column;gap:6px;
+  z-index:5;
+}
+.map-zoom-controls button{
+  width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--gold);
+  background:linear-gradient(180deg, var(--btn-wood-1), var(--btn-wood-2));
+  color:var(--parchment);
+  font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+}
+.map-zoom-controls button:active{transform:scale(0.9);}
+
+.map-pin-popup{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  z-index:165;
+  background:var(--parchment);
+  border:2px solid var(--gold);
+  border-radius:var(--radius-s);
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  padding:16px;
+  max-width:260px;
+  width:88%;
+}
+.map-pin-popup-title{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--ink);margin-bottom:6px;padding-right:20px;}
+.map-pin-popup-desc{font-size:13px;color:var(--ink);line-height:1.4;margin-bottom:8px;white-space:pre-wrap;}
+.map-pin-popup-meta{font-size:10.5px;color:var(--ink-soft);margin-bottom:10px;}
+#mapPinPopupClose{position:absolute;top:8px;right:8px;}
+.map-pin-delete-btn{
+  display:block;width:100%;
+  background:none;border:1px solid var(--wax);color:var(--wax);
+  border-radius:6px;padding:7px;font-size:12px;cursor:pointer;
+}
+#mapAddPinBtn.active{background:linear-gradient(180deg, var(--wax-bright), var(--wax));}
+
 .chat-seen-popup{
   position:fixed;
   z-index:160;
@@ -2758,6 +2860,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     <div class="spine-top">
       <input class="name-input" id="f_name" placeholder="Имя персонажа" data-i18n-ph="ph.name" data-field="meta.name">
       <button class="gear-btn" id="btnChatOpen" aria-label="Чат" title="Чат">💬<span class="chat-btn-badge" id="chatBadge"></span></button>
+      <button class="gear-btn" id="btnMapOpen" aria-label="Карта" title="Карта">🗺</button>
       <button class="gear-btn" id="btnCalcOpen" aria-label="Калькулятор" data-i18n-title="calc.title" title="Калькулятор">🧮</button>
       <button class="gear-btn" id="btnSettings" aria-label="Настройки" title="Настройки">⚙</button>
     </div>
@@ -3122,6 +3225,38 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="chat-gallery-grid" id="chatGalleryGrid"></div>
 </div>
 
+<div class="chat-fullscreen" id="mapScreen" style="display:none;">
+  <div class="chat-header">
+    <button class="chat-back-btn" id="mapCloseBtn" aria-label="Закрыть">←</button>
+    <div class="chat-header-title"><span class="chat-header-name">🗺 Карта мира</span></div>
+    <button class="chat-gallery-btn" id="mapUploadBtn" aria-label="Загрузить карту" title="Загрузить/заменить карту">📤</button>
+    <button class="chat-gallery-btn" id="mapAddPinBtn" aria-label="Добавить метку" title="Добавить метку">📍</button>
+  </div>
+  <input type="file" id="mapFileInput" accept="image/*" style="display:none;">
+
+  <div class="map-viewport" id="mapViewport">
+    <div class="map-empty" id="mapEmpty">Карта ещё не загружена.<br>Нажмите 📤, чтобы добавить картинку.</div>
+    <div class="map-transform" id="mapTransform" style="display:none;">
+      <img id="mapImage" src="" alt="Карта мира" draggable="false">
+      <div class="map-pins" id="mapPinsLayer"></div>
+    </div>
+  </div>
+
+  <div class="map-zoom-controls">
+    <button id="mapZoomOut" aria-label="Отдалить">−</button>
+    <button id="mapZoomReset" aria-label="Сбросить масштаб">⤢</button>
+    <button id="mapZoomIn" aria-label="Приблизить">+</button>
+  </div>
+</div>
+
+<div class="map-pin-popup" id="mapPinPopup" style="display:none;">
+  <div class="map-pin-popup-title" id="mapPinPopupTitle"></div>
+  <div class="map-pin-popup-desc" id="mapPinPopupDesc"></div>
+  <div class="map-pin-popup-meta" id="mapPinPopupMeta"></div>
+  <button class="chat-reply-cancel" id="mapPinPopupClose" aria-label="Закрыть">✕</button>
+  <button class="map-pin-delete-btn" id="mapPinDeleteBtn">Удалить метку</button>
+</div>
+
 <div class="chat-seen-popup" id="chatSeenPopup" style="display:none;">
   <div class="chat-seen-popup-title">Просмотрено</div>
   <div class="chat-seen-popup-list" id="chatSeenPopupList"></div>
@@ -3315,6 +3450,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <p class="modal-text" style="margin-bottom:8px;" data-i18n="settings.iconsTitle">Значки вкладок</p>
         <div class="theme-grid" id="iconsetGrid"></div>
+
+        <div class="settings-divider"></div>
+
+        <p class="modal-text" style="margin-bottom:8px;">Форма кнопок (настройки, чат, калькулятор)</p>
+        <div class="theme-grid" id="btnShapeGrid"></div>
       </div>
 
       <div class="settings-pane" data-pane="display">
@@ -3457,6 +3597,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (typeof renderAll === 'function') recalcSafe();
     if (typeof renderThemeGrid === 'function') renderThemeGrid();
     if (typeof renderStyleGrid === 'function') renderStyleGrid();
+    if (typeof renderBtnShapeGrid === 'function') renderBtnShapeGrid();
     if (typeof renderFontGrid === 'function') renderFontGrid();
     if (typeof renderIconSetGrid === 'function') renderIconSetGrid();
     if (typeof renderLangGrid === 'function') renderLangGrid();
@@ -3527,7 +3668,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-3';
+  var APP_VERSION = '2026.09.07-5';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5131,6 +5272,268 @@ input[type=checkbox]:active{transform:scale(0.88);}
     appCloseModal();
   }
 
+  /* ---------------- MAP (campaign/world map viewer with pins) ---------------- */
+  var mapScale = 1, mapTx = 0, mapTy = 0;
+  var mapImgNaturalW = 0, mapImgNaturalH = 0;
+  var mapPinPlacementMode = false;
+  var mapPinsData = {};
+  var mapUnsubscribePins = null, mapUnsubscribeData = null;
+  var mapActivePointers = {};
+  var mapPanStart = null, mapPinchStart = null;
+
+  function mapApplyTransform(){
+    document.getElementById('mapTransform').style.transform = 'translate('+mapTx+'px,'+mapTy+'px) scale('+mapScale+')';
+  }
+
+  function mapClampPan(){
+    var viewport = document.getElementById('mapViewport');
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    var contentW = mapImgNaturalW * mapScale;
+    var contentH = mapImgNaturalH * mapScale;
+    if (contentW <= vw){
+      mapTx = (vw - contentW) / 2;
+    } else {
+      mapTx = Math.min(0, Math.max(vw - contentW, mapTx));
+    }
+    if (contentH <= vh){
+      mapTy = (vh - contentH) / 2;
+    } else {
+      mapTy = Math.min(0, Math.max(vh - contentH, mapTy));
+    }
+  }
+
+  function mapFitToScreen(){
+    var viewport = document.getElementById('mapViewport');
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    if (!mapImgNaturalW || !vw) return;
+    mapScale = Math.min(vw / mapImgNaturalW, vh / mapImgNaturalH) * 0.96;
+    mapScale = Math.max(0.05, mapScale);
+    mapClampPan();
+    mapApplyTransform();
+  }
+
+  function mapRenderImage(url){
+    var empty = document.getElementById('mapEmpty');
+    var transform = document.getElementById('mapTransform');
+    var img = document.getElementById('mapImage');
+    if (!url){
+      empty.style.display = 'flex';
+      transform.style.display = 'none';
+      return;
+    }
+    img.onload = function(){
+      mapImgNaturalW = img.naturalWidth;
+      mapImgNaturalH = img.naturalHeight;
+      empty.style.display = 'none';
+      transform.style.display = 'block';
+      mapFitToScreen();
+      mapRenderPins();
+    };
+    img.src = url;
+  }
+
+  function mapSubscribe(){
+    if (!fbDb) return;
+    if (!mapUnsubscribeData){
+      mapUnsubscribeData = fbDb.collection('map_data').doc('main').onSnapshot(function(doc){
+        mapRenderImage(doc.exists ? doc.data().imageUrl : null);
+      }, function(err){ console.warn('map data listener error', err); });
+    }
+    if (!mapUnsubscribePins){
+      mapUnsubscribePins = fbDb.collection('map_pins').onSnapshot(function(snap){
+        mapPinsData = {};
+        snap.forEach(function(doc){ mapPinsData[doc.id] = doc.data(); });
+        mapRenderPins();
+      }, function(err){ console.warn('map pins listener error', err); });
+    }
+  }
+
+  function mapRenderPins(){
+    var layer = document.getElementById('mapPinsLayer');
+    if (!layer || !mapImgNaturalW) return;
+    layer.innerHTML = '';
+    Object.keys(mapPinsData).forEach(function(id){
+      var p = mapPinsData[id];
+      var el = document.createElement('div');
+      el.className = 'map-pin';
+      el.style.left = (p.x*100) + '%';
+      el.style.top = (p.y*100) + '%';
+      el.innerHTML = (p.icon||'📍') + '<span class="map-pin-label">'+escAttr(p.label||'')+'</span>';
+      el.addEventListener('click', function(e){ e.stopPropagation(); mapShowPinPopup(id, p); });
+      layer.appendChild(el);
+    });
+  }
+
+  function mapShowPinPopup(id, p){
+    var popup = document.getElementById('mapPinPopup');
+    document.getElementById('mapPinPopupTitle').textContent = (p.icon||'📍') + ' ' + (p.label||'Без названия');
+    document.getElementById('mapPinPopupDesc').textContent = p.description || '';
+    document.getElementById('mapPinPopupDesc').style.display = p.description ? 'block' : 'none';
+    document.getElementById('mapPinPopupMeta').textContent = p.createdByName ? ('Добавил: ' + p.createdByName) : '';
+    var delBtn = document.getElementById('mapPinDeleteBtn');
+    delBtn.onclick = function(){
+      if (fbDb) fbDb.collection('map_pins').doc(id).delete().catch(function(err){ console.warn('pin delete failed', err); });
+      popup.style.display = 'none';
+      appCloseModal();
+    };
+    popup.style.display = 'block';
+    appOpenModal(function(){ popup.style.display = 'none'; });
+  }
+
+  function mapScreenToImagePct(clientX, clientY){
+    var viewport = document.getElementById('mapViewport');
+    var rect = viewport.getBoundingClientRect();
+    var localX = clientX - rect.left;
+    var localY = clientY - rect.top;
+    var imgX = (localX - mapTx) / mapScale;
+    var imgY = (localY - mapTy) / mapScale;
+    return { x: imgX / mapImgNaturalW, y: imgY / mapImgNaturalH };
+  }
+
+  function mapPlacePinAt(clientX, clientY){
+    var pct = mapScreenToImagePct(clientX, clientY);
+    if (pct.x < 0 || pct.x > 1 || pct.y < 0 || pct.y > 1) return;
+    var label = window.prompt('Название точки на карте:');
+    if (label === null || !label.trim()) return;
+    var description = window.prompt('Описание (необязательно):') || '';
+    var name = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
+    if (fbDb){
+      fbDb.collection('map_pins').add({
+        x: pct.x, y: pct.y,
+        label: label.trim(),
+        description: description.trim(),
+        icon: '📍',
+        createdByName: name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
+    }
+    mapPinPlacementMode = false;
+    document.getElementById('mapAddPinBtn').classList.remove('active');
+  }
+
+  function mapUploadImage(file){
+    if (!fbDb){ alert('Нет подключения к облаку.'); return; }
+    chatUploadMedia(file, file.name).then(function(url){
+      return fbDb.collection('map_data').doc('main').set({
+        imageUrl: url,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, {merge:true});
+    }).catch(function(err){
+      alert('Не удалось загрузить карту: ' + (err.message||err));
+    });
+  }
+
+  function mapOpen(){
+    document.getElementById('mapScreen').style.display = 'flex';
+    appOpenModal(mapCloseUIOnly);
+    mapSubscribe();
+    requestAnimationFrame(function(){ if (mapImgNaturalW) mapFitToScreen(); });
+  }
+  function mapCloseUIOnly(){
+    document.getElementById('mapScreen').style.display = 'none';
+    mapPinPlacementMode = false;
+    var btn = document.getElementById('mapAddPinBtn');
+    if (btn) btn.classList.remove('active');
+  }
+  function mapClose(){
+    mapCloseUIOnly();
+    appCloseModal();
+  }
+
+  function bindMapUI(){
+    document.getElementById('btnMapOpen').addEventListener('click', mapOpen);
+    document.getElementById('mapCloseBtn').addEventListener('click', mapClose);
+    document.getElementById('mapUploadBtn').addEventListener('click', function(){
+      document.getElementById('mapFileInput').click();
+    });
+    document.getElementById('mapFileInput').addEventListener('change', function(e){
+      var file = e.target.files[0];
+      e.target.value = '';
+      if (file) mapUploadImage(file);
+    });
+    document.getElementById('mapAddPinBtn').addEventListener('click', function(){
+      mapPinPlacementMode = !mapPinPlacementMode;
+      this.classList.toggle('active', mapPinPlacementMode);
+    });
+    document.getElementById('mapPinPopupClose').addEventListener('click', function(){
+      document.getElementById('mapPinPopup').style.display = 'none';
+      appCloseModal();
+    });
+
+    document.getElementById('mapZoomIn').addEventListener('click', function(){
+      mapScale = Math.min(6, mapScale * 1.3);
+      mapClampPan(); mapApplyTransform();
+    });
+    document.getElementById('mapZoomOut').addEventListener('click', function(){
+      mapScale = Math.max(0.05, mapScale / 1.3);
+      mapClampPan(); mapApplyTransform();
+    });
+    document.getElementById('mapZoomReset').addEventListener('click', mapFitToScreen);
+
+    var viewport = document.getElementById('mapViewport');
+    var tapStart = null;
+
+    viewport.addEventListener('pointerdown', function(e){
+      mapActivePointers[e.pointerId] = {x:e.clientX, y:e.clientY};
+      var ids = Object.keys(mapActivePointers);
+      if (ids.length === 1){
+        mapPanStart = { x:e.clientX, y:e.clientY, tx:mapTx, ty:mapTy };
+        tapStart = { x:e.clientX, y:e.clientY, t:Date.now() };
+      } else if (ids.length === 2){
+        var p1 = mapActivePointers[ids[0]], p2 = mapActivePointers[ids[1]];
+        var dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+        mapPinchStart = { dist:dist, scale:mapScale, midX:(p1.x+p2.x)/2, midY:(p1.y+p2.y)/2, tx:mapTx, ty:mapTy };
+        mapPanStart = null;
+        tapStart = null;
+      }
+      viewport.setPointerCapture(e.pointerId);
+    });
+    viewport.addEventListener('pointermove', function(e){
+      if (!(e.pointerId in mapActivePointers)) return;
+      mapActivePointers[e.pointerId] = {x:e.clientX, y:e.clientY};
+      var ids = Object.keys(mapActivePointers);
+      if (ids.length === 1 && mapPanStart){
+        mapTx = mapPanStart.tx + (e.clientX - mapPanStart.x);
+        mapTy = mapPanStart.ty + (e.clientY - mapPanStart.y);
+        mapClampPan();
+        mapApplyTransform();
+      } else if (ids.length === 2 && mapPinchStart){
+        var p1 = mapActivePointers[ids[0]], p2 = mapActivePointers[ids[1]];
+        var dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+        var ratio = dist / mapPinchStart.dist;
+        var newScale = Math.min(6, Math.max(0.05, mapPinchStart.scale * ratio));
+        var scaleRatio = newScale / mapPinchStart.scale;
+        mapTx = mapPinchStart.midX - (mapPinchStart.midX - mapPinchStart.tx) * scaleRatio;
+        mapTy = mapPinchStart.midY - (mapPinchStart.midY - mapPinchStart.ty) * scaleRatio;
+        mapScale = newScale;
+        mapClampPan();
+        mapApplyTransform();
+      }
+    });
+    function mapPointerEnd(e){
+      delete mapActivePointers[e.pointerId];
+      var ids = Object.keys(mapActivePointers);
+      if (ids.length < 2) mapPinchStart = null;
+      if (ids.length === 1){
+        var id = ids[0];
+        mapPanStart = { x: mapActivePointers[id].x, y: mapActivePointers[id].y, tx: mapTx, ty: mapTy };
+      } else if (ids.length === 0){
+        mapPanStart = null;
+        if (tapStart && Math.hypot(e.clientX-tapStart.x, e.clientY-tapStart.y) < 10 && Date.now()-tapStart.t < 500){
+          if (mapPinPlacementMode) mapPlacePinAt(e.clientX, e.clientY);
+        }
+        tapStart = null;
+      }
+    }
+    viewport.addEventListener('pointerup', mapPointerEnd);
+    viewport.addEventListener('pointercancel', mapPointerEnd);
+
+    window.addEventListener('resize', function(){
+      if (document.getElementById('mapScreen').style.display !== 'none') mapClampPan();
+      mapApplyTransform();
+    });
+  }
+
   function bindChatUI(){
     document.getElementById('btnChatOpen').addEventListener('click', chatOpenList);
     document.getElementById('chatListCloseBtn').addEventListener('click', chatCloseList);
@@ -6639,6 +7042,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
     {id:'scroll', name:'Свиток хранителя', icon:'📃'}
   ];
 
+  var BTN_SHAPES = [
+    {id:'circle', name:'Круг', radius:'50%'},
+    {id:'round', name:'Скруглённый квадрат', radius:'14px'},
+    {id:'square', name:'Квадрат', radius:'5px'}
+  ];
+
+  function applyBtnShape(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    var shapeId = uiSettings.btnShape || 'circle';
+    if (shapeId === 'circle') shell.removeAttribute('data-btn-shape');
+    else shell.setAttribute('data-btn-shape', shapeId);
+  }
+
+  function renderBtnShapeGrid(){
+    var wrap = document.getElementById('btnShapeGrid');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    var current = uiSettings.btnShape || 'circle';
+    BTN_SHAPES.forEach(function(s){
+      var card = document.createElement('div');
+      card.className = 'theme-card' + (s.id === current ? ' selected' : '');
+      card.innerHTML =
+        '<div class="style-preview card" style="display:flex;align-items:center;justify-content:center;">' +
+          '<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:'+s.radius+';border:1px solid var(--gold);background:radial-gradient(circle at 35% 25%, var(--chrome-radial-1), var(--chrome-radial-2) 75%);color:var(--gold-bright);font-size:13px;">⚙</span>' +
+        '</div>' +
+        '<span class="theme-name">'+s.name+'</span><div class="theme-check">✓</div>';
+      card.addEventListener('click', function(){
+        uiSettings.btnShape = s.id;
+        applyBtnShape();
+        saveUiSettings();
+        renderBtnShapeGrid();
+      });
+      wrap.appendChild(card);
+    });
+  }
+
   function applyStyle(){
     var styleId = uiSettings.style || 'classic';
     var shell = document.querySelector('.app-shell');
@@ -6755,7 +7195,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic'};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle'};
 
   function loadUiSettings(){
     try{
@@ -6767,6 +7207,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.theme === 'string') uiSettings.theme = loaded.theme;
         if (loaded && typeof loaded.style === 'string') uiSettings.style = loaded.style;
         if (loaded && typeof loaded.iconSet === 'string') uiSettings.iconSet = loaded.iconSet;
+        if (loaded && typeof loaded.btnShape === 'string') uiSettings.btnShape = loaded.btnShape;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -7160,6 +7601,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindCalculator();
   bindTetrisControls();
   bindChatUI();
+  bindMapUI();
   bindGearEasterEgg();
   bindSoundSettingsUI();
   bindGlobalSounds();
@@ -7171,11 +7613,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
   applyFontScale();
   applyTheme();
   applyStyle();
+  applyBtnShape();
   applyFontSet();
   applyIconSet();
   applyI18n();
   renderThemeGrid();
   renderStyleGrid();
+  renderBtnShapeGrid();
   renderFontGrid();
   renderIconSetGrid();
   renderLangGrid();
