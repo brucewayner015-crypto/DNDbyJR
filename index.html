@@ -1910,7 +1910,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .chat-fullscreen{
   position:fixed;
   inset:0;
-  height:100dvh;
   z-index:120;
   display:flex;
   flex-direction:column;
@@ -3668,7 +3667,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-5';
+  var APP_VERSION = '2026.09.07-6';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5321,15 +5320,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
       transform.style.display = 'none';
       return;
     }
-    img.onload = function(){
+    function onReady(){
       mapImgNaturalW = img.naturalWidth;
       mapImgNaturalH = img.naturalHeight;
       empty.style.display = 'none';
       transform.style.display = 'block';
       mapFitToScreen();
       mapRenderPins();
-    };
-    img.src = url;
+    }
+    if (img.src === url && img.complete && img.naturalWidth){
+      onReady();
+    } else {
+      img.onload = onReady;
+      img.src = url;
+    }
   }
 
   function mapSubscribe(){
