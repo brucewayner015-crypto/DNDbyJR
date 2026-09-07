@@ -3934,7 +3934,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-17';
+  var APP_VERSION = '2026.09.07-18';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4037,6 +4037,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           updateAccountUidUI();
           setAccountStatus('ok', 'Подключено — лист синхронизируется');
           syncToCloud();
+          initMentionNotifications();
         }
       });
       auth.signInAnonymously().catch(function(err){
@@ -4795,6 +4796,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var chatLastDateKey = null;
   var chatIsOpen = false;
   var chatCurrentThread = {type:'group'};
+  var chatNotifyReady = false;
 
   function chatComputeThreadId(a, b){
     return [a,b].sort().join('_');
@@ -4917,6 +4919,31 @@ input[type=checkbox]:active{transform:scale(0.88);}
     el.classList.add('show');
     clearTimeout(el._hideTimer);
     el._hideTimer = setTimeout(function(){ el.classList.remove('show'); }, 3500);
+  }
+
+  /* ---------------- MENTION NOTIFICATIONS (@name in group chat) ---------------- */
+  var mentionUnsubscribe = null;
+  function initMentionNotifications(){
+    if (!fbDb || !fbUser || mentionUnsubscribe) return;
+    var isFirstSnapshot = true;
+    mentionUnsubscribe = fbDb.collection('chat_messages').orderBy('createdAt','desc').limit(30)
+      .onSnapshot(function(snap){
+        if (isFirstSnapshot){ isFirstSnapshot = false; return; }
+        snap.docChanges().forEach(function(change){
+          if (change.type !== 'added') return;
+          var d = change.doc.data();
+          if (!d.text || !fbUser || d.senderId === fbUser.uid) return;
+          var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
+          if (!myName) return;
+          var safe = myName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          var re = new RegExp('@' + safe + '(?![а-яa-zА-ЯA-Z0-9])', 'i');
+          if (re.test(d.text)){
+            var preview = d.text.length > 60 ? d.text.slice(0,60)+'…' : d.text;
+            showItemToast('📢 '+(d.senderName||'Игрок')+' упомянул вас: «'+preview+'»');
+            chatShowBadge();
+          }
+        });
+      }, function(err){ console.warn('mention listener error', err); });
   }
 
   function chatShowBadge(){
@@ -5051,12 +5078,45 @@ input[type=checkbox]:active{transform:scale(0.88);}
     batch.commit().catch(function(err){ console.warn('mark read failed', err); });
   }
 
+  function chatCheckMention(text){
+    var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
+    if (!myName || !text) return false;
+    var safe = myName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var re = new RegExp('@' + safe + '(?![a-zA-Zа-яА-Я0-9])', 'i');
+    return re.test(text);
+  }
+
+  function chatRequestNotifyPermission(){
+    if (window.Notification && Notification.permission === 'default'){
+      Notification.requestPermission().catch(function(){});
+    }
+  }
+
+  function chatMaybeNotify(thread, data){
+    if (!fbUser || data.senderId === fbUser.uid) return;
+    var isDM = thread.type === 'dm';
+    var isMention = thread.type === 'group' && chatCheckMention(data.text);
+    if (!isDM && !isMention) return;
+
+    var title = isDM ? ('Личное сообщение от ' + (data.senderName||'?')) : ('Вас упомянули: ' + (data.senderName||'?'));
+    var body = data.itemOffer ? ('🎁 ' + (data.itemOffer.itemName||'')) : (data.text || (data.mediaUrl ? '📎 Вложение' : ''));
+
+    if (document.hidden && window.Notification && Notification.permission === 'granted'){
+      try{
+        var n = new Notification(title, {body: body, icon: 'icons/icon-192.png', tag: 'chat-'+thread.type+(thread.threadId||'')});
+        n.onclick = function(){ window.focus(); n.close(); };
+      }catch(e){}
+    }
+    showItemToast('💬 ' + title + (body ? (': ' + body) : ''));
+  }
+
   function chatApplySnapshot(snap){
     var wrap = document.getElementById('chatMessages');
     if (!wrap) return;
 
     var wasAtBottom = chatIsAtBottom(wrap);
     var receivedFromOther = false;
+    var threadForNotify = chatCurrentThread;
 
     snap.docChanges().forEach(function(change){
       var id = change.doc.id;
@@ -5088,7 +5148,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }
       wrap.appendChild(el);
       chatMsgElements[id] = el;
-      if (change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid)) receivedFromOther = true;
+      if (change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid)){
+        receivedFromOther = true;
+        if (chatNotifyReady) chatMaybeNotify(threadForNotify, data);
+      }
     });
 
     var emptyEl = wrap.querySelector('.chat-empty');
@@ -5677,6 +5740,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     chatMarkAllRead();
     chatLoadMyAvatar();
     chatLoadKnownPlayers().then(chatRenderConvList);
+    chatRequestNotifyPermission();
     appOpenModal(chatCloseListUIOnly);
   }
   function chatCloseListUIOnly(){
@@ -5770,11 +5834,15 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
 
     if (chatUnsubscribe){ chatUnsubscribe(); chatUnsubscribe = null; }
+    chatNotifyReady = false;
     var col = chatCollectionFor(thread);
     var query = thread.type === 'group'
       ? fbDb.collection(col).orderBy('createdAt','asc').limitToLast(150)
       : fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
-    chatUnsubscribe = query.onSnapshot(function(snap){ chatApplySnapshot(snap); },
+    chatUnsubscribe = query.onSnapshot(function(snap){
+                                          chatApplySnapshot(snap);
+                                          chatNotifyReady = true;
+                                        },
                                         function(err){
                                           console.warn('chat listener error', err);
                                           var wrap = document.getElementById('chatMessages');
