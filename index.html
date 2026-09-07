@@ -3934,7 +3934,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-16';
+  var APP_VERSION = '2026.09.07-17';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4883,8 +4883,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var i = state.items.indexOf(item);
       if (i > -1) state.items.splice(i,1);
       preserveScroll(function(){ saveState(); renderItems(); });
+      showItemToast('✅ Отправлено «'+(item.name||t('noname'))+'» игроку '+player.name+' — ждём подтверждения в чате');
       itemCloseSendPicker();
-      showItemToast('Отправлено «'+(item.name||t('noname'))+'» игроку '+player.name+' — ждём подтверждения в чате');
     }).catch(function(err){
       alert('Не удалось отправить предмет: ' + (err.message||err));
     });
@@ -7350,8 +7350,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
     document.getElementById('addFeatureSection').addEventListener('click', function(){
       state.traits.featuresSections.push({title:'', content:''});
-      saveState();
-      renderFeaturesCard();
+      preserveScroll(function(){
+        saveState();
+        renderFeaturesCard();
+      });
+      var wrap = document.getElementById('featuresSectionsWrap');
+      var last = wrap && wrap.lastElementChild;
+      if (last) requestAnimationFrame(function(){ last.scrollIntoView({behavior:'smooth', block:'nearest'}); });
     });
 
     var btnEditNotes = document.getElementById('btnEditNotes');
@@ -7363,8 +7368,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
     document.getElementById('addNoteSection').addEventListener('click', function(){
       state.traits.notesSections.push({title:'', content:''});
-      saveState();
-      renderNotesCard();
+      preserveScroll(function(){
+        saveState();
+        renderNotesCard();
+      });
+      var wrap = document.getElementById('notesSectionsWrap');
+      var last = wrap && wrap.lastElementChild;
+      if (last) requestAnimationFrame(function(){ last.scrollIntoView({behavior:'smooth', block:'nearest'}); });
     });
   }
 
@@ -8216,15 +8226,30 @@ input[type=checkbox]:active{transform:scale(0.88);}
   /* ---------------- ADD BUTTONS ---------------- */
   document.getElementById('addAttack').addEventListener('click', function(){
     state.attacks.push({name:'',bonus:'',damage:'',notes:''});
-    renderAttacks(); saveState();
+    preserveScroll(function(){
+      renderAttacks(); saveState();
+    });
+    var wrap = document.getElementById('attacksWrap');
+    var last = wrap && wrap.lastElementChild;
+    if (last) requestAnimationFrame(function(){ last.scrollIntoView({behavior:'smooth', block:'nearest'}); });
   });
   document.getElementById('addItem').addEventListener('click', function(){
     state.items.push({name:'',qty:1,notes:''});
-    renderItems(); saveState();
+    preserveScroll(function(){
+      renderItems(); saveState();
+    });
+    var wrap = document.getElementById('itemsWrap');
+    var last = wrap && wrap.lastElementChild;
+    if (last) requestAnimationFrame(function(){ last.scrollIntoView({behavior:'smooth', block:'nearest'}); });
   });
   document.getElementById('addSpell').addEventListener('click', function(){
     state.spells.push({level:0,name:'',prepared:false,notes:''});
-    renderSpells(); saveState();
+    preserveScroll(function(){
+      renderSpells(); saveState();
+    });
+    var wrap = document.getElementById('spellsWrap');
+    var last = wrap && wrap.lastElementChild;
+    if (last) requestAnimationFrame(function(){ last.scrollIntoView({behavior:'smooth', block:'nearest'}); });
   });
 
   /* ---------------- RECALC DERIVED VALUES ---------------- */
