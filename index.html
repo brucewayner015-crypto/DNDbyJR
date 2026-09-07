@@ -3876,7 +3876,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-13';
+  var APP_VERSION = '2026.09.07-14';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4087,6 +4087,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- AUTO-GROW TEXTAREAS ---------------- */
   function autoGrow(el){
+    var vp = document.getElementById('pagesViewport');
+    var scrollTop = vp ? vp.scrollTop : 0;
     if (el.scrollHeight > el.clientHeight){
       el.style.height = el.scrollHeight + 'px';
     } else {
@@ -4094,6 +4096,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
       el.style.height = 'auto';
       el.style.height = Math.max(el.scrollHeight, minH) + 'px';
     }
+    if (vp && vp.scrollTop !== scrollTop) vp.scrollTop = scrollTop;
+    requestAnimationFrame(function(){
+      if (vp && vp.scrollTop !== scrollTop) vp.scrollTop = scrollTop;
+    });
+  }
+
+  function preserveScroll(fn){
+    var vp = document.getElementById('pagesViewport');
+    var scrollTop = vp ? vp.scrollTop : 0;
+    fn();
+    if (vp) vp.scrollTop = scrollTop;
+    requestAnimationFrame(function(){
+      if (vp) vp.scrollTop = scrollTop;
+    });
   }
 
   /* ---------------- BIND SIMPLE FIELDS ---------------- */
@@ -4304,18 +4320,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
       div.querySelector('[data-act="up"]').addEventListener('click', function(){
         if (idx === 0) return;
         var tmp = state.attacks[idx-1]; state.attacks[idx-1] = state.attacks[idx]; state.attacks[idx] = tmp;
-        saveState(); renderAttacks();
+        preserveScroll(function(){ saveState(); renderAttacks(); });
       });
       div.querySelector('[data-act="down"]').addEventListener('click', function(){
         if (idx === state.attacks.length-1) return;
         var tmp = state.attacks[idx+1]; state.attacks[idx+1] = state.attacks[idx]; state.attacks[idx] = tmp;
-        saveState(); renderAttacks();
+        preserveScroll(function(){ saveState(); renderAttacks(); });
       });
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteAttack', atk.name || t('noname')), function(){
           state.attacks.splice(idx,1);
-          renderAttacks();
-          saveState();
+          preserveScroll(function(){ renderAttacks(); saveState(); });
         });
       });
     });
@@ -4352,18 +4367,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
       div.querySelector('[data-act="up"]').addEventListener('click', function(){
         if (idx === 0) return;
         var tmp = state.items[idx-1]; state.items[idx-1] = state.items[idx]; state.items[idx] = tmp;
-        saveState(); renderItems();
+        preserveScroll(function(){ saveState(); renderItems(); });
       });
       div.querySelector('[data-act="down"]').addEventListener('click', function(){
         if (idx === state.items.length-1) return;
         var tmp = state.items[idx+1]; state.items[idx+1] = state.items[idx]; state.items[idx] = tmp;
-        saveState(); renderItems();
+        preserveScroll(function(){ saveState(); renderItems(); });
       });
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteItem', item.name || t('noname')), function(){
           state.items.splice(idx,1);
-          renderItems();
-          saveState();
+          preserveScroll(function(){ renderItems(); saveState(); });
         });
       });
     });
@@ -4440,18 +4454,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
       div.querySelector('[data-act="up"]').addEventListener('click', function(){
         if (idx === 0) return;
         var tmp = state.spells[idx-1]; state.spells[idx-1] = state.spells[idx]; state.spells[idx] = tmp;
-        saveState(); renderSpells();
+        preserveScroll(function(){ saveState(); renderSpells(); });
       });
       div.querySelector('[data-act="down"]').addEventListener('click', function(){
         if (idx === state.spells.length-1) return;
         var tmp = state.spells[idx+1]; state.spells[idx+1] = state.spells[idx]; state.spells[idx] = tmp;
-        saveState(); renderSpells();
+        preserveScroll(function(){ saveState(); renderSpells(); });
       });
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteSpell', sp.name || t('noname')), function(){
           state.spells.splice(idx,1);
-          renderSpells();
-          saveState();
+          preserveScroll(function(){ renderSpells(); saveState(); });
         });
       });
     });
@@ -4508,18 +4521,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
         div.querySelector('[data-act="up"]').addEventListener('click', function(){
           if (idx === 0) return;
           var tmp = sections[idx-1]; sections[idx-1] = sections[idx]; sections[idx] = tmp;
-          saveState(); rerenderFn();
+          preserveScroll(function(){ saveState(); rerenderFn(); });
         });
         div.querySelector('[data-act="down"]').addEventListener('click', function(){
           if (idx === sections.length-1) return;
           var tmp = sections[idx+1]; sections[idx+1] = sections[idx]; sections[idx] = tmp;
-          saveState(); rerenderFn();
+          preserveScroll(function(){ saveState(); rerenderFn(); });
         });
         div.querySelector('[data-act="del"]').addEventListener('click', function(){
           showConfirm(t('confirm.deleteSection', sec.title || t('noname')), function(){
             var i = sections.indexOf(sec);
             if (i > -1) sections.splice(i,1);
-            saveState(); rerenderFn();
+            preserveScroll(function(){ saveState(); rerenderFn(); });
           });
         });
       }
