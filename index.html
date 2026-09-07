@@ -2935,6 +2935,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .modal-btn.cancel{background:rgba(255,255,255,0.4);border-color:var(--ink-soft);color:var(--ink-soft);}
 .modal-btn.danger{background:linear-gradient(180deg,var(--wax-bright),var(--wax));border-color:var(--wax);color:var(--parchment);}
+.text-prompt-field{margin-bottom:12px;text-align:left;}
+.text-prompt-field label{
+  display:block;font-family:var(--font-display);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--ink-soft);margin-bottom:4px;
+}
+.text-prompt-field input, .text-prompt-field textarea{width:100%;}
+.text-prompt-field textarea{min-height:60px;resize:vertical;}
 .modal-btn:active{transform:translateY(1px);}
 
 @media (min-width:600px){
@@ -3437,6 +3444,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
   </div>
 </div>
 
+<div class="modal-overlay" id="textPromptOverlay">
+  <div class="modal-card">
+    <p class="modal-text" id="textPromptTitle" style="margin-bottom:14px;"></p>
+    <div id="textPromptFields"></div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="textPromptCancelBtn">Отмена</button>
+      <button class="modal-btn" id="textPromptOkBtn">OK</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="settingsOverlay">
   <div class="modal-card wide settings-modal">
     <div class="modal-icon gear-emoji-icon" id="settingsGearIcon"></div>
@@ -3789,7 +3807,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-7';
+  var APP_VERSION = '2026.09.07-8';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5615,23 +5633,26 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function mapPlacePinAt(clientX, clientY){
     var pct = mapScreenToImagePct(clientX, clientY);
     if (pct.x < 0 || pct.x > 1 || pct.y < 0 || pct.y > 1) return;
-    var label = window.prompt('Название точки на карте:');
-    if (label === null || !label.trim()) return;
-    var description = window.prompt('Описание (необязательно):') || '';
-    var name = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
-    if (fbDb && mapCurrentId){
-      fbDb.collection('map_pins').add({
-        mapId: mapCurrentId,
-        x: pct.x, y: pct.y,
-        label: label.trim(),
-        description: description.trim(),
-        icon: '📍',
-        createdByName: name,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
-    }
-    mapPinPlacementMode = false;
-    document.getElementById('mapAddPinBtn').classList.remove('active');
+    showTextPrompt('Новая метка на карте', [
+      {id:'label', label:'Название', placeholder:'Например: Таверна «Сонный дракон»'},
+      {id:'description', label:'Описание (необязательно)', multiline:true}
+    ], function(values){
+      if (!values.label){ return; }
+      var name = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
+      if (fbDb && mapCurrentId){
+        fbDb.collection('map_pins').add({
+          mapId: mapCurrentId,
+          x: pct.x, y: pct.y,
+          label: values.label,
+          description: values.description,
+          icon: '📍',
+          createdByName: name,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
+      }
+      mapPinPlacementMode = false;
+      document.getElementById('mapAddPinBtn').classList.remove('active');
+    });
   }
 
   /* ---- temporary pings (quick point-at, auto-disappear) ---- */
@@ -5791,10 +5812,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---- uploading a new map ---- */
   function mapStartUpload(){
-    var name = window.prompt('Название карты:');
-    if (name === null || !name.trim()) return;
-    mapPendingUploadName = name.trim();
-    document.getElementById('mapFileInput').click();
+    showTextPrompt('Новая карта', [
+      {id:'name', label:'Название карты', placeholder:'Например: Континент Даргус'}
+    ], function(values){
+      if (!values.name) return;
+      mapPendingUploadName = values.name;
+      document.getElementById('mapFileInput').click();
+    });
   }
   function mapHandleFileForUpload(file){
     if (!fbDb){ alert('Нет подключения к облаку.'); return; }
@@ -7730,6 +7754,54 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- CUSTOM CONFIRM MODAL ---------------- */
+  function showTextPrompt(title, fields, onSubmit){
+    var overlay = document.getElementById('textPromptOverlay');
+    var titleEl = document.getElementById('textPromptTitle');
+    var fieldsWrap = document.getElementById('textPromptFields');
+    var cancelBtn = document.getElementById('textPromptCancelBtn');
+    var okBtn = document.getElementById('textPromptOkBtn');
+
+    titleEl.textContent = title;
+    fieldsWrap.innerHTML = '';
+    var inputs = {};
+    fields.forEach(function(f){
+      var wrap = document.createElement('div');
+      wrap.className = 'text-prompt-field';
+      var label = document.createElement('label');
+      label.textContent = f.label;
+      wrap.appendChild(label);
+      var input = document.createElement(f.multiline ? 'textarea' : 'input');
+      if (!f.multiline) input.type = 'text';
+      input.placeholder = f.placeholder || '';
+      wrap.appendChild(input);
+      fieldsWrap.appendChild(wrap);
+      inputs[f.id] = input;
+    });
+
+    overlay.classList.add('active');
+    appOpenModal(cleanupUIOnly);
+    setTimeout(function(){ var first = fieldsWrap.querySelector('input,textarea'); if (first) first.focus(); }, 250);
+
+    function cleanupUIOnly(){
+      overlay.classList.remove('active');
+      cancelBtn.removeEventListener('click', onCancel);
+      okBtn.removeEventListener('click', onOk);
+      overlay.removeEventListener('click', onOverlay);
+    }
+    function cleanup(){ cleanupUIOnly(); appCloseModal(); }
+    function onCancel(){ cleanup(); }
+    function onOk(){
+      var values = {};
+      fields.forEach(function(f){ values[f.id] = inputs[f.id].value.trim(); });
+      cleanup();
+      onSubmit(values);
+    }
+    function onOverlay(e){ if (e.target === overlay) cleanup(); }
+    cancelBtn.addEventListener('click', onCancel);
+    okBtn.addEventListener('click', onOk);
+    overlay.addEventListener('click', onOverlay);
+  }
+
   function showConfirm(message, onConfirm){
     var overlay = document.getElementById('confirmOverlay');
     var textEl = document.getElementById('confirmText');
