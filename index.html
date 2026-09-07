@@ -2335,6 +2335,84 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 #mapAddPinBtn.active{background:linear-gradient(180deg, var(--wax-bright), var(--wax));}
 
+#mapSwitchBtn{cursor:pointer;}
+
+.map-hint{
+  flex:0 0 auto;
+  text-align:center;
+  font-size:10px;color:var(--parchment);opacity:0.5;font-style:italic;
+  padding:5px 10px;
+}
+
+.map-search-bar{
+  flex:0 0 auto;
+  padding:8px 12px;
+  background:rgba(0,0,0,0.3);
+  border-bottom:2px solid var(--gold);
+}
+.map-search-bar input{
+  width:100%;
+  padding:8px 12px;
+  border-radius:16px;
+  font-size:14px;
+}
+.map-search-results{
+  max-height:160px;overflow-y:auto;
+  margin-top:6px;
+}
+.map-search-result-item{
+  padding:8px 12px;
+  background:rgba(255,255,255,0.08);
+  border-radius:8px;
+  margin-bottom:4px;
+  color:var(--parchment);
+  font-size:13px;
+  cursor:pointer;
+}
+.map-search-result-item:active{background:rgba(255,255,255,0.18);}
+.map-search-empty{padding:8px 12px;color:var(--parchment);opacity:0.5;font-size:12.5px;font-style:italic;}
+
+.map-pings{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.map-ping{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  width:26px;height:26px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,90,60,0.9), rgba(255,90,60,0.1));
+  animation:mapPingPulse 1s ease-in-out infinite;
+}
+.map-ping::after{
+  content:"";
+  position:absolute;top:50%;left:50%;
+  width:8px;height:8px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:#ff3b1f;
+  box-shadow:0 0 6px 2px rgba(255,59,31,0.8);
+}
+@keyframes mapPingPulse{
+  0%{transform:translate(-50%,-50%) scale(0.6);opacity:1;}
+  70%{transform:translate(-50%,-50%) scale(1.6);opacity:0.4;}
+  100%{transform:translate(-50%,-50%) scale(2);opacity:0;}
+}
+
+.map-upload-overlay{
+  position:absolute;inset:0;
+  background:rgba(5,3,2,0.85);
+  z-index:10;
+  display:flex;align-items:center;justify-content:center;
+}
+.map-upload-box{text-align:center;color:var(--parchment);}
+.map-upload-spinner{
+  width:34px;height:34px;
+  margin:0 auto 10px;
+  border-radius:50%;
+  border:3px solid rgba(224,181,99,0.25);
+  border-top-color:var(--gold-bright);
+  animation:mapSpin 0.8s linear infinite;
+}
+@keyframes mapSpin{to{transform:rotate(360deg);}}
+
 .chat-seen-popup{
   position:fixed;
   z-index:160;
@@ -2366,7 +2444,23 @@ input[type=checkbox]:active{transform:scale(0.88);}
   transition:opacity .18s ease;
 }
 .img-lightbox.show{display:flex;opacity:1;}
-.img-lightbox img, .img-lightbox video{
+.img-lightbox-imgwrap{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  touch-action:none;
+}
+.img-lightbox-imgwrap img{
+  max-width:100%;max-height:100%;
+  border-radius:8px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  object-fit:contain;
+  touch-action:none;
+  -webkit-user-drag:none;
+  user-select:none;
+  will-change:transform;
+}
+.img-lightbox video{
   max-width:100%;max-height:100%;
   border-radius:8px;
   box-shadow:0 10px 40px rgba(0,0,0,0.6);
@@ -3224,22 +3318,48 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="chat-gallery-grid" id="chatGalleryGrid"></div>
 </div>
 
+<div class="chat-fullscreen" id="mapListScreen" style="display:none;">
+  <div class="chat-header">
+    <button class="chat-back-btn" id="mapListCloseBtn" aria-label="Закрыть">←</button>
+    <div class="chat-header-title"><span class="chat-header-name">🗺 Карты</span></div>
+    <button class="chat-gallery-btn" id="mapListAddBtn" aria-label="Добавить карту" title="Добавить новую карту">➕</button>
+  </div>
+  <div class="chat-list" id="mapListWrap"></div>
+  <input type="file" id="mapFileInput" accept="image/*" style="display:none;">
+  <div class="map-upload-overlay" id="mapUploadOverlay" style="display:none;">
+    <div class="map-upload-box">
+      <div class="map-upload-spinner"></div>
+      <div id="mapUploadStatus">Загрузка карты…</div>
+    </div>
+  </div>
+</div>
+
 <div class="chat-fullscreen" id="mapScreen" style="display:none;">
   <div class="chat-header">
     <button class="chat-back-btn" id="mapCloseBtn" aria-label="Закрыть">←</button>
-    <div class="chat-header-title"><span class="chat-header-name">🗺 Карта мира</span></div>
-    <button class="chat-gallery-btn" id="mapUploadBtn" aria-label="Загрузить карту" title="Загрузить/заменить карту">📤</button>
-    <button class="chat-gallery-btn" id="mapAddPinBtn" aria-label="Добавить метку" title="Добавить метку">📍</button>
+    <div class="chat-header-title" id="mapSwitchBtn">
+      <span class="chat-header-name" id="mapCurrentName">🗺 Карта мира</span>
+      <span class="chat-header-sub">Сменить карту ▾</span>
+    </div>
+    <button class="chat-gallery-btn" id="mapSearchBtn" aria-label="Поиск метки" title="Поиск метки">🔍</button>
+    <button class="chat-gallery-btn" id="mapAddPinBtn" aria-label="Добавить метку" title="Добавить постоянную метку">📍</button>
   </div>
-  <input type="file" id="mapFileInput" accept="image/*" style="display:none;">
+
+  <div class="map-search-bar" id="mapSearchBar" style="display:none;">
+    <input type="text" id="mapSearchInput" placeholder="Название метки…">
+    <div class="map-search-results" id="mapSearchResults"></div>
+  </div>
 
   <div class="map-viewport" id="mapViewport">
-    <div class="map-empty" id="mapEmpty">Карта ещё не загружена.<br>Нажмите 📤, чтобы добавить картинку.</div>
+    <div class="map-empty" id="mapEmpty">Карта не выбрана.</div>
     <div class="map-transform" id="mapTransform" style="display:none;">
       <img id="mapImage" src="" alt="Карта мира" draggable="false">
       <div class="map-pins" id="mapPinsLayer"></div>
+      <div class="map-pings" id="mapPingsLayer"></div>
     </div>
   </div>
+
+  <div class="map-hint" id="mapHint">Обычный тап — временная метка (4 сек) · 📍 — постоянная метка с названием</div>
 
   <div class="map-zoom-controls">
     <button id="mapZoomOut" aria-label="Отдалить">−</button>
@@ -3263,7 +3383,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 <div class="img-lightbox" id="imgLightbox">
   <button class="img-lightbox-close" id="imgLightboxClose" aria-label="Закрыть">✕</button>
-  <img id="imgLightboxImg" src="" alt="" style="display:none;">
+  <div class="img-lightbox-imgwrap" id="imgLightboxImgWrap" style="display:none;">
+    <img id="imgLightboxImg" src="" alt="" draggable="false">
+  </div>
   <video id="imgLightboxVideo" controls autoplay style="display:none;"></video>
 </div>
 
@@ -3667,7 +3789,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-6';
+  var APP_VERSION = '2026.09.07-7';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4808,17 +4930,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
-  /* ---- image/video lightbox ---- */
+  /* ---- image/video lightbox (with pinch-zoom + pan + double-tap for images) ---- */
+  var lbScale = 1, lbTx = 0, lbTy = 0;
+  var lbActivePointers = {};
+  var lbPanStart = null, lbPinchStart = null;
+  var lbLastTap = 0;
+
+  function lbApplyTransform(){
+    document.getElementById('imgLightboxImg').style.transform = 'translate('+lbTx+'px,'+lbTy+'px) scale('+lbScale+')';
+  }
+  function lbResetTransform(){
+    lbScale = 1; lbTx = 0; lbTy = 0;
+    lbApplyTransform();
+  }
+
   function openLightboxMedia(src, type){
     var box = document.getElementById('imgLightbox');
+    var wrap = document.getElementById('imgLightboxImgWrap');
     var img = document.getElementById('imgLightboxImg');
     var vid = document.getElementById('imgLightboxVideo');
+    lbResetTransform();
     if (type === 'video'){
-      img.style.display = 'none'; img.src = '';
+      wrap.style.display = 'none'; img.src = '';
       vid.style.display = 'block'; vid.src = src;
     } else {
       vid.style.display = 'none'; vid.pause(); vid.src = '';
-      img.style.display = 'block'; img.src = src;
+      wrap.style.display = 'flex'; img.src = src;
     }
     box.style.display = 'flex';
     void box.offsetWidth;
@@ -4835,6 +4972,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         box.style.display = 'none';
         document.getElementById('imgLightboxImg').src = '';
         vid.src = '';
+        lbResetTransform();
       }
     }, 200);
   }
@@ -4847,6 +4985,69 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('imgLightbox').addEventListener('click', function(e){
       if (e.target.id === 'imgLightbox') closeImgLightbox();
     });
+
+    var wrap = document.getElementById('imgLightboxImgWrap');
+    var tapStart = null;
+
+    wrap.addEventListener('pointerdown', function(e){
+      lbActivePointers[e.pointerId] = {x:e.clientX, y:e.clientY};
+      var ids = Object.keys(lbActivePointers);
+      if (ids.length === 1){
+        if (lbScale > 1.02) lbPanStart = { x:e.clientX, y:e.clientY, tx:lbTx, ty:lbTy };
+        tapStart = { x:e.clientX, y:e.clientY, t:Date.now() };
+      } else if (ids.length === 2){
+        var p1 = lbActivePointers[ids[0]], p2 = lbActivePointers[ids[1]];
+        var dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+        lbPinchStart = { dist:dist, scale:lbScale, midX:(p1.x+p2.x)/2, midY:(p1.y+p2.y)/2, tx:lbTx, ty:lbTy };
+        lbPanStart = null;
+        tapStart = null;
+      }
+      wrap.setPointerCapture(e.pointerId);
+    });
+    wrap.addEventListener('pointermove', function(e){
+      if (!(e.pointerId in lbActivePointers)) return;
+      lbActivePointers[e.pointerId] = {x:e.clientX, y:e.clientY};
+      var ids = Object.keys(lbActivePointers);
+      if (ids.length === 1 && lbPanStart){
+        lbTx = lbPanStart.tx + (e.clientX - lbPanStart.x);
+        lbTy = lbPanStart.ty + (e.clientY - lbPanStart.y);
+        lbApplyTransform();
+      } else if (ids.length === 2 && lbPinchStart){
+        var p1 = lbActivePointers[ids[0]], p2 = lbActivePointers[ids[1]];
+        var dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+        var ratio = dist / lbPinchStart.dist;
+        var newScale = Math.min(6, Math.max(1, lbPinchStart.scale * ratio));
+        var scaleRatio = newScale / lbPinchStart.scale;
+        lbTx = lbPinchStart.midX - (lbPinchStart.midX - lbPinchStart.tx) * scaleRatio;
+        lbTy = lbPinchStart.midY - (lbPinchStart.midY - lbPinchStart.ty) * scaleRatio;
+        lbScale = newScale;
+        lbApplyTransform();
+      }
+    });
+    function lbPointerEnd(e){
+      delete lbActivePointers[e.pointerId];
+      var ids = Object.keys(lbActivePointers);
+      if (ids.length < 2) lbPinchStart = null;
+      if (ids.length === 1 && lbScale > 1.02){
+        var id = ids[0];
+        lbPanStart = { x: lbActivePointers[id].x, y: lbActivePointers[id].y, tx: lbTx, ty: lbTy };
+      } else if (ids.length === 0){
+        lbPanStart = null;
+        if (tapStart && Math.hypot(e.clientX-tapStart.x, e.clientY-tapStart.y) < 10 && Date.now()-tapStart.t < 300){
+          var now = Date.now();
+          if (now - lbLastTap < 350){
+            if (lbScale > 1.02) lbResetTransform();
+            else { lbScale = 2.5; lbApplyTransform(); }
+            lbLastTap = 0;
+          } else {
+            lbLastTap = now;
+          }
+        }
+        tapStart = null;
+      }
+    }
+    wrap.addEventListener('pointerup', lbPointerEnd);
+    wrap.addEventListener('pointercancel', lbPointerEnd);
   }
 
   /* ---- media gallery ---- */
@@ -5271,14 +5472,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
     appCloseModal();
   }
 
-  /* ---------------- MAP (campaign/world map viewer with pins) ---------------- */
+  /* ---------------- MAP (multiple campaign/world maps, pins, pings, search) ---------------- */
   var mapScale = 1, mapTx = 0, mapTy = 0;
   var mapImgNaturalW = 0, mapImgNaturalH = 0;
   var mapPinPlacementMode = false;
   var mapPinsData = {};
-  var mapUnsubscribePins = null, mapUnsubscribeData = null;
+  var mapsListData = {};
+  var mapCurrentId = null;
+  var mapPendingUploadName = '';
+  var mapUnsubscribePins = null, mapUnsubscribePings = null, mapUnsubscribeMapsList = null;
   var mapActivePointers = {};
   var mapPanStart = null, mapPinchStart = null;
+  var mapPingLocalTimers = {};
+  var MAP_LAST_ID_KEY = 'dnd5e_last_map_id';
 
   function mapApplyTransform(){
     document.getElementById('mapTransform').style.transform = 'translate('+mapTx+'px,'+mapTy+'px) scale('+mapScale+')';
@@ -5289,16 +5495,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var vw = viewport.clientWidth, vh = viewport.clientHeight;
     var contentW = mapImgNaturalW * mapScale;
     var contentH = mapImgNaturalH * mapScale;
-    if (contentW <= vw){
-      mapTx = (vw - contentW) / 2;
-    } else {
-      mapTx = Math.min(0, Math.max(vw - contentW, mapTx));
-    }
-    if (contentH <= vh){
-      mapTy = (vh - contentH) / 2;
-    } else {
-      mapTy = Math.min(0, Math.max(vh - contentH, mapTy));
-    }
+    if (contentW <= vw){ mapTx = (vw - contentW) / 2; }
+    else { mapTx = Math.min(0, Math.max(vw - contentW, mapTx)); }
+    if (contentH <= vh){ mapTy = (vh - contentH) / 2; }
+    else { mapTy = Math.min(0, Math.max(vh - contentH, mapTy)); }
   }
 
   function mapFitToScreen(){
@@ -5336,22 +5536,40 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
   }
 
-  function mapSubscribe(){
-    if (!fbDb) return;
-    if (!mapUnsubscribeData){
-      mapUnsubscribeData = fbDb.collection('map_data').doc('main').onSnapshot(function(doc){
-        mapRenderImage(doc.exists ? doc.data().imageUrl : null);
-      }, function(err){ console.warn('map data listener error', err); });
-    }
-    if (!mapUnsubscribePins){
-      mapUnsubscribePins = fbDb.collection('map_pins').onSnapshot(function(snap){
-        mapPinsData = {};
-        snap.forEach(function(doc){ mapPinsData[doc.id] = doc.data(); });
-        mapRenderPins();
-      }, function(err){ console.warn('map pins listener error', err); });
-    }
+  /* ---- maps list ---- */
+  function mapSubscribeList(){
+    if (!fbDb || mapUnsubscribeMapsList) return;
+    mapUnsubscribeMapsList = fbDb.collection('maps').orderBy('createdAt','desc').onSnapshot(function(snap){
+      mapsListData = {};
+      snap.forEach(function(doc){ mapsListData[doc.id] = doc.data(); });
+      mapRenderList();
+    }, function(err){ console.warn('maps list error', err); });
   }
 
+  function mapRenderList(){
+    var wrap = document.getElementById('mapListWrap');
+    if (!wrap) return;
+    var ids = Object.keys(mapsListData);
+    if (!ids.length){
+      wrap.innerHTML = '<div class="chat-gallery-empty">Карт пока нет.<br>Нажмите ➕, чтобы добавить первую.</div>';
+      return;
+    }
+    wrap.innerHTML = '';
+    ids.forEach(function(id){
+      var m = mapsListData[id];
+      var item = document.createElement('div');
+      item.className = 'chat-list-item';
+      item.innerHTML =
+        '<div class="chat-list-avatar"><img src="'+escAttr(m.imageUrl)+'"></div>' +
+        '<div class="chat-list-body"><div class="chat-list-name">'+escAttr(m.name||'Без названия')+'</div>' +
+        '<div class="chat-list-preview">'+escAttr(m.createdBy?('от '+m.createdBy):'')+'</div></div>' +
+        (id === mapCurrentId ? '<div class="chat-list-meta"><span class="chat-list-time">✓ открыта</span></div>' : '');
+      item.addEventListener('click', function(){ mapSelectMap(id); });
+      wrap.appendChild(item);
+    });
+  }
+
+  /* ---- pins for currently selected map ---- */
   function mapRenderPins(){
     var layer = document.getElementById('mapPinsLayer');
     if (!layer || !mapImgNaturalW) return;
@@ -5401,8 +5619,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (label === null || !label.trim()) return;
     var description = window.prompt('Описание (необязательно):') || '';
     var name = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
-    if (fbDb){
+    if (fbDb && mapCurrentId){
       fbDb.collection('map_pins').add({
+        mapId: mapCurrentId,
         x: pct.x, y: pct.y,
         label: label.trim(),
         description: description.trim(),
@@ -5415,46 +5634,208 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('mapAddPinBtn').classList.remove('active');
   }
 
-  function mapUploadImage(file){
-    if (!fbDb){ alert('Нет подключения к облаку.'); return; }
-    chatUploadMedia(file, file.name).then(function(url){
-      return fbDb.collection('map_data').doc('main').set({
-        imageUrl: url,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, {merge:true});
-    }).catch(function(err){
-      alert('Не удалось загрузить карту: ' + (err.message||err));
-    });
+  /* ---- temporary pings (quick point-at, auto-disappear) ---- */
+  function mapShowPingLocally(id, data){
+    if (mapPingLocalTimers[id]) return;
+    if (data.createdAt && data.createdAt.toDate){
+      var age = Date.now() - data.createdAt.toDate().getTime();
+      if (age > 5000) return;
+    }
+    var layer = document.getElementById('mapPingsLayer');
+    if (!layer) return;
+    var el = document.createElement('div');
+    el.className = 'map-ping';
+    el.style.left = (data.x*100)+'%';
+    el.style.top = (data.y*100)+'%';
+    layer.appendChild(el);
+    mapPingLocalTimers[id] = setTimeout(function(){
+      if (el.parentNode) el.parentNode.removeChild(el);
+      delete mapPingLocalTimers[id];
+    }, 4000);
   }
 
-  function mapOpen(){
-    document.getElementById('mapScreen').style.display = 'flex';
-    appOpenModal(mapCloseUIOnly);
-    mapSubscribe();
-    requestAnimationFrame(function(){ if (mapImgNaturalW) mapFitToScreen(); });
+  function mapCreatePingAt(clientX, clientY){
+    var pct = mapScreenToImagePct(clientX, clientY);
+    if (pct.x < 0 || pct.x > 1 || pct.y < 0 || pct.y > 1) return;
+    if (!fbDb || !mapCurrentId) return;
+    var docRef = fbDb.collection('map_pings').doc();
+    docRef.set({
+      mapId: mapCurrentId,
+      x: pct.x, y: pct.y,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      setTimeout(function(){ docRef.delete().catch(function(){}); }, 4500);
+    }).catch(function(err){ console.warn('ping failed', err); });
   }
-  function mapCloseUIOnly(){
+
+  /* ---- search pins by name ---- */
+  function mapToggleSearch(){
+    var bar = document.getElementById('mapSearchBar');
+    var show = bar.style.display === 'none';
+    bar.style.display = show ? 'block' : 'none';
+    if (show){ document.getElementById('mapSearchInput').focus(); }
+    else { document.getElementById('mapSearchInput').value = ''; document.getElementById('mapSearchResults').innerHTML = ''; }
+  }
+  function mapUpdateSearchResults(){
+    var q = document.getElementById('mapSearchInput').value.trim().toLowerCase();
+    var results = document.getElementById('mapSearchResults');
+    if (!q){ results.innerHTML = ''; return; }
+    var matches = Object.keys(mapPinsData).filter(function(id){
+      return (mapPinsData[id].label||'').toLowerCase().indexOf(q) !== -1;
+    });
+    if (!matches.length){ results.innerHTML = '<div class="map-search-empty">Ничего не найдено</div>'; return; }
+    results.innerHTML = '';
+    matches.forEach(function(id){
+      var p = mapPinsData[id];
+      var item = document.createElement('div');
+      item.className = 'map-search-result-item';
+      item.textContent = (p.icon||'📍') + ' ' + p.label;
+      item.addEventListener('click', function(){ mapFocusOnPin(p); mapToggleSearch(); });
+      results.appendChild(item);
+    });
+  }
+  function mapFocusOnPin(p){
+    var viewport = document.getElementById('mapViewport');
+    var vw = viewport.clientWidth, vh = viewport.clientHeight;
+    mapScale = Math.max(mapScale, 1.5);
+    mapScale = Math.min(mapScale, 4);
+    var targetX = p.x * mapImgNaturalW;
+    var targetY = p.y * mapImgNaturalH;
+    mapTx = vw/2 - targetX*mapScale;
+    mapTy = vh/2 - targetY*mapScale;
+    mapClampPan();
+    mapApplyTransform();
+  }
+
+  /* ---- switching between maps ---- */
+  function mapSubscribeCurrentMap(id){
+    if (mapUnsubscribePins){ mapUnsubscribePins(); mapUnsubscribePins = null; }
+    if (mapUnsubscribePings){ mapUnsubscribePings(); mapUnsubscribePings = null; }
+    mapPinsData = {};
+    var layer = document.getElementById('mapPingsLayer');
+    if (layer) layer.innerHTML = '';
+    Object.keys(mapPingLocalTimers).forEach(function(k){ clearTimeout(mapPingLocalTimers[k]); });
+    mapPingLocalTimers = {};
+
+    var m = mapsListData[id];
+    if (m){
+      mapRenderImage(m.imageUrl);
+    } else if (fbDb){
+      fbDb.collection('maps').doc(id).get().then(function(doc){
+        if (doc.exists){
+          mapsListData[id] = doc.data();
+          document.getElementById('mapCurrentName').textContent = '🗺 ' + doc.data().name;
+          mapRenderImage(doc.data().imageUrl);
+        }
+      });
+    }
+
+    if (!fbDb) return;
+    mapUnsubscribePins = fbDb.collection('map_pins').where('mapId','==',id).onSnapshot(function(snap){
+      mapPinsData = {};
+      snap.forEach(function(doc){ mapPinsData[doc.id] = doc.data(); });
+      mapRenderPins();
+    }, function(err){ console.warn('map pins error', err); });
+
+    mapUnsubscribePings = fbDb.collection('map_pings').where('mapId','==',id).onSnapshot(function(snap){
+      snap.docChanges().forEach(function(change){
+        if (change.type === 'added') mapShowPingLocally(change.doc.id, change.doc.data());
+      });
+    }, function(err){ console.warn('map pings error', err); });
+  }
+
+  function mapSelectMap(id){
+    mapCurrentId = id;
+    try{ localStorage.setItem(MAP_LAST_ID_KEY, id); }catch(e){}
+    mapCloseListUIOnly();
+    var m = mapsListData[id];
+    document.getElementById('mapCurrentName').textContent = '🗺 ' + (m ? m.name : 'Карта');
+    mapImgNaturalW = 0;
+    mapSubscribeCurrentMap(id);
+    document.getElementById('mapScreen').style.display = 'flex';
+    appOpenModal(mapCloseViewerUIOnly);
+  }
+  function mapCloseViewerUIOnly(){
     document.getElementById('mapScreen').style.display = 'none';
     mapPinPlacementMode = false;
     var btn = document.getElementById('mapAddPinBtn');
     if (btn) btn.classList.remove('active');
+    document.getElementById('mapSearchBar').style.display = 'none';
+    document.getElementById('mapListScreen').style.display = 'flex';
+    mapRenderList();
   }
-  function mapClose(){
-    mapCloseUIOnly();
+  function mapCloseViewer(){
+    mapCloseViewerUIOnly();
     appCloseModal();
   }
 
-  function bindMapUI(){
-    document.getElementById('btnMapOpen').addEventListener('click', mapOpen);
-    document.getElementById('mapCloseBtn').addEventListener('click', mapClose);
-    document.getElementById('mapUploadBtn').addEventListener('click', function(){
-      document.getElementById('mapFileInput').click();
+  function mapOpenList(){
+    document.getElementById('mapListScreen').style.display = 'flex';
+    mapSubscribeList();
+    appOpenModal(mapCloseListUIOnly);
+  }
+  function mapCloseListUIOnly(){
+    document.getElementById('mapListScreen').style.display = 'none';
+  }
+  function mapCloseList(){
+    mapCloseListUIOnly();
+    appCloseModal();
+  }
+
+  function mapOpenFromHeader(){
+    var lastId = null;
+    try{ lastId = localStorage.getItem(MAP_LAST_ID_KEY); }catch(e){}
+    mapOpenList();
+    if (lastId) mapSelectMap(lastId);
+  }
+
+  /* ---- uploading a new map ---- */
+  function mapStartUpload(){
+    var name = window.prompt('Название карты:');
+    if (name === null || !name.trim()) return;
+    mapPendingUploadName = name.trim();
+    document.getElementById('mapFileInput').click();
+  }
+  function mapHandleFileForUpload(file){
+    if (!fbDb){ alert('Нет подключения к облаку.'); return; }
+    var overlay = document.getElementById('mapUploadOverlay');
+    var status = document.getElementById('mapUploadStatus');
+    overlay.style.display = 'flex';
+    status.textContent = 'Загрузка карты… 0%';
+    var creatorName = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
+    chatUploadMedia(file, file.name, function(pct){
+      status.textContent = 'Загрузка карты… ' + pct + '%';
+    }).then(function(url){
+      status.textContent = 'Сохранение…';
+      return fbDb.collection('maps').add({
+        name: mapPendingUploadName,
+        imageUrl: url,
+        createdBy: creatorName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }).then(function(docRef){
+      overlay.style.display = 'none';
+      mapSelectMap(docRef.id);
+    }).catch(function(err){
+      overlay.style.display = 'none';
+      alert('Не удалось загрузить карту: ' + (err.message||err));
     });
+  }
+
+  function bindMapUI(){
+    document.getElementById('btnMapOpen').addEventListener('click', mapOpenFromHeader);
+    document.getElementById('mapListCloseBtn').addEventListener('click', mapCloseList);
+    document.getElementById('mapListAddBtn').addEventListener('click', mapStartUpload);
     document.getElementById('mapFileInput').addEventListener('change', function(e){
       var file = e.target.files[0];
       e.target.value = '';
-      if (file) mapUploadImage(file);
+      if (file) mapHandleFileForUpload(file);
     });
+
+    document.getElementById('mapCloseBtn').addEventListener('click', mapCloseViewer);
+    document.getElementById('mapSwitchBtn').addEventListener('click', mapCloseViewer);
+    document.getElementById('mapSearchBtn').addEventListener('click', mapToggleSearch);
+    document.getElementById('mapSearchInput').addEventListener('input', mapUpdateSearchResults);
     document.getElementById('mapAddPinBtn').addEventListener('click', function(){
       mapPinPlacementMode = !mapPinPlacementMode;
       this.classList.toggle('active', mapPinPlacementMode);
@@ -5525,6 +5906,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         mapPanStart = null;
         if (tapStart && Math.hypot(e.clientX-tapStart.x, e.clientY-tapStart.y) < 10 && Date.now()-tapStart.t < 500){
           if (mapPinPlacementMode) mapPlacePinAt(e.clientX, e.clientY);
+          else mapCreatePingAt(e.clientX, e.clientY);
         }
         tapStart = null;
       }
