@@ -1267,6 +1267,7 @@ body{
   color:var(--parchment);
 }
 .h2-edit-btn:active{transform:scale(0.88);}
+.h2-btn-group{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 
 /* ---------- LOCKABLE CARDS (saves / skills protection) ---------- */
 .lockable.locked .row-list{
@@ -1572,21 +1573,44 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:rgba(255,255,255,0.35);
   border:1px solid var(--parchment-shadow);
   border-radius:var(--radius-s);
-  padding:12px;
+  padding:26px 12px 12px;
   position:relative;
   box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  touch-action:pan-y;
+}
+.dyn-item.dyn-dragging{
+  box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  z-index:5;
+  opacity:0.95;
+  transition:box-shadow .15s ease, opacity .15s ease;
 }
 .dyn-item .dyn-grid{display:grid;gap:8px;}
 .dyn-item textarea.dyn-notes{min-height:36px;}
-.dyn-item-controls{
-  display:flex;justify-content:flex-end;gap:5px;
-  margin-bottom:9px;
+.dyn-drag-handle{
+  position:absolute;
+  top:2px;left:50%;
+  transform:translateX(-50%);
+  display:flex;gap:4px;
+  padding:7px 12px 5px;
+  cursor:grab;
+  touch-action:none;
+}
+.dyn-drag-handle span{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--ink-soft);
+  opacity:0.55;
+}
+.dyn-drag-handle:active{cursor:grabbing;}
+.dyn-item-actions{
+  position:absolute;
+  top:7px;right:10px;
+  display:flex;gap:4px;
 }
 .dyn-item .del-btn{
   background:var(--wax);color:var(--parchment);
   border:none;border-radius:6px;
-  width:24px;height:24px;
-  font-size:12px;line-height:1;
+  width:22px;height:22px;
+  font-size:11px;line-height:1;
   cursor:pointer;
   box-shadow:0 2px 4px rgba(0,0,0,0.25);
   transition:transform .1s ease;
@@ -2335,20 +2359,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
   cursor:pointer;
   line-height:1;
 }
-.map-pin-badge{
-  display:flex;align-items:center;justify-content:center;
-  width:30px;height:30px;
-  border-radius:50% 50% 50% 0;
-  transform:rotate(45deg);
-  border:2px solid rgba(255,255,255,0.85);
-  box-shadow:0 2px 5px rgba(0,0,0,0.6);
-  background:#c0392b;
-}
-.map-pin-badge span{
+.map-pin-emoji{
   display:block;
-  transform:rotate(-45deg);
-  font-size:15px;
+  font-size:28px;
   line-height:1;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.75));
 }
 .map-pin-label{
   position:absolute;
@@ -2480,19 +2495,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .map-ping{
   position:absolute;
   transform:translate(-50%,-50%);
-  width:26px;height:26px;
+  width:var(--ping-size, 26px);height:var(--ping-size, 26px);
   border-radius:50%;
-  background:radial-gradient(circle, rgba(255,90,60,0.9), rgba(255,90,60,0.1));
+  background:radial-gradient(circle, var(--ping-color, #ff5a3c) 0%, transparent 72%);
   animation:mapPingPulse 1s ease-in-out infinite;
 }
 .map-ping::after{
   content:"";
   position:absolute;top:50%;left:50%;
-  width:8px;height:8px;
+  width:30%;height:30%;
   transform:translate(-50%,-50%);
   border-radius:50%;
-  background:#ff3b1f;
-  box-shadow:0 0 6px 2px rgba(255,59,31,0.8);
+  background:var(--ping-color, #ff3b1f);
+  box-shadow:0 0 6px 2px var(--ping-color, #ff3b1f);
 }
 @keyframes mapPingPulse{
   0%{transform:translate(-50%,-50%) scale(0.6);opacity:1;}
@@ -3147,12 +3162,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <!-- ================= PAGE 2: НАВЫКИ ================= -->
   <section class="page" data-page="skills">
     <div class="card lockable" id="savesCard">
-      <h2><span data-i18n="card.saves">Спасброски</span> <button class="h2-edit-btn lock-btn" id="btnLockSaves" title="Заблокировать/разблокировать">🔒</button></h2>
+      <h2><span data-i18n="card.saves">Спасброски</span> <span class="h2-btn-group"><button class="h2-edit-btn" id="btnHideSaves" style="display:none;" title="Показать/скрыть без владения">📌</button><button class="h2-edit-btn lock-btn" id="btnLockSaves" title="Заблокировать/разблокировать">🔒</button></span></h2>
       <div class="row-list" id="savesWrap"></div>
       <div class="legend" data-i18n="legend.saves">Отметьте владение — бонус мастерства прибавится автоматически</div>
     </div>
     <div class="card lockable" id="skillsCard">
-      <h2><span data-i18n="card.skills2">Навыки</span> <button class="h2-edit-btn lock-btn" id="btnLockSkills" title="Заблокировать/разблокировать">🔒</button></h2>
+      <h2><span data-i18n="card.skills2">Навыки</span> <span class="h2-btn-group"><button class="h2-edit-btn" id="btnHideSkills" style="display:none;" title="Показать/скрыть без владения">📌</button><button class="h2-edit-btn lock-btn" id="btnLockSkills" title="Заблокировать/разблокировать">🔒</button></span></h2>
       <div class="row-list" id="skillsWrap"></div>
       <div class="legend" data-i18n="legend.skills">Нажимайте по очереди: пусто → ✓ владение → ★ экспертиза (двойной бонус)</div>
     </div>
@@ -3459,11 +3474,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   <div class="map-pin-settings-popup" id="mapPinSettingsPopup" style="display:none;">
     <div class="map-pin-settings-title">Настройки меток<button class="chat-reply-cancel" id="mapPinSettingsClose" aria-label="Закрыть">✕</button></div>
-    <label>Размер</label>
+    <label>Размер временной метки</label>
     <input type="range" min="18" max="44" id="mapPinSizeSlider">
-    <label>Цвет новых меток</label>
+    <label>Цвет временной метки</label>
     <div class="map-pin-color-row" id="mapPinColorRow"></div>
-    <label>Иконка новых меток</label>
+    <label>Иконка новых постоянных меток</label>
     <div class="map-pin-icon-row" id="mapPinIconRow"></div>
   </div>
 
@@ -3934,7 +3949,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.07-18';
+  var APP_VERSION = '2026.09.08-7';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4225,56 +4240,71 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- SAVES ---------------- */
+  var hideUncheckedSaves = false, hideUncheckedSkills = false;
+  try{
+    hideUncheckedSaves = localStorage.getItem('dnd5e_hide_unchecked_saves') === '1';
+    hideUncheckedSkills = localStorage.getItem('dnd5e_hide_unchecked_skills') === '1';
+  }catch(e){}
+
   function renderSaves(){
     var wrap = document.getElementById('savesWrap');
     wrap.innerHTML = '';
+    var any = false;
     ABILITIES.forEach(function(a){
+      var isProf = !!state.saves[a.id].prof;
+      if (hideUncheckedSaves && !isProf) return;
+      any = true;
       var row = document.createElement('div');
       row.className = 'stat-row';
       row.innerHTML =
-        '<input type="checkbox" id="save_'+a.id+'">' +
+        '<input type="checkbox"'+(isProf?' checked':'')+'>' +
         '<span></span>' +
         '<span class="row-name">'+t('ability.'+a.id)+' <span class="row-ability">('+t('ability.'+a.id+'.short')+')</span></span>' +
         '<span class="row-bonus" id="savebonus_'+a.id+'">+0</span>';
       wrap.appendChild(row);
-    });
-    ABILITIES.forEach(function(a){
-      var cb = document.getElementById('save_'+a.id);
-      cb.checked = !!state.saves[a.id].prof;
-      cb.addEventListener('change', function(){
-        state.saves[a.id].prof = cb.checked;
+      row.querySelector('input[type=checkbox]').addEventListener('change', function(){
+        state.saves[a.id].prof = this.checked;
         recalc();
         saveState();
+        if (hideUncheckedSaves) preserveScroll(function(){ renderSaves(); recalc(); });
       });
     });
+    if (hideUncheckedSaves && !any){
+      wrap.innerHTML = '<div class="legend" style="padding:6px 0;">Нет владения ни одним спасброском</div>';
+    }
   }
 
   /* ---------------- SKILLS ---------------- */
   function renderSkills(){
     var wrap = document.getElementById('skillsWrap');
     wrap.innerHTML = '';
+    var any = false;
     SKILLS.forEach(function(s){
+      var st = state.skills[s.id].exp ? 2 : (state.skills[s.id].prof ? 1 : 0);
+      if (hideUncheckedSkills && st === 0) return;
+      any = true;
       var row = document.createElement('div');
       row.className = 'stat-row';
       row.innerHTML =
-        '<button type="button" class="skill-toggle" id="skilltoggle_'+s.id+'" data-state="0" aria-label="Владение / экспертиза"></button>' +
+        '<button type="button" class="skill-toggle" data-state="0" aria-label="Владение / экспертиза"></button>' +
         '<span></span>' +
         '<span class="row-name">'+t('skill.'+s.id)+' <span class="row-ability">('+t('ability.'+s.ability+'.short')+')</span></span>' +
         '<span class="row-bonus" id="skillbonus_'+s.id+'">+0</span>';
       wrap.appendChild(row);
-    });
-    SKILLS.forEach(function(s){
-      var btn = document.getElementById('skilltoggle_'+s.id);
-      var initState = state.skills[s.id].exp ? 2 : (state.skills[s.id].prof ? 1 : 0);
-      applySkillToggleVisual(btn, initState);
+      var btn = row.querySelector('.skill-toggle');
+      applySkillToggleVisual(btn, st);
       btn.addEventListener('click', function(){
         var next = (Number(btn.dataset.state) + 1) % 3;
-        applySkillToggleVisual(btn, next);
         state.skills[s.id].prof = next >= 1;
         state.skills[s.id].exp = next === 2;
         recalc(); saveState();
+        if (hideUncheckedSkills) preserveScroll(function(){ renderSkills(); recalc(); });
+        else applySkillToggleVisual(btn, next);
       });
     });
+    if (hideUncheckedSkills && !any){
+      wrap.innerHTML = '<div class="legend" style="padding:6px 0;">Нет владения ни одним навыком</div>';
+    }
   }
 
   function applySkillToggleVisual(btn, st){
@@ -4293,6 +4323,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
     btn.classList.toggle('unlocked', !locked);
     btn.textContent = locked ? '🔒' : '🔓';
     card.querySelectorAll('input[type=checkbox]').forEach(function(cb){ cb.disabled = locked; });
+    var hideBtnId = cardId === 'savesCard' ? 'btnHideSaves' : (cardId === 'skillsCard' ? 'btnHideSkills' : null);
+    if (hideBtnId){
+      var hideBtn = document.getElementById(hideBtnId);
+      if (hideBtn) hideBtn.style.display = locked ? 'none' : 'flex';
+    }
   }
 
   function relockStatCards(){
@@ -4308,6 +4343,22 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('btnLockSkills').addEventListener('click', function(){
       var locked = !document.getElementById('skillsCard').classList.contains('locked');
       setCardLocked('skillsCard', 'btnLockSkills', locked);
+    });
+    var btnHideSaves = document.getElementById('btnHideSaves');
+    btnHideSaves.classList.toggle('active', hideUncheckedSaves);
+    btnHideSaves.addEventListener('click', function(){
+      hideUncheckedSaves = !hideUncheckedSaves;
+      btnHideSaves.classList.toggle('active', hideUncheckedSaves);
+      try{ localStorage.setItem('dnd5e_hide_unchecked_saves', hideUncheckedSaves ? '1' : '0'); }catch(e){}
+      preserveScroll(function(){ renderSaves(); recalc(); });
+    });
+    var btnHideSkills = document.getElementById('btnHideSkills');
+    btnHideSkills.classList.toggle('active', hideUncheckedSkills);
+    btnHideSkills.addEventListener('click', function(){
+      hideUncheckedSkills = !hideUncheckedSkills;
+      btnHideSkills.classList.toggle('active', hideUncheckedSkills);
+      try{ localStorage.setItem('dnd5e_hide_unchecked_skills', hideUncheckedSkills ? '1' : '0'); }catch(e){}
+      preserveScroll(function(){ renderSkills(); recalc(); });
     });
   }
 
@@ -4349,16 +4400,100 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- ATTACKS (dynamic) ---------------- */
+  /* ---------------- DRAG-TO-REORDER (dyn-item lists) ---------------- */
+  function bindDragReorder(wrapId, getArray, rerenderFn){
+    var wrap = document.getElementById(wrapId);
+    if (!wrap || wrap._dragBound) return;
+    wrap._dragBound = true;
+    var dragEl = null, dragIdx = null, curIdx = null, startY = 0, snapshot = [], dragGap = 0;
+
+    function clearSiblingShifts(){
+      snapshot.forEach(function(el){
+        if (el === dragEl) return;
+        el.style.transition = '';
+        el.style.transform = '';
+      });
+    }
+
+    wrap.addEventListener('pointerdown', function(e){
+      var handle = e.target.closest('.dyn-drag-handle');
+      if (!handle) return;
+      dragEl = handle.closest('.dyn-item');
+      if (!dragEl) return;
+      snapshot = Array.prototype.slice.call(wrap.children);
+      dragIdx = snapshot.indexOf(dragEl);
+      curIdx = dragIdx;
+      dragGap = dragEl.offsetHeight + 8;
+      startY = e.clientY;
+      dragEl.style.transition = 'none';
+      dragEl.classList.add('dyn-dragging');
+      try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    wrap.addEventListener('pointermove', function(e){
+      if (!dragEl) return;
+      var dy = e.clientY - startY;
+      dragEl.style.transform = 'translateY('+dy+'px)';
+
+      var newIdx = dragIdx;
+      var traveled = 0;
+      if (dy > 0){
+        for (var i = dragIdx+1; i < snapshot.length; i++){
+          var h = snapshot[i].offsetHeight + 8;
+          if (dy > traveled + h/2){ newIdx = i; traveled += h; } else break;
+        }
+      } else if (dy < 0){
+        for (var j = dragIdx-1; j >= 0; j--){
+          var h2 = snapshot[j].offsetHeight + 8;
+          if (-dy > traveled + h2/2){ newIdx = j; traveled += h2; } else break;
+        }
+      }
+
+      if (newIdx !== curIdx){
+        curIdx = newIdx;
+        snapshot.forEach(function(el, idx){
+          if (el === dragEl) return;
+          el.style.transition = 'transform .18s ease';
+          if (curIdx >= dragIdx && idx > dragIdx && idx <= curIdx){
+            el.style.transform = 'translateY(-'+dragGap+'px)';
+          } else if (curIdx < dragIdx && idx >= curIdx && idx < dragIdx){
+            el.style.transform = 'translateY('+dragGap+'px)';
+          } else {
+            el.style.transform = '';
+          }
+        });
+      }
+    });
+    function endDrag(e){
+      if (!dragEl) return;
+      dragEl.style.transition = '';
+      dragEl.style.transform = '';
+      dragEl.classList.remove('dyn-dragging');
+      var newIdx = curIdx;
+      dragEl = null;
+      if (newIdx !== dragIdx){
+        var arr = getArray();
+        var moved = arr.splice(dragIdx,1)[0];
+        arr.splice(newIdx,0,moved);
+        saveState();
+        preserveScroll(rerenderFn);
+      } else {
+        clearSiblingShifts();
+      }
+    }
+    wrap.addEventListener('pointerup', endDrag);
+    wrap.addEventListener('pointercancel', endDrag);
+  }
+
   function renderAttacks(){
     var wrap = document.getElementById('attacksWrap');
     wrap.innerHTML = '';
+    bindDragReorder('attacksWrap', function(){ return state.attacks; }, renderAttacks);
     state.attacks.forEach(function(atk, idx){
       var div = document.createElement('div');
       div.className = 'dyn-item';
       div.innerHTML =
-        '<div class="dyn-item-controls">' +
-          '<button type="button" class="sec-btn" data-act="up"'+(idx===0?' disabled':'')+' aria-label="Выше">▲</button>' +
-          '<button type="button" class="sec-btn" data-act="down"'+(idx===state.attacks.length-1?' disabled':'')+' aria-label="Ниже">▼</button>' +
+        '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
+        '<div class="dyn-item-actions">' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
         '<div class="dyn-grid" style="grid-template-columns:1.4fr 0.7fr;">' +
@@ -4376,16 +4511,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
           saveState();
         });
       });
-      div.querySelector('[data-act="up"]').addEventListener('click', function(){
-        if (idx === 0) return;
-        var tmp = state.attacks[idx-1]; state.attacks[idx-1] = state.attacks[idx]; state.attacks[idx] = tmp;
-        preserveScroll(function(){ saveState(); renderAttacks(); });
-      });
-      div.querySelector('[data-act="down"]').addEventListener('click', function(){
-        if (idx === state.attacks.length-1) return;
-        var tmp = state.attacks[idx+1]; state.attacks[idx+1] = state.attacks[idx]; state.attacks[idx] = tmp;
-        preserveScroll(function(){ saveState(); renderAttacks(); });
-      });
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteAttack', atk.name || t('noname')), function(){
           state.attacks.splice(idx,1);
@@ -4399,13 +4524,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function renderItems(){
     var wrap = document.getElementById('itemsWrap');
     wrap.innerHTML = '';
+    bindDragReorder('itemsWrap', function(){ return state.items; }, renderItems);
     state.items.forEach(function(item, idx){
       var div = document.createElement('div');
       div.className = 'dyn-item';
       div.innerHTML =
-        '<div class="dyn-item-controls">' +
-          '<button type="button" class="sec-btn" data-act="up"'+(idx===0?' disabled':'')+' aria-label="Выше">▲</button>' +
-          '<button type="button" class="sec-btn" data-act="down"'+(idx===state.items.length-1?' disabled':'')+' aria-label="Ниже">▼</button>' +
+        '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
+        '<div class="dyn-item-actions">' +
           '<button type="button" class="sec-btn" data-act="send" aria-label="Отправить другому игроку" title="Отправить другому игроку">📤</button>' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
@@ -4423,16 +4548,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
           if (inp.tagName === 'TEXTAREA') autoGrow(inp);
           saveState();
         });
-      });
-      div.querySelector('[data-act="up"]').addEventListener('click', function(){
-        if (idx === 0) return;
-        var tmp = state.items[idx-1]; state.items[idx-1] = state.items[idx]; state.items[idx] = tmp;
-        preserveScroll(function(){ saveState(); renderItems(); });
-      });
-      div.querySelector('[data-act="down"]').addEventListener('click', function(){
-        if (idx === state.items.length-1) return;
-        var tmp = state.items[idx+1]; state.items[idx+1] = state.items[idx]; state.items[idx] = tmp;
-        preserveScroll(function(){ saveState(); renderItems(); });
       });
       div.querySelector('[data-act="send"]').addEventListener('click', function(){
         itemOpenSendPicker(item, idx);
@@ -4481,6 +4596,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function renderSpells(){
     var wrap = document.getElementById('spellsWrap');
     wrap.innerHTML = '';
+    bindDragReorder('spellsWrap', function(){ return state.spells; }, renderSpells);
     state.spells.forEach(function(sp, idx){
       var div = document.createElement('div');
       div.className = 'dyn-item';
@@ -4489,9 +4605,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         options += '<option value="'+l+'"'+(Number(sp.level)===l?' selected':'')+'>'+(l===0?t('opt.cantrip'):t('field.circle')+' '+l)+'</option>';
       }
       div.innerHTML =
-        '<div class="dyn-item-controls">' +
-          '<button type="button" class="sec-btn" data-act="up"'+(idx===0?' disabled':'')+' aria-label="Выше">▲</button>' +
-          '<button type="button" class="sec-btn" data-act="down"'+(idx===state.spells.length-1?' disabled':'')+' aria-label="Ниже">▼</button>' +
+        '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
+        '<div class="dyn-item-actions">' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
         '<div class="dyn-grid" style="grid-template-columns:0.9fr 1.6fr;">' +
@@ -4513,16 +4628,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
           if (inp.tagName === 'TEXTAREA') autoGrow(inp);
           saveState();
         });
-      });
-      div.querySelector('[data-act="up"]').addEventListener('click', function(){
-        if (idx === 0) return;
-        var tmp = state.spells[idx-1]; state.spells[idx-1] = state.spells[idx]; state.spells[idx] = tmp;
-        preserveScroll(function(){ saveState(); renderSpells(); });
-      });
-      div.querySelector('[data-act="down"]').addEventListener('click', function(){
-        if (idx === state.spells.length-1) return;
-        var tmp = state.spells[idx+1]; state.spells[idx+1] = state.spells[idx]; state.spells[idx] = tmp;
-        preserveScroll(function(){ saveState(); renderSpells(); });
       });
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteSpell', sp.name || t('noname')), function(){
@@ -5913,7 +6018,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
         mapPinSettings.color = c;
         saveMapPinSettings();
         mapRenderPinSettingsPopup();
-        mapRenderPins();
       });
       colorRow.appendChild(sw);
     });
@@ -6022,7 +6126,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var layer = document.getElementById('mapPinsLayer');
     if (!layer || !mapImgNaturalW) return;
     layer.innerHTML = '';
-    var sizePx = mapPinSettings.size + 'px';
     Object.keys(mapPinsData).forEach(function(id){
       var p = mapPinsData[id];
       var el = document.createElement('div');
@@ -6030,9 +6133,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       el.style.left = (p.x*100) + '%';
       el.style.top = (p.y*100) + '%';
       el.innerHTML =
-        '<div class="map-pin-badge" style="width:'+sizePx+';height:'+sizePx+';background:'+escAttr(p.color||mapPinSettings.color)+';">' +
-          '<span style="font-size:'+Math.round(mapPinSettings.size*0.5)+'px;">'+(p.icon||mapPinSettings.icon)+'</span>' +
-        '</div>' +
+        '<span class="map-pin-emoji">'+(p.icon||mapPinSettings.icon)+'</span>' +
         '<span class="map-pin-label">'+escAttr(p.label||'')+'</span>';
       el.addEventListener('click', function(e){ e.stopPropagation(); mapShowPinPopup(id, p); });
       layer.appendChild(el);
@@ -6084,7 +6185,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
           label: values.label,
           description: values.description,
           icon: mapPinSettings.icon,
-          color: mapPinSettings.color,
           createdByName: name,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
@@ -6103,6 +6203,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
     el.className = 'map-ping';
     el.style.left = (data.x*100)+'%';
     el.style.top = (data.y*100)+'%';
+    el.style.setProperty('--ping-size', mapPinSettings.size+'px');
+    el.style.setProperty('--ping-color', mapPinSettings.color);
     layer.appendChild(el);
     mapPingLocalTimers[id] = setTimeout(function(){
       if (el.parentNode) el.parentNode.removeChild(el);
@@ -6320,7 +6422,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('mapPinSizeSlider').addEventListener('input', function(){
       mapPinSettings.size = parseInt(this.value, 10);
       saveMapPinSettings();
-      mapRenderPins();
     });
     document.getElementById('mapPinPopupClose').addEventListener('click', function(){
       document.getElementById('mapPinPopup').style.display = 'none';
