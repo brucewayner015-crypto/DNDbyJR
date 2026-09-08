@@ -1369,6 +1369,29 @@ input:focus, select:focus, textarea:focus{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
+.app-shell[data-merge-ps="1"] .medallions{
+  grid-template-columns:repeat(6,1fr);
+  gap:5px;
+}
+.app-shell[data-merge-ps="1"] .medallion{
+  padding:7px 2px 6px;
+  border-radius:10px 10px 22px 22px / 10px 10px 28px 28px;
+}
+.app-shell[data-merge-ps="1"] .medallion .m-label{
+  font-size:calc(8px * var(--ui-font-scale));
+  letter-spacing:0.5px;
+}
+.app-shell[data-merge-ps="1"] .medallion .m-mod{
+  font-size:calc(17px * var(--ui-font-scale));
+  margin:1px 0;
+}
+.app-shell[data-merge-ps="1"] .medallion .m-score-wrap{
+  width:22px;height:22px;
+}
+.app-shell[data-merge-ps="1"] .medallion input.m-score{
+  width:18px;
+  font-size:calc(10px * var(--ui-font-scale));
+}
 .medallion{
   background:radial-gradient(circle at 35% 25%, var(--medallion-1), var(--medallion-2) 70%, var(--medallion-3));
   border:2px solid var(--gold);
@@ -1573,27 +1596,33 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:rgba(255,255,255,0.35);
   border:1px solid var(--parchment-shadow);
   border-radius:var(--radius-s);
-  padding:26px 12px 12px;
+  padding:32px 12px 12px;
   position:relative;
   box-shadow:0 2px 6px rgba(0,0,0,0.1);
   touch-action:pan-y;
 }
 .dyn-item.dyn-dragging{
-  box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  box-shadow:0 10px 26px rgba(0,0,0,0.5);
   z-index:5;
-  opacity:0.95;
-  transition:box-shadow .15s ease, opacity .15s ease;
+  border-color:var(--gold);
+  background:rgba(224,181,99,0.28);
+  transition:box-shadow .1s ease, background-color .1s ease;
 }
 .dyn-item .dyn-grid{display:grid;gap:8px;}
 .dyn-item textarea.dyn-notes{min-height:36px;}
 .dyn-drag-handle{
   position:absolute;
-  top:2px;left:50%;
+  top:0;left:50%;
   transform:translateX(-50%);
-  display:flex;gap:4px;
-  padding:7px 12px 5px;
+  width:88px;height:30px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
   cursor:grab;
   touch-action:none;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  -webkit-tap-highlight-color:transparent;
 }
 .dyn-drag-handle span{
   width:4px;height:4px;border-radius:50%;
@@ -1601,6 +1630,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   opacity:0.55;
 }
 .dyn-drag-handle:active{cursor:grabbing;}
+.dyn-drag-handle:active span{opacity:0.9;background:var(--gold);}
 .dyn-item-actions{
   position:absolute;
   top:7px;right:10px;
@@ -1618,7 +1648,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
   padding:0;flex-shrink:0;
 }
 .dyn-item .del-btn:active{transform:scale(0.85);}
-.dyn-item{animation:cardRise .28s ease both;}
 .add-btn{
   margin-top:8px;
   width:100%;
@@ -3140,20 +3169,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
     </div>
 
     <div class="card">
-      <h2><span data-i18n="card.abilities">Характеристики</span> <span class="hint" id="dispProf">бонус мастерства +2</span></h2>
+      <h2><span data-i18n="card.abilities">Характеристики</span></h2>
       <div class="medallions" id="medallionsWrap"></div>
-    </div>
-
-    <div class="card">
-      <h2 data-i18n="card.other">Прочее</h2>
-      <div class="grid2">
-        <div class="field">
-          <label class="field-label" data-i18n="field.passivePerc">Пассивное восприятие</label>
-          <input type="text" id="dispPassivePerc" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
-        </div>
+      <div class="grid2" style="margin-top:10px;">
         <div class="field">
           <label class="field-label" data-i18n="field.profBonus">Бонус мастерства</label>
           <input type="text" id="dispProfBonus" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
+        </div>
+        <div class="field">
+          <label class="field-label" data-i18n="field.passivePerc">Пассивное восприятие</label>
+          <input type="text" id="dispPassivePerc" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
         </div>
       </div>
     </div>
@@ -3739,6 +3764,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
       </div>
 
       <div class="settings-pane" data-pane="display">
+        <p class="modal-text" style="margin-bottom:8px;">Вкладки</p>
+        <label class="inline-check">
+          <input type="checkbox" id="mergeProfileSkillsToggle"> Объединить «Профиль» и «Навыки» в одну вкладку
+        </label>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:2px;" data-i18n="settings.scaleTitle">Масштаб интерфейса</p>
         <div class="scale-control">
           <button class="scale-btn" id="scaleMinus" aria-label="Уменьшить">−</button>
@@ -3949,7 +3981,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.08-7';
+  var APP_VERSION = '2026.09.08-15';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4412,26 +4444,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (el === dragEl) return;
         el.style.transition = '';
         el.style.transform = '';
+        el.style.animation = '';
       });
     }
 
-    wrap.addEventListener('pointerdown', function(e){
-      var handle = e.target.closest('.dyn-drag-handle');
-      if (!handle) return;
-      dragEl = handle.closest('.dyn-item');
+    function getY(e){
+      if (e.touches && e.touches.length) return e.touches[0].clientY;
+      if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientY;
+      return e.clientY;
+    }
+
+    function onMove(e){
       if (!dragEl) return;
-      snapshot = Array.prototype.slice.call(wrap.children);
-      dragIdx = snapshot.indexOf(dragEl);
-      curIdx = dragIdx;
-      dragGap = dragEl.offsetHeight + 8;
-      startY = e.clientY;
-      dragEl.style.transition = 'none';
-      dragEl.classList.add('dyn-dragging');
-      try{ handle.setPointerCapture(e.pointerId); }catch(err){}
-    });
-    wrap.addEventListener('pointermove', function(e){
-      if (!dragEl) return;
-      var dy = e.clientY - startY;
+      e.preventDefault();
+      var dy = getY(e) - startY;
       dragEl.style.transform = 'translateY('+dy+'px)';
 
       var newIdx = dragIdx;
@@ -4452,6 +4478,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         curIdx = newIdx;
         snapshot.forEach(function(el, idx){
           if (el === dragEl) return;
+          el.style.animation = 'none';
           el.style.transition = 'transform .18s ease';
           if (curIdx >= dragIdx && idx > dragIdx && idx <= curIdx){
             el.style.transform = 'translateY(-'+dragGap+'px)';
@@ -4462,11 +4489,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
           }
         });
       }
-    });
-    function endDrag(e){
+    }
+
+    function onUp(e){
       if (!dragEl) return;
       dragEl.style.transition = '';
       dragEl.style.transform = '';
+      dragEl.style.animation = '';
       dragEl.classList.remove('dyn-dragging');
       var newIdx = curIdx;
       dragEl = null;
@@ -4480,8 +4509,34 @@ input[type=checkbox]:active{transform:scale(0.88);}
         clearSiblingShifts();
       }
     }
-    wrap.addEventListener('pointerup', endDrag);
-    wrap.addEventListener('pointercancel', endDrag);
+
+    function onStart(e){
+      var handle = e.target.closest('.dyn-drag-handle');
+      if (!handle) return;
+      dragEl = handle.closest('.dyn-item');
+      if (!dragEl) return;
+      e.preventDefault();
+      e.stopPropagation();
+      snapshot = Array.prototype.slice.call(wrap.children);
+      dragIdx = snapshot.indexOf(dragEl);
+      curIdx = dragIdx;
+      dragGap = dragEl.offsetHeight + 8;
+      startY = getY(e);
+      dragEl.style.transition = 'none';
+      dragEl.style.animation = 'none';
+      dragEl.classList.add('dyn-dragging');
+    }
+
+    wrap.addEventListener('touchstart', onStart, {passive:false});
+    wrap.addEventListener('mousedown', onStart);
+    wrap.addEventListener('contextmenu', function(e){
+      if (e.target.closest('.dyn-drag-handle')) e.preventDefault();
+    });
+    document.addEventListener('touchmove', onMove, {passive:false});
+    document.addEventListener('touchend', onUp);
+    document.addEventListener('touchcancel', onUp);
+    document.addEventListener('mousemove', onMove, {passive:false});
+    document.addEventListener('mouseup', onUp);
   }
 
   function renderAttacks(){
@@ -8035,6 +8090,50 @@ input[type=checkbox]:active{transform:scale(0.88);}
     else shell.setAttribute('data-btn-shape', shapeId);
   }
 
+  function applyMergeProfileSkills(){
+    var appShell = document.querySelector('.app-shell');
+    var profileSection = document.querySelector('.page[data-page="profile"]');
+    var skillsSection = document.querySelector('.page[data-page="skills"]');
+    var savesCard = document.getElementById('savesCard');
+    var skillsCard = document.getElementById('skillsCard');
+    var skillsTabBtn = document.querySelector('.tab-btn[data-target="skills"]');
+    if (!profileSection || !skillsSection || !savesCard || !skillsCard) return;
+
+    if (uiSettings.mergeProfileSkills){
+      if (appShell) appShell.setAttribute('data-merge-ps', '1');
+      profileSection.appendChild(savesCard);
+      profileSection.appendChild(skillsCard);
+      if (skillsTabBtn) skillsTabBtn.style.display = 'none';
+      if (skillsSection.classList.contains('active')){
+        skillsSection.classList.remove('active');
+        profileSection.classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.target === 'profile'); });
+      }
+    } else {
+      if (appShell) appShell.removeAttribute('data-merge-ps');
+      skillsSection.appendChild(savesCard);
+      skillsSection.appendChild(skillsCard);
+      if (skillsTabBtn) skillsTabBtn.style.display = '';
+    }
+
+    var activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn){
+      var idx = getTabOrder().indexOf(activeBtn.dataset.target);
+      if (idx > -1){ currentTabIndex = idx; updateIndicator(idx); }
+    }
+  }
+
+  function bindMergeProfileSkillsToggle(){
+    var toggle = document.getElementById('mergeProfileSkillsToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.mergeProfileSkills;
+    toggle.addEventListener('change', function(){
+      uiSettings.mergeProfileSkills = toggle.checked;
+      saveUiSettings();
+      applyMergeProfileSkills();
+    });
+  }
+
   function renderBtnShapeGrid(){
     var wrap = document.getElementById('btnShapeGrid');
     if (!wrap) return;
@@ -8174,7 +8273,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle'};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false};
 
   function loadUiSettings(){
     try{
@@ -8187,6 +8286,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.style === 'string') uiSettings.style = loaded.style;
         if (loaded && typeof loaded.iconSet === 'string') uiSettings.iconSet = loaded.iconSet;
         if (loaded && typeof loaded.btnShape === 'string') uiSettings.btnShape = loaded.btnShape;
+        if (loaded && typeof loaded.mergeProfileSkills === 'boolean') uiSettings.mergeProfileSkills = loaded.mergeProfileSkills;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -8436,7 +8536,6 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function recalc(){
     var pb = profBonus();
-    document.getElementById('dispProf').textContent = t('hint.profBonus') + ' ' + fmtMod(pb);
     pulseSet(document.getElementById('dispProfBonus'), fmtMod(pb));
 
     ABILITIES.forEach(function(a){
@@ -8472,16 +8571,22 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- TABS + SWIPE ---------------- */
-  var TAB_ORDER = ['profile','skills','combat','inventory','spells','traits'];
+  var TAB_ORDER_FULL = ['profile','skills','combat','inventory','spells','traits'];
+  var TAB_ORDER_MERGED = ['profile','combat','inventory','spells','traits'];
+  function getTabOrder(){
+    return uiSettings.mergeProfileSkills ? TAB_ORDER_MERGED : TAB_ORDER_FULL;
+  }
   var currentTabIndex = 0;
 
   function updateIndicator(index){
     var indicator = document.getElementById('tabIndicator');
-    if (indicator) indicator.style.left = (index * (100 / TAB_ORDER.length)) + '%';
+    var order = getTabOrder();
+    if (indicator) indicator.style.left = (index * (100 / order.length)) + '%';
   }
 
   function activateTab(name){
-    var newIndex = TAB_ORDER.indexOf(name);
+    var order = getTabOrder();
+    var newIndex = order.indexOf(name);
     if (newIndex === -1 || newIndex === currentTabIndex) return;
     var direction = newIndex > currentTabIndex ? 'right' : 'left';
     var btns = document.querySelectorAll('.tab-btn');
@@ -8499,8 +8604,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function goToTabIndex(idx){
-    idx = Math.max(0, Math.min(TAB_ORDER.length - 1, idx));
-    activateTab(TAB_ORDER[idx]);
+    var order = getTabOrder();
+    idx = Math.max(0, Math.min(order.length - 1, idx));
+    activateTab(order[idx]);
   }
 
   function bindSwipe(){
@@ -8660,6 +8766,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   applyTheme();
   applyStyle();
   applyBtnShape();
+  applyMergeProfileSkills();
+  bindMergeProfileSkillsToggle();
   applyFontSet();
   applyIconSet();
   applyI18n();
