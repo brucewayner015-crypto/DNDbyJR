@@ -1648,6 +1648,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
   padding:0;flex-shrink:0;
 }
 .dyn-item .del-btn:active{transform:scale(0.85);}
+
+.app-shell[data-compact-attacks="1"] #attacksWrap .dyn-item{padding:22px 10px 8px;}
+.app-shell[data-compact-attacks="1"] #attacksWrap .field-label{font-size:9px;}
+.app-shell[data-compact-attacks="1"] #attacksWrap input,
+.app-shell[data-compact-attacks="1"] #attacksWrap textarea{font-size:11px;padding:5px 6px;}
+.app-shell[data-compact-attacks="1"] #attacksWrap .dyn-grid{gap:6px;}
+.app-shell[data-compact-attacks="1"] #attacksWrap .field{margin-top:4px !important;}
+.app-shell[data-compact-attacks="1"] #attacksWrap textarea.dyn-notes{min-height:26px;}
 .add-btn{
   margin-top:8px;
   width:100%;
@@ -1668,6 +1676,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 /* death saves / exhaustion */
 .death-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.death-cond-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start;}
+.death-cond-right h2{margin-bottom:8px;}
+.death-cond-right select{width:100%;}
 .death-row span{font-family:var(--font-display);font-size:calc(11px * var(--ui-font-scale));text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-soft);width:80px;}
 .death-dots{display:flex;gap:6px;}
 
@@ -3233,24 +3244,27 @@ input[type=checkbox]:active{transform:scale(0.88);}
     </div>
 
     <div class="card">
-      <h2 data-i18n="card.deathSaves">Спасброски от смерти</h2>
-      <div class="death-row">
-        <span data-i18n="label.successes">Успехи</span>
-        <div class="death-dots success" id="deathSuccessWrap"></div>
+      <div class="death-cond-grid">
+        <div class="death-cond-left">
+          <h2 data-i18n="card.deathSaves">Спасброски от смерти</h2>
+          <div class="death-row">
+            <span data-i18n="label.successes">Успехи</span>
+            <div class="death-dots success" id="deathSuccessWrap"></div>
+          </div>
+          <div class="death-row">
+            <span data-i18n="label.failures">Провалы</span>
+            <div class="death-dots fail" id="deathFailWrap"></div>
+          </div>
+          <div class="field" style="margin-top:8px;">
+            <label class="field-label" data-i18n="field.exhaustion">Истощение (0–6)</label>
+            <input type="number" id="f_exhaustion" min="0" max="6" data-field="combat.exhaustion" placeholder="0">
+          </div>
+        </div>
+        <div class="death-cond-right">
+          <h2 data-i18n="card.conditions">Состояния</h2>
+          <select id="conditionSelect"></select>
+        </div>
       </div>
-      <div class="death-row">
-        <span data-i18n="label.failures">Провалы</span>
-        <div class="death-dots fail" id="deathFailWrap"></div>
-      </div>
-      <div class="field" style="margin-top:8px;">
-        <label class="field-label" data-i18n="field.exhaustion">Истощение (0–6)</label>
-        <input type="number" id="f_exhaustion" min="0" max="6" data-field="combat.exhaustion" placeholder="0">
-      </div>
-    </div>
-
-    <div class="card">
-      <h2 data-i18n="card.conditions">Состояния</h2>
-      <div class="tags-wrap" id="conditionsWrap"></div>
     </div>
 
     <div class="card">
@@ -3771,6 +3785,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <div class="settings-divider"></div>
 
+        <p class="modal-text" style="margin-bottom:8px;">Атаки</p>
+        <label class="inline-check">
+          <input type="checkbox" id="compactAttacksToggle"> Компактный список атак (меньше отступы и шрифт)
+        </label>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:2px;" data-i18n="settings.scaleTitle">Масштаб интерфейса</p>
         <div class="scale-control">
           <button class="scale-btn" id="scaleMinus" aria-label="Уменьшить">−</button>
@@ -3981,7 +4002,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.08-16';
+  var APP_VERSION = '2026.09.08-19';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4415,20 +4436,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- CONDITIONS ---------------- */
   function renderConditions(){
-    var wrap = document.getElementById('conditionsWrap');
-    wrap.innerHTML = '';
-    CONDITIONS.forEach(function(c){
-      var btn = document.createElement('div');
-      btn.className = 'tag-toggle' + (state.combat.conditions.indexOf(c) > -1 ? ' active' : '');
-      btn.textContent = t('cond.'+c);
-      btn.addEventListener('click', function(){
-        var idx = state.combat.conditions.indexOf(c);
-        if (idx > -1){ state.combat.conditions.splice(idx,1); btn.classList.remove('active'); }
-        else { state.combat.conditions.push(c); btn.classList.add('active'); }
-        saveState();
-      });
-      wrap.appendChild(btn);
-    });
+    var sel = document.getElementById('conditionSelect');
+    if (!sel) return;
+    var current = (state.combat.conditions && state.combat.conditions[0]) || '';
+    sel.innerHTML = '<option value="">'+t('opt.none')+'</option>' +
+      CONDITIONS.map(function(c){
+        return '<option value="'+c+'"'+(c===current?' selected':'')+'>'+t('cond.'+c)+'</option>';
+      }).join('');
+    sel.onchange = function(){
+      state.combat.conditions = sel.value ? [sel.value] : [];
+      saveState();
+    };
   }
 
   /* ---------------- ATTACKS (dynamic) ---------------- */
@@ -4543,19 +4561,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var wrap = document.getElementById('attacksWrap');
     wrap.innerHTML = '';
     bindDragReorder('attacksWrap', function(){ return state.attacks; }, renderAttacks);
+    var compact = !!uiSettings.compactAttacks;
     state.attacks.forEach(function(atk, idx){
       var div = document.createElement('div');
       div.className = 'dyn-item';
+      var topRowHtml = compact ?
+        '<div class="dyn-grid" style="grid-template-columns:1.5fr 0.7fr 0.9fr;">' +
+          '<div><label class="field-label">'+t('field.attackName')+'</label><input type="text" data-k="name" value="'+escAttr(atk.name)+'"></div>' +
+          '<div><label class="field-label">'+t('field.attackBonus')+'</label><input type="text" data-k="bonus" value="'+escAttr(atk.bonus)+'"></div>' +
+          '<div><label class="field-label">'+t('field.damageType')+'</label><input type="text" data-k="damage" value="'+escAttr(atk.damage)+'"></div>' +
+        '</div>'
+        :
+        '<div class="dyn-grid" style="grid-template-columns:1.4fr 0.7fr;">' +
+          '<div><label class="field-label">'+t('field.attackName')+'</label><input type="text" data-k="name" value="'+escAttr(atk.name)+'"></div>' +
+          '<div><label class="field-label">'+t('field.attackBonus')+'</label><input type="text" data-k="bonus" value="'+escAttr(atk.bonus)+'"></div>' +
+        '</div>' +
+        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.damageType')+'</label><input type="text" data-k="damage" value="'+escAttr(atk.damage)+'"></div>';
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
-        '<div class="dyn-grid" style="grid-template-columns:1.4fr 0.7fr;">' +
-          '<div><label class="field-label">'+t('field.attackName')+'</label><input type="text" data-k="name" value="'+escAttr(atk.name)+'"></div>' +
-          '<div><label class="field-label">'+t('field.attackBonus')+'</label><input type="text" data-k="bonus" value="'+escAttr(atk.bonus)+'"></div>' +
-        '</div>' +
-        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.damageType')+'</label><input type="text" data-k="damage" value="'+escAttr(atk.damage)+'"></div>' +
+        topRowHtml +
         '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label><textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(atk.notes)+'</textarea></div>';
       wrap.appendChild(div);
       div.querySelectorAll('textarea.dyn-notes').forEach(autoGrow);
@@ -4566,6 +4593,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           saveState();
         });
       });
+
       div.querySelector('[data-act="del"]').addEventListener('click', function(){
         showConfirm(t('confirm.deleteAttack', atk.name || t('noname')), function(){
           state.attacks.splice(idx,1);
@@ -8134,6 +8162,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  function applyCompactAttacks(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    if (uiSettings.compactAttacks) shell.setAttribute('data-compact-attacks', '1');
+    else shell.removeAttribute('data-compact-attacks');
+    if (typeof renderAttacks === 'function') renderAttacks();
+  }
+
+  function bindCompactAttacksToggle(){
+    var toggle = document.getElementById('compactAttacksToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.compactAttacks;
+    toggle.addEventListener('change', function(){
+      uiSettings.compactAttacks = toggle.checked;
+      saveUiSettings();
+      applyCompactAttacks();
+    });
+  }
+
   function renderBtnShapeGrid(){
     var wrap = document.getElementById('btnShapeGrid');
     if (!wrap) return;
@@ -8273,7 +8320,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false};
 
   function loadUiSettings(){
     try{
@@ -8287,6 +8334,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.iconSet === 'string') uiSettings.iconSet = loaded.iconSet;
         if (loaded && typeof loaded.btnShape === 'string') uiSettings.btnShape = loaded.btnShape;
         if (loaded && typeof loaded.mergeProfileSkills === 'boolean') uiSettings.mergeProfileSkills = loaded.mergeProfileSkills;
+        if (loaded && typeof loaded.compactAttacks === 'boolean') uiSettings.compactAttacks = loaded.compactAttacks;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -8768,6 +8816,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   applyBtnShape();
   applyMergeProfileSkills();
   bindMergeProfileSkillsToggle();
+  applyCompactAttacks();
+  bindCompactAttacksToggle();
   applyFontSet();
   applyIconSet();
   applyI18n();
