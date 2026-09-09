@@ -1151,6 +1151,7 @@ body{
   flex:1;
   min-height:0;
   overflow-y:auto;
+  overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
   scrollbar-width:thin;
@@ -1180,19 +1181,6 @@ body{
   100%{transform:scale(1);filter:none;}
 }
 .value-pulse{animation:valuePulse .4s ease;}
-.page.active .card{animation:cardRise .36s ease both;}
-.page.active .card:nth-of-type(1){animation-delay:0s;}
-.page.active .card:nth-of-type(2){animation-delay:.045s;}
-.page.active .card:nth-of-type(3){animation-delay:.09s;}
-.page.active .card:nth-of-type(4){animation-delay:.135s;}
-.page.active .card:nth-of-type(5){animation-delay:.18s;}
-.page.active .card:nth-of-type(n+6){animation-delay:.22s;}
-.page.active .card:nth-of-type(1){animation-delay:.02s;}
-.page.active .card:nth-of-type(2){animation-delay:.07s;}
-.page.active .card:nth-of-type(3){animation-delay:.12s;}
-.page.active .card:nth-of-type(4){animation-delay:.17s;}
-.page.active .card:nth-of-type(5){animation-delay:.22s;}
-.page.active .card:nth-of-type(6){animation-delay:.27s;}
 
 .card{
   background:
@@ -3263,6 +3251,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         <div class="death-cond-right">
           <h2 data-i18n="card.conditions">Состояния</h2>
           <select id="conditionSelect"></select>
+          <select id="conditionSelect2" style="margin-top:6px;"></select>
+          <select id="conditionSelect3" style="margin-top:6px;"></select>
         </div>
       </div>
     </div>
@@ -4002,7 +3992,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.08-19';
+  var APP_VERSION = '2026.09.08-23';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4436,17 +4426,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- CONDITIONS ---------------- */
   function renderConditions(){
-    var sel = document.getElementById('conditionSelect');
-    if (!sel) return;
-    var current = (state.combat.conditions && state.combat.conditions[0]) || '';
-    sel.innerHTML = '<option value="">'+t('opt.none')+'</option>' +
-      CONDITIONS.map(function(c){
-        return '<option value="'+c+'"'+(c===current?' selected':'')+'>'+t('cond.'+c)+'</option>';
-      }).join('');
-    sel.onchange = function(){
-      state.combat.conditions = sel.value ? [sel.value] : [];
-      saveState();
-    };
+    var ids = ['conditionSelect','conditionSelect2','conditionSelect3'];
+    if (!Array.isArray(state.combat.conditions)) state.combat.conditions = [];
+    ids.forEach(function(id, slot){
+      var sel = document.getElementById(id);
+      if (!sel) return;
+      var current = state.combat.conditions[slot] || '';
+      sel.innerHTML = '<option value="">'+t('opt.none')+'</option>' +
+        CONDITIONS.map(function(c){
+          return '<option value="'+c+'"'+(c===current?' selected':'')+'>'+t('cond.'+c)+'</option>';
+        }).join('');
+      sel.onchange = function(){
+        state.combat.conditions[slot] = sel.value;
+        while (state.combat.conditions.length && !state.combat.conditions[state.combat.conditions.length-1]){
+          state.combat.conditions.pop();
+        }
+        saveState();
+      };
+    });
   }
 
   /* ---------------- ATTACKS (dynamic) ---------------- */
@@ -8144,11 +8141,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (skillsTabBtn) skillsTabBtn.style.display = '';
     }
 
+    updateTabbarLayout();
     var activeBtn = document.querySelector('.tab-btn.active');
     if (activeBtn){
       var idx = getTabOrder().indexOf(activeBtn.dataset.target);
-      if (idx > -1){ currentTabIndex = idx; updateIndicator(idx); }
-    }
+      if (idx > -1){ currentTabIndex = idx; updateIndicator(idx); }    }
   }
 
   function bindMergeProfileSkillsToggle(){
@@ -8629,7 +8626,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function updateIndicator(index){
     var indicator = document.getElementById('tabIndicator');
     var order = getTabOrder();
-    if (indicator) indicator.style.left = (index * (100 / order.length)) + '%';
+    if (indicator){
+      indicator.style.width = (100 / order.length) + '%';
+      indicator.style.left = (index * (100 / order.length)) + '%';
+    }
+  }
+
+  function updateTabbarLayout(){
+    var order = getTabOrder();
+    var tabbar = document.querySelector('.tabbar');
+    if (tabbar) tabbar.style.gridTemplateColumns = 'repeat('+order.length+',1fr)';
   }
 
   function activateTab(name){
@@ -8660,26 +8666,158 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function bindSwipe(){
     var viewport = document.getElementById('pagesViewport');
     if (!viewport) return;
-    var startX = 0, startY = 0, startTime = 0, swipeActive = false;
-    var THRESHOLD = 55, RESTRAINT = 90, MAXTIME = 600;
     var EDITABLE_SELECTOR = 'input, textarea, select, button, [contenteditable]';
+    var startX = 0, startY = 0, startTime = 0, dragging = false, decided = null;
+    var curEl = null, adjEl = null, adjDir = 0, vpRect = null;
+
+    function pageEl(name){ return document.querySelector('.page[data-page="'+name+'"]'); }
+
+    function beginHorizontalDrag(dx){
+      var order = getTabOrder();
+      var idx = order.indexOf(curEl.dataset.page);
+      adjDir = dx < 0 ? 1 : -1;
+      var adjIdx = idx + adjDir;
+      adjEl = (adjIdx >= 0 && adjIdx < order.length) ? pageEl(order[adjIdx]) : null;
+      vpRect = { width: viewport.clientWidth, height: viewport.clientHeight };
+      var scrollTop = viewport.scrollTop;
+      var bodyBg = getComputedStyle(document.body).background;
+
+      curEl.style.transition = 'none';
+      curEl.style.willChange = 'transform';
+      curEl.style.background = bodyBg;
+      curEl.style.position = 'relative';
+      curEl.style.zIndex = '2';
+      if (adjEl){
+        adjEl.style.transition = 'none';
+        adjEl.style.display = 'block';
+        adjEl.style.position = 'absolute';
+        adjEl.style.top = scrollTop + 'px';
+        adjEl.style.left = '0';
+        adjEl.style.width = '100%';
+        adjEl.style.height = vpRect.height + 'px';
+        adjEl.style.boxSizing = 'border-box';
+        adjEl.style.overflowY = 'auto';
+        adjEl.style.zIndex = '3';
+        adjEl.style.margin = '0';
+        adjEl.style.willChange = 'transform';
+        adjEl.style.background = bodyBg;
+      }
+    }
+
+    function cleanupDrag(){
+      if (curEl){
+        curEl.style.transition = '';
+        curEl.style.transform = '';
+        curEl.style.willChange = '';
+        curEl.style.background = '';
+        curEl.style.position = '';
+        curEl.style.zIndex = '';
+      }
+      if (adjEl){
+        adjEl.style.transition = '';
+        adjEl.style.transform = '';
+        adjEl.style.position = '';
+        adjEl.style.top = '';
+        adjEl.style.left = '';
+        adjEl.style.width = '';
+        adjEl.style.height = '';
+        adjEl.style.boxSizing = '';
+        adjEl.style.overflowY = '';
+        adjEl.style.zIndex = '';
+        adjEl.style.margin = '';
+        adjEl.style.willChange = '';
+        adjEl.style.background = '';
+        adjEl.style.display = '';
+      }
+      curEl = null; adjEl = null; decided = null;
+    }
+
+    function finishSwitch(targetName){
+      var pages = document.querySelectorAll('.page');
+      var btns = document.querySelectorAll('.tab-btn');
+      pages.forEach(function(p){ p.classList.remove('active','enter-right','enter-left'); });
+      btns.forEach(function(b){ b.classList.toggle('active', b.dataset.target === targetName); });
+      var shown = pageEl(targetName);
+      shown.classList.add('active');
+      shown.querySelectorAll('textarea').forEach(autoGrow);
+      viewport.scrollTop = 0;
+      currentTabIndex = getTabOrder().indexOf(targetName);
+      updateIndicator(currentTabIndex);
+      relockStatCards();
+      cleanupDrag();
+    }
+
     viewport.addEventListener('touchstart', function(e){
-      if (e.target.closest(EDITABLE_SELECTOR)){ swipeActive = false; return; }
+      if (e.target.closest(EDITABLE_SELECTOR)){ dragging = false; return; }
       var t = e.changedTouches[0];
       startX = t.clientX; startY = t.clientY; startTime = Date.now();
-      swipeActive = true;
+      dragging = true;
+      decided = null;
+      curEl = document.querySelector('.page.active');
     }, {passive:true});
-    viewport.addEventListener('touchend', function(e){
-      if (!swipeActive) return;
-      swipeActive = false;
+
+    viewport.addEventListener('touchmove', function(e){
+      if (!dragging || !curEl) return;
       var t = e.changedTouches[0];
       var dx = t.clientX - startX;
       var dy = t.clientY - startY;
-      var dt = Date.now() - startTime;
-      if (dt <= MAXTIME && Math.abs(dx) >= THRESHOLD && Math.abs(dy) <= RESTRAINT){
-        if (dx < 0) goToTabIndex(currentTabIndex + 1);
-        else goToTabIndex(currentTabIndex - 1);
+
+      if (decided === null){
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8){
+          decided = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
+          if (decided === 'horizontal') beginHorizontalDrag(dx);
+        }
       }
+
+      if (decided === 'horizontal'){
+        e.preventDefault();
+        var clamped = adjEl ? dx : dx * 0.28;
+        curEl.style.transform = 'translateX('+clamped+'px)';
+        if (adjEl){
+          var offset = adjDir === 1 ? vpRect.width : -vpRect.width;
+          adjEl.style.transform = 'translateX('+(clamped + offset)+'px)';
+        }
+      }
+    }, {passive:false});
+
+    viewport.addEventListener('touchend', function(e){
+      if (!dragging) return;
+      dragging = false;
+      if (decided !== 'horizontal'){ decided = null; return; }
+      var t = e.changedTouches[0];
+      var dx = t.clientX - startX;
+      var dt = Math.max(Date.now() - startTime, 1);
+      var velocity = dx / dt;
+      var shouldSwitch = !!adjEl && (Math.abs(dx) > vpRect.width * 0.3 || Math.abs(velocity) > 0.55);
+
+      var order = getTabOrder();
+      var curIdx = order.indexOf(curEl.dataset.page);
+
+      if (shouldSwitch){
+        var targetOffset = adjDir === 1 ? -vpRect.width : vpRect.width;
+        curEl.style.transition = 'transform .22s cubic-bezier(.25,.8,.4,1)';
+        curEl.style.transform = 'translateX('+targetOffset+'px)';
+        adjEl.style.transition = 'transform .22s cubic-bezier(.25,.8,.4,1)';
+        adjEl.style.transform = 'translateX(0px)';
+        var targetName = order[curIdx + adjDir];
+        setTimeout(function(){ finishSwitch(targetName); }, 220);
+      } else {
+        curEl.style.transition = 'transform .2s cubic-bezier(.25,.8,.4,1)';
+        curEl.style.transform = 'translateX(0px)';
+        if (adjEl){
+          var backOffset = adjDir === 1 ? vpRect.width : -vpRect.width;
+          adjEl.style.transition = 'transform .2s cubic-bezier(.25,.8,.4,1)';
+          adjEl.style.transform = 'translateX('+backOffset+'px)';
+        }
+        setTimeout(cleanupDrag, 200);
+      }
+    }, {passive:true});
+
+    viewport.addEventListener('touchcancel', function(){
+      if (!dragging) return;
+      dragging = false;
+      if (decided === 'horizontal') cleanupDrag();
+      decided = null;
     }, {passive:true});
   }
 
