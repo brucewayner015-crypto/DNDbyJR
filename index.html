@@ -3992,7 +3992,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.08-23';
+  var APP_VERSION = '2026.09.08-24';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -8666,7 +8666,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function bindSwipe(){
     var viewport = document.getElementById('pagesViewport');
     if (!viewport) return;
-    var EDITABLE_SELECTOR = 'input, textarea, select, button, [contenteditable]';
+    var EDITABLE_SELECTOR = 'select, button, [contenteditable]';
     var startX = 0, startY = 0, startTime = 0, dragging = false, decided = null;
     var curEl = null, adjEl = null, adjDir = 0, vpRect = null;
 
