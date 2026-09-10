@@ -1364,10 +1364,17 @@ input:focus, select:focus, textarea:focus{
 .app-shell[data-merge-ps="1"] .medallion{
   padding:7px 2px 6px;
   border-radius:10px 10px 22px 22px / 10px 10px 28px 28px;
+  min-width:0;
+  overflow:hidden;
 }
 .app-shell[data-merge-ps="1"] .medallion .m-label{
-  font-size:calc(8px * var(--ui-font-scale));
-  letter-spacing:0.5px;
+  font-size:calc(7px * var(--ui-font-scale));
+  letter-spacing:0.2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:block;
+  padding:0 1px;
 }
 .app-shell[data-merge-ps="1"] .medallion .m-mod{
   font-size:calc(17px * var(--ui-font-scale));
@@ -1553,6 +1560,38 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 /* ---------- LIST ROWS (saves/skills) ---------- */
 .row-list{display:flex;flex-direction:column;gap:2px;}
+.app-shell[data-two-col-skills="1"] #savesWrap,
+.app-shell[data-two-col-skills="1"] #skillsWrap{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px 8px;
+}
+.app-shell[data-two-col-skills="1"] #savesWrap .stat-row,
+.app-shell[data-two-col-skills="1"] #skillsWrap .stat-row{
+  min-width:0;
+  grid-template-columns:20px 20px 1fr 30px;
+  padding:6px 5px;
+  font-size:calc(11.5px * var(--ui-font-scale));
+}
+.app-shell[data-two-col-skills="1"] #savesWrap .row-name,
+.app-shell[data-two-col-skills="1"] #skillsWrap .row-name{
+  overflow-wrap:break-word;
+  min-width:0;
+}
+.app-shell[data-two-col-skills="1"] #savesWrap .row-ability,
+.app-shell[data-two-col-skills="1"] #skillsWrap .row-ability{
+  font-size:calc(9px * var(--ui-font-scale));
+}
+.app-shell[data-two-col-skills="1"] #savesWrap .row-bonus,
+.app-shell[data-two-col-skills="1"] #skillsWrap .row-bonus{
+  font-size:calc(12px * var(--ui-font-scale));
+}
+.app-shell[data-two-col-skills="1"] #savesWrap,
+.app-shell[data-two-col-skills="1"] #skillsWrap{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px 8px;
+}
 .stat-row{
   display:grid;
   grid-template-columns:22px 22px 1fr 32px;
@@ -1689,6 +1728,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
   background:var(--wax);
   border-color:var(--wax);
   color:var(--parchment);
+}
+
+.death-cond-right select.condition-active{
+  background:var(--wax);
+  border-color:var(--wax);
+  color:var(--parchment);
+  font-weight:700;
 }
 
 .currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
@@ -1912,6 +1958,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
   color:#fff;
 }
 .calc-key-wide{grid-column:span 2;}
+
+.calc-converter{padding:2px 2px 12px;}
+.conv-section{margin-bottom:14px;}
+.conv-section-title{
+  font-family:var(--font-display);
+  font-size:12px;font-weight:700;
+  color:var(--ink-soft);
+  margin-bottom:6px;
+}
+.conv-coin-row{display:flex;gap:6px;margin-bottom:8px;}
+.conv-coin-row input{flex:0 0 70px;text-align:center;}
+.conv-coin-row select{flex:1;}
+.conv-coin-results{display:flex;flex-direction:column;gap:4px;}
+.conv-coin-result-row{
+  display:flex;justify-content:space-between;
+  padding:5px 8px;
+  background:rgba(255,255,255,0.4);
+  border:1px solid var(--parchment-shadow);
+  border-radius:7px;
+  font-size:12.5px;
+}
+.conv-coin-result-row span:last-child{font-family:var(--font-mono);font-weight:700;}
+.conv-length-row{display:flex;align-items:center;gap:6px;}
+.conv-length-row input{flex:1;min-width:0;text-align:center;}
+.conv-length-label{font-size:11.5px;color:var(--ink-soft);flex-shrink:0;}
+.conv-arrow{flex-shrink:0;font-weight:700;color:var(--ink-soft);}
 
 .calc-history-section{
   border-top:1px solid var(--parchment-shadow);
@@ -3360,7 +3432,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
 <div class="calc-float card" id="calcFloat" style="display:none;">
   <h2 id="calcDragHandle">
     <span>🧮 <span data-i18n="calc.title">Калькулятор</span></span>
-    <button class="h2-edit-btn" id="calcCloseBtn" aria-label="Закрыть" title="Закрыть">✕</button>
+    <span class="h2-btn-group">
+      <button class="h2-edit-btn" id="calcConvertToggle" aria-label="Конвертер" title="Конвертер монет и футов/метров">🔄</button>
+      <button class="h2-edit-btn" id="calcCloseBtn" aria-label="Закрыть" title="Закрыть">✕</button>
+    </span>
   </h2>
 
   <div class="calc-display">
@@ -3394,7 +3469,34 @@ input[type=checkbox]:active{transform:scale(0.88);}
     <button class="calc-key calc-key-eq" data-act="equals">=</button>
   </div>
 
-  <div class="calc-history-section">
+  <div class="calc-converter" id="calcConverterPanel" style="display:none;">
+    <div class="conv-section">
+      <div class="conv-section-title">💰 Монеты</div>
+      <div class="conv-coin-row">
+        <input type="number" id="convCoinAmount" value="1" step="any">
+        <select id="convCoinFrom">
+          <option value="1">Медь (мед)</option>
+          <option value="10">Серебро (сер)</option>
+          <option value="50">Электрум (эл)</option>
+          <option value="100" selected>Золото (зол)</option>
+          <option value="1000">Платина (пл)</option>
+        </select>
+      </div>
+      <div class="conv-coin-results" id="convCoinResults"></div>
+    </div>
+    <div class="conv-section">
+      <div class="conv-section-title">📏 Футы ↔ метры</div>
+      <div class="conv-length-row">
+        <input type="number" id="convLengthFt" placeholder="0" step="any">
+        <span class="conv-length-label">фт</span>
+        <span class="conv-arrow">=</span>
+        <input type="number" id="convLengthM" placeholder="0" step="any">
+        <span class="conv-length-label">м</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="calc-history-section" id="calcHistorySection">
     <div class="calc-history-head">
       <span data-i18n="calc.history">История</span>
       <button class="calc-clear-history" id="calcClearHistory" data-i18n="calc.clearHistory">Очистить</button>
@@ -3782,6 +3884,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <div class="settings-divider"></div>
 
+        <p class="modal-text" style="margin-bottom:8px;">Навыки и спасброски</p>
+        <label class="inline-check">
+          <input type="checkbox" id="twoColSkillsToggle"> Показывать в 2 столбца
+        </label>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:2px;" data-i18n="settings.scaleTitle">Масштаб интерфейса</p>
         <div class="scale-control">
           <button class="scale-btn" id="scaleMinus" aria-label="Уменьшить">−</button>
@@ -3992,7 +4101,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.08-24';
+  var APP_VERSION = '2026.09.09-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4436,11 +4545,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
         CONDITIONS.map(function(c){
           return '<option value="'+c+'"'+(c===current?' selected':'')+'>'+t('cond.'+c)+'</option>';
         }).join('');
+      sel.classList.toggle('condition-active', !!current);
       sel.onchange = function(){
         state.combat.conditions[slot] = sel.value;
         while (state.combat.conditions.length && !state.combat.conditions[state.combat.conditions.length-1]){
           state.combat.conditions.pop();
         }
+        sel.classList.toggle('condition-active', !!sel.value);
         saveState();
       };
     });
@@ -7513,10 +7624,72 @@ input[type=checkbox]:active{transform:scale(0.88);}
     openBtn.addEventListener('click', toggleCalc);
     document.getElementById('calcCloseBtn').addEventListener('click', closeCalc);
 
+    /* ---- coin & length converter ---- */
+    var calcConverterMode = false;
+    var convToggleBtn = document.getElementById('calcConvertToggle');
+    var convPanel = document.getElementById('calcConverterPanel');
+    var calcDisplayEl = document.querySelector('.calc-display');
+    var calcKeysEl = document.querySelector('.calc-keys');
+    var calcHistorySectionEl = document.getElementById('calcHistorySection');
+
+    var COIN_DENOMS = [
+      {name:'Медь', mult:1, suffix:'мед'},
+      {name:'Серебро', mult:10, suffix:'сер'},
+      {name:'Электрум', mult:50, suffix:'эл'},
+      {name:'Золото', mult:100, suffix:'зол'},
+      {name:'Платина', mult:1000, suffix:'пл'}
+    ];
+    function fmtConvNum(n){
+      if (!isFinite(n)) return '0';
+      var r = Math.round(n * 100) / 100;
+      return String(r);
+    }
+    function updateCoinConverter(){
+      var amtEl = document.getElementById('convCoinAmount');
+      var fromEl = document.getElementById('convCoinFrom');
+      var resultsEl = document.getElementById('convCoinResults');
+      if (!amtEl || !fromEl || !resultsEl) return;
+      var amt = parseFloat(amtEl.value);
+      if (isNaN(amt)) amt = 0;
+      var mult = parseFloat(fromEl.value) || 1;
+      var totalCp = amt * mult;
+      resultsEl.innerHTML = COIN_DENOMS.map(function(d){
+        return '<div class="conv-coin-result-row"><span>'+d.name+'</span><span>'+fmtConvNum(totalCp / d.mult)+' '+d.suffix+'</span></div>';
+      }).join('');
+    }
+    var convAmountEl = document.getElementById('convCoinAmount');
+    var convFromEl = document.getElementById('convCoinFrom');
+    if (convAmountEl) convAmountEl.addEventListener('input', updateCoinConverter);
+    if (convFromEl) convFromEl.addEventListener('change', updateCoinConverter);
+
+    var convFt = document.getElementById('convLengthFt');
+    var convM = document.getElementById('convLengthM');
+    if (convFt) convFt.addEventListener('input', function(){
+      var v = parseFloat(convFt.value);
+      if (isNaN(v)){ convM.value = ''; return; }
+      convM.value = fmtConvNum(v * 0.3048);
+    });
+    if (convM) convM.addEventListener('input', function(){
+      var v = parseFloat(convM.value);
+      if (isNaN(v)){ convFt.value = ''; return; }
+      convFt.value = fmtConvNum(v / 0.3048);
+    });
+
+    function toggleCalcConverter(){
+      calcConverterMode = !calcConverterMode;
+      convToggleBtn.classList.toggle('active', calcConverterMode);
+      if (calcDisplayEl) calcDisplayEl.style.display = calcConverterMode ? 'none' : '';
+      if (calcKeysEl) calcKeysEl.style.display = calcConverterMode ? 'none' : '';
+      if (calcHistorySectionEl) calcHistorySectionEl.style.display = calcConverterMode ? 'none' : '';
+      if (convPanel) convPanel.style.display = calcConverterMode ? 'block' : 'none';
+      if (calcConverterMode) updateCoinConverter();
+    }
+    if (convToggleBtn) convToggleBtn.addEventListener('click', toggleCalcConverter);
+
     /* ---- drag to move ---- */
     var dragState = null;
     dragHandle.addEventListener('pointerdown', function(e){
-      if (e.target.closest('#calcCloseBtn')) return;
+      if (e.target.closest('#calcCloseBtn, #calcConvertToggle')) return;
       var rect = panel.getBoundingClientRect();
       dragState = { startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
       dragHandle.setPointerCapture(e.pointerId);
@@ -8178,6 +8351,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  function applyTwoColSkills(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    if (uiSettings.twoColSkills) shell.setAttribute('data-two-col-skills', '1');
+    else shell.removeAttribute('data-two-col-skills');
+  }
+
+  function bindTwoColSkillsToggle(){
+    var toggle = document.getElementById('twoColSkillsToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.twoColSkills;
+    toggle.addEventListener('change', function(){
+      uiSettings.twoColSkills = toggle.checked;
+      saveUiSettings();
+      applyTwoColSkills();
+    });
+  }
+
   function renderBtnShapeGrid(){
     var wrap = document.getElementById('btnShapeGrid');
     if (!wrap) return;
@@ -8317,7 +8508,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false};
 
   function loadUiSettings(){
     try{
@@ -8332,6 +8523,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.btnShape === 'string') uiSettings.btnShape = loaded.btnShape;
         if (loaded && typeof loaded.mergeProfileSkills === 'boolean') uiSettings.mergeProfileSkills = loaded.mergeProfileSkills;
         if (loaded && typeof loaded.compactAttacks === 'boolean') uiSettings.compactAttacks = loaded.compactAttacks;
+        if (loaded && typeof loaded.twoColSkills === 'boolean') uiSettings.twoColSkills = loaded.twoColSkills;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -8666,7 +8858,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function bindSwipe(){
     var viewport = document.getElementById('pagesViewport');
     if (!viewport) return;
-    var EDITABLE_SELECTOR = 'select, button, [contenteditable]';
+    var EDITABLE_SELECTOR = 'button, [contenteditable]';
     var startX = 0, startY = 0, startTime = 0, dragging = false, decided = null;
     var curEl = null, adjEl = null, adjDir = 0, vpRect = null;
 
@@ -8956,6 +9148,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindMergeProfileSkillsToggle();
   applyCompactAttacks();
   bindCompactAttacksToggle();
+  applyTwoColSkills();
+  bindTwoColSkillsToggle();
   applyFontSet();
   applyIconSet();
   applyI18n();
