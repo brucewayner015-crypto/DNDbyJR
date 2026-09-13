@@ -1683,6 +1683,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-attacks="1"] #attacksWrap .dyn-grid{gap:6px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .field{margin-top:4px !important;}
 .app-shell[data-compact-attacks="1"] #attacksWrap textarea.dyn-notes{min-height:26px;}
+
+.app-shell[data-compact-items="1"] #itemsWrap .dyn-item{padding:22px 10px 8px;}
+.app-shell[data-compact-items="1"] #itemsWrap .field-label{font-size:9px;}
+.app-shell[data-compact-items="1"] #itemsWrap input,
+.app-shell[data-compact-items="1"] #itemsWrap textarea{font-size:11px;padding:5px 6px;}
+.app-shell[data-compact-items="1"] #itemsWrap .dyn-grid{gap:6px;}
+.app-shell[data-compact-items="1"] #itemsWrap .field{margin-top:4px !important;}
+.app-shell[data-compact-items="1"] #itemsWrap textarea.dyn-notes{min-height:26px;}
 .add-btn{
   margin-top:8px;
   width:100%;
@@ -2097,22 +2105,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
   opacity:0.85;
 }
 .chat-msg{
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
   flex:0 0 auto;
+  max-width:88%;
+  min-width:0;
+  align-self:flex-start;
+}
+.chat-msg.is-me{
+  align-self:flex-end;
+  flex-direction:row-reverse;
+}
+.chat-msg-avatar{
+  width:24px;height:24px;
+  border-radius:50%;
+  flex-shrink:0;
+  overflow:hidden;
+  background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:9.5px;
+  color:#fff;
+  margin-bottom:2px;
+}
+.chat-msg-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.chat-msg-bubble{
   padding:7px 10px 6px;
   border-radius:10px;
   background:#f3e9d2;
   border:1px solid var(--parchment-shadow);
-  max-width:82%;
   min-width:0;
-  align-self:flex-start;
   box-shadow:0 2px 6px rgba(0,0,0,0.25);
   -webkit-user-select:none;
   user-select:none;
   -webkit-touch-callout:none;
   touch-action:pan-y;
 }
-.chat-msg.is-me{
-  align-self:flex-end;
+.chat-msg.is-me .chat-msg-bubble{
   background:#f6dfa3;
   border-color:var(--gold);
 }
@@ -2361,6 +2390,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
   font-size:17px;
 }
 .chat-my-avatar-btn img{width:100%;height:100%;object-fit:cover;}
+.chat-mute-btn{
+  flex-shrink:0;
+  width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 30% 25%, var(--leather-2), var(--leather-edge));
+  border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+  font-size:16px;
+}
+.chat-mute-btn.muted{opacity:0.55;}
 .chat-list-body{flex:1;min-width:0;}
 .chat-list-name{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--parchment);}
 .chat-list-preview{font-size:12px;color:var(--parchment);opacity:0.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
@@ -3239,10 +3278,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="abilitiesCard">
       <h2><span data-i18n="card.abilities">Характеристики</span></h2>
       <div class="medallions" id="medallionsWrap"></div>
-      <div class="grid2" style="margin-top:10px;">
+      <div class="grid2" id="profStatsRow" style="margin-top:10px;">
         <div class="field">
           <label class="field-label" data-i18n="field.profBonus">Бонус мастерства</label>
           <input type="text" id="dispProfBonus" readonly style="font-family:var(--font-mono);text-align:center;font-weight:700;">
@@ -3515,6 +3554,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     <div class="chat-header-title">
       <span class="chat-header-name">💬 Чаты</span>
     </div>
+    <button class="chat-mute-btn" id="chatMuteBtn" aria-label="Уведомления чата" title="Уведомления чата">🔔</button>
     <button class="chat-my-avatar-btn" id="chatMyAvatarBtn" aria-label="Моя аватарка" title="Изменить аватарку">
       <span id="chatMyAvatarPreview">👤</span>
     </button>
@@ -3884,6 +3924,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <div class="settings-divider"></div>
 
+        <p class="modal-text" style="margin-bottom:8px;">Вещи</p>
+        <label class="inline-check">
+          <input type="checkbox" id="compactItemsToggle"> Компактный список вещей (меньше отступы и шрифт)
+        </label>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:8px;">Навыки и спасброски</p>
         <label class="inline-check">
           <input type="checkbox" id="twoColSkillsToggle"> Показывать в 2 столбца
@@ -4101,7 +4148,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.09-2';
+  var APP_VERSION = '2026.09.09-5';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5217,29 +5264,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
     el._hideTimer = setTimeout(function(){ el.classList.remove('show'); }, 3500);
   }
 
-  /* ---------------- MENTION NOTIFICATIONS (@name in group chat) ---------------- */
+  /* ---------------- CHAT NOTIFICATIONS (all group messages + mentions) ---------------- */
   var mentionUnsubscribe = null;
+  function chatCheckMentionText(text, myName){
+    if (!text || !myName) return false;
+    var safe = myName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var re = new RegExp('@' + safe + '(?![а-яa-zА-ЯA-Z0-9])', 'i');
+    return re.test(text);
+  }
   function initMentionNotifications(){
     if (!fbDb || !fbUser || mentionUnsubscribe) return;
     var isFirstSnapshot = true;
     mentionUnsubscribe = fbDb.collection('chat_messages').orderBy('createdAt','desc').limit(30)
       .onSnapshot(function(snap){
         if (isFirstSnapshot){ isFirstSnapshot = false; return; }
+        if (uiSettings.chatMuted) return;
         snap.docChanges().forEach(function(change){
           if (change.type !== 'added') return;
           var d = change.doc.data();
-          if (!d.text || !fbUser || d.senderId === fbUser.uid) return;
+          if (!fbUser || d.senderId === fbUser.uid) return;
           var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
-          if (!myName) return;
-          var safe = myName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          var re = new RegExp('@' + safe + '(?![а-яa-zА-ЯA-Z0-9])', 'i');
-          if (re.test(d.text)){
-            var preview = d.text.length > 60 ? d.text.slice(0,60)+'…' : d.text;
+          var isMention = chatCheckMentionText(d.text, myName);
+          var body = d.itemOffer ? ('🎁 ' + (d.itemOffer.itemName||'')) : (d.text || (d.mediaUrl ? '📎 Вложение' : ''));
+          var preview = body.length > 60 ? body.slice(0,60)+'…' : body;
+          if (isMention){
             showItemToast('📢 '+(d.senderName||'Игрок')+' упомянул вас: «'+preview+'»');
-            chatShowBadge();
+          } else {
+            showItemToast('💬 '+(d.senderName||'Игрок')+': '+preview);
+          }
+          chatShowBadge();
+          if (document.hidden && window.Notification && Notification.permission === 'granted'){
+            try{
+              var n = new Notification(isMention ? ('Вас упомянули: '+(d.senderName||'?')) : ('Новое сообщение: '+(d.senderName||'?')), {body: preview, icon: 'icons/icon-192.png', tag: 'chat-group'});
+              n.onclick = function(){ window.focus(); n.close(); };
+            }catch(e){}
           }
         });
-      }, function(err){ console.warn('mention listener error', err); });
+      }, function(err){ console.warn('chat notification listener error', err); });
   }
 
   function chatShowBadge(){
@@ -5323,6 +5384,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
     '</div>';
   }
 
+  function chatGetAvatarUrl(uid){
+    for (var i=0; i<chatKnownPlayers.length; i++){
+      if (chatKnownPlayers[i].uid === uid) return chatKnownPlayers[i].avatarUrl || null;
+    }
+    return null;
+  }
+
   function chatBuildMessageEl(id, d){
     var el = document.createElement('div');
     var isMe = fbUser && d.senderId === fbUser.uid;
@@ -5331,6 +5399,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     var readBy = Array.isArray(d.readBy) ? d.readBy : [];
     var seenByOthers = readBy.some(function(u){ return u !== d.senderId; });
+
+    var avatarUrl = chatGetAvatarUrl(d.senderId);
+    var initials = (d.senderName||'?').trim().slice(0,2).toUpperCase();
+    var avatarHtml = '<div class="chat-msg-avatar">' + (avatarUrl ? '<img src="'+escAttr(avatarUrl)+'">' : escAttr(initials)) + '</div>';
 
     var html = '';
     if (d.replyTo){
@@ -5347,7 +5419,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       '<span class="chat-msg-time">'+chatFormatTime(d.createdAt)+(isMe?' <span class="chat-sent-check">'+(seenByOthers?'✓✓':'✓')+'</span>':'')+'</span>' +
       '</div>';
 
-    el.innerHTML = html;
+    el.innerHTML = avatarHtml + '<div class="chat-msg-bubble">' + html + '</div>';
     return el;
   }
 
@@ -5390,11 +5462,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function chatMaybeNotify(thread, data){
     if (!fbUser || data.senderId === fbUser.uid) return;
+    if (uiSettings.chatMuted) return;
     var isDM = thread.type === 'dm';
     var isMention = thread.type === 'group' && chatCheckMention(data.text);
-    if (!isDM && !isMention) return;
 
-    var title = isDM ? ('Личное сообщение от ' + (data.senderName||'?')) : ('Вас упомянули: ' + (data.senderName||'?'));
+    var title = isDM ? ('Личное сообщение от ' + (data.senderName||'?')) : (isMention ? ('Вас упомянули: ' + (data.senderName||'?')) : ('Новое сообщение: ' + (data.senderName||'?')));
     var body = data.itemOffer ? ('🎁 ' + (data.itemOffer.itemName||'')) : (data.text || (data.mediaUrl ? '📎 Вложение' : ''));
 
     if (document.hidden && window.Notification && Notification.permission === 'granted'){
@@ -6031,12 +6103,31 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  function chatUpdateMuteBtn(){
+    var btn = document.getElementById('chatMuteBtn');
+    if (!btn) return;
+    btn.textContent = uiSettings.chatMuted ? '🔕' : '🔔';
+    btn.classList.toggle('muted', !!uiSettings.chatMuted);
+    btn.title = uiSettings.chatMuted ? 'Уведомления чата выключены' : 'Уведомления чата включены';
+  }
+  function bindChatMuteBtn(){
+    var btn = document.getElementById('chatMuteBtn');
+    if (!btn) return;
+    chatUpdateMuteBtn();
+    btn.addEventListener('click', function(){
+      uiSettings.chatMuted = !uiSettings.chatMuted;
+      saveUiSettings();
+      chatUpdateMuteBtn();
+    });
+  }
+
   function chatOpenList(){
     document.getElementById('chatListScreen').style.display = 'flex';
     chatMarkAllRead();
     chatLoadMyAvatar();
     chatLoadKnownPlayers().then(chatRenderConvList);
     chatRequestNotifyPermission();
+    chatUpdateMuteBtn();
     appOpenModal(chatCloseListUIOnly);
   }
   function chatCloseListUIOnly(){
@@ -6113,6 +6204,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function chatOpenThread(thread){
     if (!fbDb || !fbUser){ alert('Нет подключения к облаку. Попробуйте через пару секунд.'); return; }
     chatStopActiveAudio();
+    chatLoadKnownPlayers();
     chatCurrentThread = thread;
     chatMsgElements = {};
     chatMsgData = {};
@@ -6699,6 +6791,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('chatListCloseBtn').addEventListener('click', chatCloseList);
     document.getElementById('chatMyAvatarBtn').addEventListener('click', chatPickAvatar);
     document.getElementById('chatAvatarFileInput').addEventListener('change', chatHandleAvatarSelected);
+    bindChatMuteBtn();
     document.getElementById('chatCloseBtn').addEventListener('click', chatCloseThread);
     document.getElementById('chatGalleryBtn').addEventListener('click', chatOpenGallery);
     document.getElementById('chatGalleryCloseBtn').addEventListener('click', chatCloseGallery);
@@ -8294,6 +8387,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var skillsSection = document.querySelector('.page[data-page="skills"]');
     var savesCard = document.getElementById('savesCard');
     var skillsCard = document.getElementById('skillsCard');
+    var abilitiesCard = document.getElementById('abilitiesCard');
+    var profStatsRow = document.getElementById('profStatsRow');
     var skillsTabBtn = document.querySelector('.tab-btn[data-target="skills"]');
     if (!profileSection || !skillsSection || !savesCard || !skillsCard) return;
 
@@ -8301,6 +8396,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (appShell) appShell.setAttribute('data-merge-ps', '1');
       profileSection.appendChild(savesCard);
       profileSection.appendChild(skillsCard);
+      if (profStatsRow) skillsCard.appendChild(profStatsRow);
       if (skillsTabBtn) skillsTabBtn.style.display = 'none';
       if (skillsSection.classList.contains('active')){
         skillsSection.classList.remove('active');
@@ -8311,6 +8407,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (appShell) appShell.removeAttribute('data-merge-ps');
       skillsSection.appendChild(savesCard);
       skillsSection.appendChild(skillsCard);
+      if (profStatsRow && abilitiesCard) abilitiesCard.appendChild(profStatsRow);
       if (skillsTabBtn) skillsTabBtn.style.display = '';
     }
 
@@ -8318,7 +8415,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var activeBtn = document.querySelector('.tab-btn.active');
     if (activeBtn){
       var idx = getTabOrder().indexOf(activeBtn.dataset.target);
-      if (idx > -1){ currentTabIndex = idx; updateIndicator(idx); }    }
+      if (idx > -1){ currentTabIndex = idx; updateIndicator(idx); }
+    }
   }
 
   function bindMergeProfileSkillsToggle(){
@@ -8348,6 +8446,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
       uiSettings.compactAttacks = toggle.checked;
       saveUiSettings();
       applyCompactAttacks();
+    });
+  }
+
+  function applyCompactItems(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    if (uiSettings.compactItems) shell.setAttribute('data-compact-items', '1');
+    else shell.removeAttribute('data-compact-items');
+    if (typeof renderItems === 'function') renderItems();
+  }
+
+  function bindCompactItemsToggle(){
+    var toggle = document.getElementById('compactItemsToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.compactItems;
+    toggle.addEventListener('change', function(){
+      uiSettings.compactItems = toggle.checked;
+      saveUiSettings();
+      applyCompactItems();
     });
   }
 
@@ -8508,7 +8625,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false};
 
   function loadUiSettings(){
     try{
@@ -8523,6 +8640,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.btnShape === 'string') uiSettings.btnShape = loaded.btnShape;
         if (loaded && typeof loaded.mergeProfileSkills === 'boolean') uiSettings.mergeProfileSkills = loaded.mergeProfileSkills;
         if (loaded && typeof loaded.compactAttacks === 'boolean') uiSettings.compactAttacks = loaded.compactAttacks;
+        if (loaded && typeof loaded.compactItems === 'boolean') uiSettings.compactItems = loaded.compactItems;
+        if (loaded && typeof loaded.chatMuted === 'boolean') uiSettings.chatMuted = loaded.chatMuted;
         if (loaded && typeof loaded.twoColSkills === 'boolean') uiSettings.twoColSkills = loaded.twoColSkills;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
@@ -8875,12 +8994,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var bodyBg = getComputedStyle(document.body).background;
 
       curEl.style.transition = 'none';
+      curEl.style.animation = 'none';
       curEl.style.willChange = 'transform';
       curEl.style.background = bodyBg;
       curEl.style.position = 'relative';
       curEl.style.zIndex = '2';
       if (adjEl){
         adjEl.style.transition = 'none';
+        adjEl.style.animation = 'none';
         adjEl.style.display = 'block';
         adjEl.style.position = 'absolute';
         adjEl.style.top = scrollTop + 'px';
@@ -8899,6 +9020,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     function cleanupDrag(){
       if (curEl){
         curEl.style.transition = '';
+        curEl.style.animation = '';
         curEl.style.transform = '';
         curEl.style.willChange = '';
         curEl.style.background = '';
@@ -8907,6 +9029,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }
       if (adjEl){
         adjEl.style.transition = '';
+        adjEl.style.animation = '';
         adjEl.style.transform = '';
         adjEl.style.position = '';
         adjEl.style.top = '';
@@ -9148,6 +9271,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindMergeProfileSkillsToggle();
   applyCompactAttacks();
   bindCompactAttacksToggle();
+  applyCompactItems();
+  bindCompactItemsToggle();
   applyTwoColSkills();
   bindTwoColSkillsToggle();
   applyFontSet();
