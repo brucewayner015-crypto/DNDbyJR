@@ -1742,7 +1742,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-attacks="1"] #attacksWrap .dyn-item{padding:22px 10px 8px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .field-label{font-size:9px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap input,
-.app-shell[data-compact-attacks="1"] #attacksWrap textarea{font-size:11px;padding:5px 6px;}
+.app-shell[data-compact-attacks="1"] #attacksWrap textarea,
+.app-shell[data-compact-attacks="1"] #attacksWrap .rich-notes{font-size:calc(11px * var(--ui-font-scale));padding:5px 6px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .dyn-grid{gap:6px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .field{margin-top:4px !important;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .dyn-notes.rich-notes{min-height:26px;}
@@ -1750,7 +1751,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-items="1"] #itemsWrap .dyn-item{padding:22px 10px 8px;}
 .app-shell[data-compact-items="1"] #itemsWrap .field-label{font-size:9px;}
 .app-shell[data-compact-items="1"] #itemsWrap input,
-.app-shell[data-compact-items="1"] #itemsWrap textarea{font-size:11px;padding:5px 6px;}
+.app-shell[data-compact-items="1"] #itemsWrap textarea,
+.app-shell[data-compact-items="1"] #itemsWrap .rich-notes{font-size:calc(11px * var(--ui-font-scale));padding:5px 6px;}
 .app-shell[data-compact-items="1"] #itemsWrap .dyn-grid{gap:6px;}
 .app-shell[data-compact-items="1"] #itemsWrap .field{margin-top:4px !important;}
 .app-shell[data-compact-items="1"] #itemsWrap .dyn-notes.rich-notes{min-height:26px;}
@@ -1762,9 +1764,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-title-input,
 .app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-input,
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-title-display,
-.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-display{font-size:12px;}
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-display{font-size:calc(12px * var(--ui-font-scale));}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-content,
-.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-content{font-size:11.5px;min-height:32px;padding:5px 6px;}
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-content{font-size:calc(11.5px * var(--ui-font-scale));min-height:32px;padding:5px 6px;}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .sec-btn,
 .app-shell[data-compact-notes="1"] #notesSectionsWrap .sec-btn{width:20px;height:20px;font-size:10px;}
 .add-btn{
@@ -4340,7 +4342,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.14-11';
+  var APP_VERSION = '2026.09.14-12';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
