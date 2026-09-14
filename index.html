@@ -794,7 +794,37 @@ body{
   padding:calc(16px + env(safe-area-inset-top)) 16px 14px;
   flex-shrink:0;
   box-shadow:0 6px 14px rgba(0,0,0,0.4);
+  position:relative;
 }
+.spine-collapsible{
+  overflow:hidden;
+  transition:max-height .22s ease, opacity .22s ease, margin-top .22s ease;
+  max-height:200px;
+  opacity:1;
+}
+.spine-collapsible.dragging{transition:none;}
+.spine-collapse-handle{
+  position:absolute;
+  left:50%;bottom:-11px;
+  transform:translateX(-50%);
+  width:52px;height:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:grab;
+  touch-action:none;
+  z-index:5;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.spine-collapse-handle span{
+  width:38px;height:4px;
+  border-radius:2px;
+  background:var(--gold);
+  box-shadow:0 1px 3px rgba(0,0,0,0.5);
+  transition:background .15s ease;
+}
+.spine-collapse-handle:active span{background:var(--gold-bright);}
 .spine-top{
   display:flex;
   align-items:baseline;
@@ -1338,6 +1368,39 @@ input[type=text], input[type=number], select, textarea{
   transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
 }
 textarea{resize:none;min-height:60px;font-size:max(16px, calc(13.5px * var(--ui-font-scale)));line-height:1.45;overflow:hidden;transition:height .12s ease, border-color .15s ease, box-shadow .15s ease;}
+.rich-notes{
+  width:100%;
+  box-sizing:border-box;
+  background:rgba(255,255,255,0.35);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  padding:8px 10px;
+  font-family:var(--font-body);
+  font-size:max(16px, calc(13.5px * var(--ui-font-scale)));
+  color:var(--ink);
+  line-height:1.45;
+  min-height:60px;
+  transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  -webkit-user-select:text;
+  user-select:text;
+  white-space:pre-wrap;
+  word-break:break-word;
+  outline:none;
+}
+.rich-notes:focus{
+  border-color:var(--gold-bright);
+  box-shadow:0 0 0 3px rgba(224,181,99,0.25);
+  background:rgba(255,255,255,0.55);
+}
+.rich-notes:empty::before{
+  content:attr(data-placeholder);
+  color:var(--ink-soft);
+  opacity:0.65;
+}
+.rich-notes b, .rich-notes strong{font-weight:700;}
+.rich-notes i, .rich-notes em{font-style:italic;}
+.rich-notes u{text-decoration:underline;}
+.section-content.rich-notes{min-height:44px;}
 input:focus, select:focus, textarea:focus{
   outline:none;
   border-color:var(--gold-bright);
@@ -1636,7 +1699,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   transition:box-shadow .1s ease, background-color .1s ease;
 }
 .dyn-item .dyn-grid{display:grid;gap:8px;}
-.dyn-item textarea.dyn-notes{min-height:36px;}
+.dyn-item .dyn-notes.rich-notes{min-height:36px;}
 .dyn-drag-handle{
   position:absolute;
   top:0;left:50%;
@@ -1682,7 +1745,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-attacks="1"] #attacksWrap textarea{font-size:11px;padding:5px 6px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .dyn-grid{gap:6px;}
 .app-shell[data-compact-attacks="1"] #attacksWrap .field{margin-top:4px !important;}
-.app-shell[data-compact-attacks="1"] #attacksWrap textarea.dyn-notes{min-height:26px;}
+.app-shell[data-compact-attacks="1"] #attacksWrap .dyn-notes.rich-notes{min-height:26px;}
 
 .app-shell[data-compact-items="1"] #itemsWrap .dyn-item{padding:22px 10px 8px;}
 .app-shell[data-compact-items="1"] #itemsWrap .field-label{font-size:9px;}
@@ -1690,7 +1753,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-items="1"] #itemsWrap textarea{font-size:11px;padding:5px 6px;}
 .app-shell[data-compact-items="1"] #itemsWrap .dyn-grid{gap:6px;}
 .app-shell[data-compact-items="1"] #itemsWrap .field{margin-top:4px !important;}
-.app-shell[data-compact-items="1"] #itemsWrap textarea.dyn-notes{min-height:26px;}
+.app-shell[data-compact-items="1"] #itemsWrap .dyn-notes.rich-notes{min-height:26px;}
+
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap{gap:6px;}
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-item,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-item{padding-bottom:5px;}
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-title-input,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-input,
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-title-display,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-display{font-size:12px;}
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-content,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-content{font-size:11.5px;min-height:32px;padding:5px 6px;}
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .sec-btn,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .sec-btn{width:20px;height:20px;font-size:10px;}
 .add-btn{
   margin-top:8px;
   width:100%;
@@ -2369,6 +2445,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
   position:relative;
 }
 .chat-list-item:active{background:rgba(224,181,99,0.1);}
+.map-list-del-btn{
+  flex-shrink:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--wax);color:#fff;border:none;
+  font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  margin-left:auto;
+}
 .chat-list-avatar{
   flex-shrink:0;
   width:44px;height:44px;border-radius:50%;
@@ -2549,6 +2633,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .map-pin-popup-desc{font-size:13px;color:var(--ink);line-height:1.4;margin-bottom:8px;white-space:pre-wrap;}
 .map-pin-popup-meta{font-size:10.5px;color:var(--ink-soft);margin-bottom:10px;}
 #mapPinPopupClose{position:absolute;top:8px;right:8px;}
+.map-pin-popup-actions{display:flex;gap:8px;margin-top:4px;}
+.map-pin-popup-actions .map-pin-delete-btn,
+.map-pin-popup-actions .map-pin-edit-btn{margin-top:0;flex:1;}
+.map-pin-edit-btn{
+  display:block;width:100%;
+  background:none;border:1px solid var(--gold);color:var(--gold-deep, var(--ink));
+  border-radius:6px;padding:7px;font-size:12px;cursor:pointer;
+}
 .map-pin-delete-btn{
   display:block;width:100%;
   background:none;border:1px solid var(--wax);color:var(--wax);
@@ -2638,15 +2730,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-radius:50%;
   background:radial-gradient(circle, var(--ping-color, #ff5a3c) 0%, transparent 72%);
   animation:mapPingPulse 1s ease-in-out infinite;
+  filter:drop-shadow(0 0 4px rgba(0,0,0,0.85));
+}
+.map-ping::before{
+  content:"";
+  position:absolute;top:50%;left:50%;
+  width:40%;height:40%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:2px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,0.7);
 }
 .map-ping::after{
   content:"";
   position:absolute;top:50%;left:50%;
-  width:30%;height:30%;
+  width:34%;height:34%;
   transform:translate(-50%,-50%);
   border-radius:50%;
   background:var(--ping-color, #ff3b1f);
-  box-shadow:0 0 6px 2px var(--ping-color, #ff3b1f);
+  box-shadow:0 0 9px 3px var(--ping-color, #ff3b1f);
 }
 @keyframes mapPingPulse{
   0%{transform:translate(-50%,-50%) scale(0.6);opacity:1;}
@@ -2671,6 +2773,49 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 @keyframes mapSpin{to{transform:rotate(360deg);}}
 
+.rich-toolbar{
+  position:fixed;
+  z-index:200;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  background:linear-gradient(180deg,var(--chrome-1),var(--chrome-2));
+  border:1px solid var(--gold);
+  border-radius:8px;
+  padding:4px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+.rich-toolbar-row{display:flex;gap:2px;}
+.rich-toolbar button{
+  width:34px;height:34px;
+  border-radius:6px;
+  border:none;
+  background:rgba(255,255,255,0.08);
+  color:var(--gold-bright);
+  font-size:15px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
+  flex-shrink:0;
+}
+.rich-toolbar-row button:active, .rich-toolbar-row button.active{background:var(--gold);color:#2c2011;}
+.rich-color-row{display:flex;gap:4px;padding-top:2px;border-top:1px solid rgba(224,181,99,0.3);}
+.rich-color-swatch{
+  width:26px;height:26px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.5);
+  cursor:pointer;
+  padding:0;
+  flex-shrink:0;
+}
+.rich-color-swatch:active{border-color:var(--gold-bright);}
+.rich-color-none{
+  background:repeating-conic-gradient(#888 0% 25%, #bbb 0% 50%) 50% / 8px 8px;
+  color:#fff;font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  text-shadow:0 0 2px #000;
+}
+
 .chat-seen-popup{
   position:fixed;
   z-index:160;
@@ -2690,6 +2835,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .chat-seen-popup-list{padding:0 4px;}
 .chat-seen-popup-item{padding:5px 10px;font-size:12.5px;color:var(--ink);}
 .chat-seen-popup-empty{padding:6px 14px;font-size:12px;color:var(--ink-soft);font-style:italic;}
+.chat-seen-popup-delete{
+  display:block;width:100%;
+  margin-top:4px;
+  padding:7px 10px;
+  background:none;border:none;border-top:1px solid var(--parchment-shadow);
+  color:var(--wax);font-size:12.5px;text-align:left;
+  cursor:pointer;
+}
 
 .img-lightbox{
   position:fixed;inset:0;
@@ -3222,6 +3375,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       <button class="gear-btn" id="btnCalcOpen" aria-label="Калькулятор" data-i18n-title="calc.title" title="Калькулятор">🧮</button>
       <button class="gear-btn" id="btnSettings" aria-label="Настройки" title="Настройки">⚙</button>
     </div>
+    <div class="spine-collapsible" id="spineCollapsible">
     <div class="spine-meta">
       <input placeholder="Класс и уровень" data-i18n-ph="ph.class" id="f_class" data-field="meta.klass">
       <input placeholder="Ур." data-i18n-ph="ph.level" id="f_level" type="number" min="1" max="20" data-field="meta.level">
@@ -3246,6 +3400,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         <input class="qedit" type="number" id="f_hpcur" data-field="combat.hpCur" placeholder="0">
       </div>
     </div>
+    </div>
+    <div class="spine-collapse-handle" id="spineCollapseHandle" title="Потяните, чтобы свернуть/развернуть шапку"><span></span></div>
   </header>
 
   <div class="ios-install-hint" id="iosInstallHint" style="display:none;">
@@ -3681,12 +3837,34 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="map-pin-popup-desc" id="mapPinPopupDesc"></div>
   <div class="map-pin-popup-meta" id="mapPinPopupMeta"></div>
   <button class="chat-reply-cancel" id="mapPinPopupClose" aria-label="Закрыть">✕</button>
-  <button class="map-pin-delete-btn" id="mapPinDeleteBtn">Удалить метку</button>
+  <div class="map-pin-popup-actions">
+    <button class="map-pin-edit-btn" id="mapPinEditBtn">✎ Изменить</button>
+    <button class="map-pin-delete-btn" id="mapPinDeleteBtn">Удалить метку</button>
+  </div>
+</div>
+
+<div class="rich-toolbar" id="richToolbar" style="display:none;">
+  <div class="rich-toolbar-row">
+    <button type="button" data-cmd="bold"><b>Ж</b></button>
+    <button type="button" data-cmd="italic"><i>К</i></button>
+    <button type="button" data-cmd="underline"><u>Ч</u></button>
+    <button type="button" id="richColorBtn" title="Цвет фона">🎨</button>
+    <button type="button" id="richClearBtn" title="Сбросить форматирование">⟲</button>
+  </div>
+  <div class="rich-color-row" id="richColorRow" style="display:none;">
+    <button type="button" class="rich-color-swatch" data-color="#fff59d" style="background:#fff59d;"></button>
+    <button type="button" class="rich-color-swatch" data-color="#a5d6a7" style="background:#a5d6a7;"></button>
+    <button type="button" class="rich-color-swatch" data-color="#90caf9" style="background:#90caf9;"></button>
+    <button type="button" class="rich-color-swatch" data-color="#ef9a9a" style="background:#ef9a9a;"></button>
+    <button type="button" class="rich-color-swatch" data-color="#ce93d8" style="background:#ce93d8;"></button>
+    <button type="button" class="rich-color-swatch rich-color-none" data-color="transparent" title="Без цвета">✕</button>
+  </div>
 </div>
 
 <div class="chat-seen-popup" id="chatSeenPopup" style="display:none;">
   <div class="chat-seen-popup-title">Просмотрено</div>
   <div class="chat-seen-popup-list" id="chatSeenPopupList"></div>
+  <button class="chat-seen-popup-delete" id="chatSeenPopupDeleteBtn">🗑 Удалить сообщение</button>
 </div>
 
 <div class="img-lightbox" id="imgLightbox">
@@ -3931,6 +4109,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <div class="settings-divider"></div>
 
+        <p class="modal-text" style="margin-bottom:8px;">Черты и заметки</p>
+        <label class="inline-check">
+          <input type="checkbox" id="compactNotesToggle"> Компактные черты и заметки (меньше отступы и шрифт)
+        </label>
+
+        <div class="settings-divider"></div>
+
+        <p class="modal-text" style="margin-bottom:8px;">Форматирование текста</p>
+        <label class="inline-check">
+          <input type="checkbox" id="richTextToggle"> Жирный/курсив/цвет в заметках (атаки, вещи, заклинания, черты)
+        </label>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:8px;">Навыки и спасброски</p>
         <label class="inline-check">
           <input type="checkbox" id="twoColSkillsToggle"> Показывать в 2 столбца
@@ -4148,7 +4340,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.09-5';
+  var APP_VERSION = '2026.09.14-11';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4273,7 +4465,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           state: state,
           characterName: (state.meta && state.meta.name) ? state.meta.name : '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(function(){
+        }, {merge: true}).then(function(){
           setAccountStatus('ok', 'Подключено — лист синхронизируется');
         }).catch(function(err){
           console.warn('Cloud sync failed', err);
@@ -4606,6 +4798,98 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   /* ---------------- ATTACKS (dynamic) ---------------- */
   /* ---------------- DRAG-TO-REORDER (dyn-item lists) ---------------- */
+  /* ---------------- SPINE COLLAPSE (drag handle to hide meta+quickbar) ---------------- */
+  var SPINE_COLLAPSE_KEY = 'dnd5e_spine_collapsed';
+  function bindSpineCollapse(){
+    var handle = document.getElementById('spineCollapseHandle');
+    var collapsible = document.getElementById('spineCollapsible');
+    if (!handle || !collapsible) return;
+
+    var collapsed = false;
+    try{ collapsed = localStorage.getItem(SPINE_COLLAPSE_KEY) === '1'; }catch(e){}
+    var naturalHeight = 0;
+    var dragging = false, startY = 0, startHeight = 0;
+
+    function getY(e){
+      if (e.touches && e.touches.length) return e.touches[0].clientY;
+      if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientY;
+      return e.clientY;
+    }
+
+    function measure(){
+      var wasCollapsed = collapsed;
+      collapsible.style.transition = 'none';
+      collapsible.style.maxHeight = 'none';
+      collapsible.style.opacity = '1';
+      naturalHeight = collapsible.scrollHeight;
+      if (wasCollapsed){
+        collapsible.style.maxHeight = '0px';
+        collapsible.style.opacity = '0';
+      } else {
+        collapsible.style.maxHeight = naturalHeight + 'px';
+      }
+      requestAnimationFrame(function(){ collapsible.style.transition = ''; });
+    }
+
+    function applyState(){
+      collapsible.style.maxHeight = collapsed ? '0px' : (naturalHeight||200) + 'px';
+      collapsible.style.opacity = collapsed ? '0' : '1';
+    }
+
+    measure();
+    window.addEventListener('resize', measure);
+    setTimeout(measure, 400);
+
+    function onMove(e){
+      if (!dragging) return;
+      e.preventDefault();
+      var dy = getY(e) - startY;
+      var h;
+      if (collapsed){
+        h = Math.max(0, Math.min(naturalHeight, dy));
+      } else {
+        h = Math.max(0, Math.min(naturalHeight, startHeight + dy));
+      }
+      collapsible.style.maxHeight = h + 'px';
+      collapsible.style.opacity = String(Math.max(0, Math.min(1, h / (naturalHeight||1))));
+    }
+
+    function onUp(e){
+      if (!dragging) return;
+      dragging = false;
+      collapsible.classList.remove('dragging');
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+      document.removeEventListener('touchcancel', onUp);
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      var dy = getY(e) - startY;
+      var threshold = (naturalHeight||140) * 0.35;
+      if (collapsed) collapsed = dy < threshold;
+      else collapsed = (-dy) > threshold;
+      try{ localStorage.setItem(SPINE_COLLAPSE_KEY, collapsed ? '1' : '0'); }catch(err){}
+      applyState();
+    }
+
+    function onStart(e){
+      dragging = true;
+      startY = getY(e);
+      startHeight = collapsible.getBoundingClientRect().height;
+      collapsible.classList.add('dragging');
+      if (e.type === 'touchstart'){
+        document.addEventListener('touchmove', onMove, {passive:false});
+        document.addEventListener('touchend', onUp);
+        document.addEventListener('touchcancel', onUp);
+      } else {
+        document.addEventListener('mousemove', onMove, {passive:false});
+        document.addEventListener('mouseup', onUp);
+      }
+    }
+
+    handle.addEventListener('touchstart', onStart, {passive:true});
+    handle.addEventListener('mousedown', onStart);
+  }
+
   function bindDragReorder(wrapId, getArray, rerenderFn){
     var wrap = document.getElementById(wrapId);
     if (!wrap || wrap._dragBound) return;
@@ -4732,18 +5016,22 @@ input[type=checkbox]:active{transform:scale(0.88);}
           '<div><label class="field-label">'+t('field.attackBonus')+'</label><input type="text" data-k="bonus" value="'+escAttr(atk.bonus)+'"></div>' +
         '</div>' +
         '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.damageType')+'</label><input type="text" data-k="damage" value="'+escAttr(atk.damage)+'"></div>';
+      var notesFieldHtml = uiSettings.richTextEnabled
+        ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(atk.notes)+'</div>'
+        : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(atk.notes))+'</textarea>';
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
         topRowHtml +
-        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label><textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(atk.notes)+'</textarea></div>';
+        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>';
       wrap.appendChild(div);
       div.querySelectorAll('textarea.dyn-notes').forEach(autoGrow);
       div.querySelectorAll('[data-k]').forEach(function(inp){
+        var isRich = inp.classList.contains('rich-notes');
         inp.addEventListener('input', function(){
-          state.attacks[idx][inp.dataset.k] = inp.value;
+          state.attacks[idx][inp.dataset.k] = isRich ? inp.innerHTML : inp.value;
           if (inp.tagName === 'TEXTAREA') autoGrow(inp);
           saveState();
         });
@@ -4766,6 +5054,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
     state.items.forEach(function(item, idx){
       var div = document.createElement('div');
       div.className = 'dyn-item';
+      var notesFieldHtml = uiSettings.richTextEnabled
+        ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(item.notes)+'</div>'
+        : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(item.notes))+'</textarea>';
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
@@ -4776,12 +5067,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
           '<div><label class="field-label">'+t('field.item')+'</label><input type="text" data-k="name" value="'+escAttr(item.name)+'"></div>' +
           '<div><label class="field-label">'+t('field.qty')+'</label><input type="number" data-k="qty" value="'+escAttr(item.qty)+'"></div>' +
         '</div>' +
-        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label><textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(item.notes)+'</textarea></div>';
+        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>';
       wrap.appendChild(div);
       div.querySelectorAll('textarea.dyn-notes').forEach(autoGrow);
       div.querySelectorAll('[data-k]').forEach(function(inp){
+        var isRich = inp.classList.contains('rich-notes');
         inp.addEventListener('input', function(){
-          var v = inp.type === 'number' ? (inp.value===''?'':Number(inp.value)) : inp.value;
+          var v = isRich ? inp.innerHTML : (inp.type === 'number' ? (inp.value===''?'':Number(inp.value)) : inp.value);
           state.items[idx][inp.dataset.k] = v;
           if (inp.tagName === 'TEXTAREA') autoGrow(inp);
           saveState();
@@ -4842,6 +5134,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
       for (var l=0; l<=9; l++){
         options += '<option value="'+l+'"'+(Number(sp.level)===l?' selected':'')+'>'+(l===0?t('opt.cantrip'):t('field.circle')+' '+l)+'</option>';
       }
+      var notesFieldHtml = uiSettings.richTextEnabled
+        ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(sp.notes)+'</div>'
+        : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(sp.notes))+'</textarea>';
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
@@ -4852,14 +5147,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
           '<div><label class="field-label">'+t('field.spellName')+'</label><input type="text" data-k="name" value="'+escAttr(sp.name)+'"></div>' +
         '</div>' +
         '<div class="field" style="margin-top:6px;"><label class="inline-check"><input type="checkbox" data-k="prepared" '+(sp.prepared?'checked':'')+'> '+t('check.prepared')+'</label></div>' +
-        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label><textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(sp.notes)+'</textarea></div>';
+        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>';
       wrap.appendChild(div);
       div.querySelectorAll('textarea.dyn-notes').forEach(autoGrow);
       div.querySelectorAll('[data-k]').forEach(function(inp){
+        var isRich = inp.classList.contains('rich-notes');
         var evt = (inp.tagName==='SELECT' || inp.type==='checkbox') ? 'change' : 'input';
         inp.addEventListener(evt, function(){
           var v;
-          if (inp.type === 'checkbox') v = inp.checked;
+          if (isRich) v = inp.innerHTML;
+          else if (inp.type === 'checkbox') v = inp.checked;
           else if (inp.tagName==='SELECT') v = Number(inp.value);
           else v = inp.value;
           state.spells[idx][inp.dataset.k] = v;
@@ -4879,6 +5176,203 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function escAttr(v){
     if (v === undefined || v === null) return '';
     return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  }
+
+  var RICH_TEXT_ALLOWED_TAGS = {B:1, STRONG:1, I:1, EM:1, U:1, BR:1, DIV:1, P:1, SPAN:1};
+  function sanitizeRichHtml(html){
+    if (!html) return '';
+    var tmp = document.createElement('div');
+    tmp.innerHTML = String(html);
+    function clean(node){
+      var children = Array.prototype.slice.call(node.childNodes);
+      children.forEach(function(child){
+        if (child.nodeType === 1){
+          if (!RICH_TEXT_ALLOWED_TAGS[child.tagName]){
+            while (child.firstChild) node.insertBefore(child.firstChild, child);
+            node.removeChild(child);
+          } else {
+            var bgColor = child.style ? child.style.backgroundColor : '';
+            while (child.attributes.length) child.removeAttribute(child.attributes[0].name);
+            if (bgColor) child.style.backgroundColor = bgColor;
+            clean(child);
+          }
+        } else if (child.nodeType !== 3){
+          node.removeChild(child);
+        }
+      });
+    }
+    clean(tmp);
+    return tmp.innerHTML;
+  }
+  function stripHtmlToText(html){
+    if (!html) return '';
+    if (!/[<>]/.test(html)) return html;
+    var tmp = document.createElement('div');
+    tmp.innerHTML = String(html);
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  function bindRichTextToolbar(){
+    var toolbar = document.getElementById('richToolbar');
+    var colorBtn = document.getElementById('richColorBtn');
+    var colorRow = document.getElementById('richColorRow');
+    var clearBtn = document.getElementById('richClearBtn');
+    if (!toolbar) return;
+    var activeEditable = null;
+    var savedRange = null;
+    var lastActionTime = 0;
+
+    function hideToolbar(){
+      toolbar.style.display = 'none';
+      if (colorRow) colorRow.style.display = 'none';
+    }
+
+    function checkAndShow(){
+      var sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0 || sel.isCollapsed){ hideToolbar(); return; }
+      var range = sel.getRangeAt(0);
+      var container = range.commonAncestorContainer;
+      var el = container.nodeType === 1 ? container : container.parentElement;
+      var richEl = el ? el.closest('.rich-notes') : null;
+      if (!richEl){ hideToolbar(); return; }
+      var rect = range.getBoundingClientRect();
+      if (!rect || (rect.width === 0 && rect.height === 0)){ hideToolbar(); return; }
+      activeEditable = richEl;
+      savedRange = range.cloneRange();
+      toolbar.style.display = 'flex';
+      var CLEARANCE = 64;
+      var maxTop = window.innerHeight - toolbar.offsetHeight - 6;
+      var top = rect.top - toolbar.offsetHeight - CLEARANCE;
+      if (top < 4) top = rect.bottom + CLEARANCE;
+      if (top > maxTop) top = Math.max(4, rect.top - toolbar.offsetHeight - 8);
+      top = Math.max(4, Math.min(maxTop, top));
+      var left = rect.left + rect.width/2 - toolbar.offsetWidth/2;
+      left = Math.max(6, Math.min(window.innerWidth - toolbar.offsetWidth - 6, left));
+      toolbar.style.top = top + 'px';
+      toolbar.style.left = left + 'px';
+    }
+
+    // Several redundant triggers — selectionchange alone can be unreliable
+    // for contenteditable selections on some Android browsers.
+    document.addEventListener('selectionchange', function(){ setTimeout(checkAndShow, 50); });
+    document.addEventListener('touchend', function(e){
+      if (e.target.closest && e.target.closest('.rich-notes')) setTimeout(checkAndShow, 50);
+    });
+    document.addEventListener('mouseup', function(e){
+      if (e.target.closest && e.target.closest('.rich-notes')) setTimeout(checkAndShow, 50);
+    });
+
+    function wrapSavedRange(makeWrapper){
+      if (!activeEditable || !savedRange || savedRange.collapsed) return;
+      var range = savedRange.cloneRange();
+      var wrapper = makeWrapper();
+      try{
+        range.surroundContents(wrapper);
+      }catch(e){
+        var contents = range.extractContents();
+        wrapper.appendChild(contents);
+        range.insertNode(wrapper);
+      }
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      var newRange = document.createRange();
+      newRange.selectNodeContents(wrapper);
+      sel.addRange(newRange);
+      savedRange = newRange.cloneRange();
+      activeEditable.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+
+    function runOnce(fn){
+      var now = Date.now();
+      if (now - lastActionTime < 400) return;
+      lastActionTime = now;
+      try{ fn(); }
+      catch(err){ alert('Ошибка форматирования: ' + (err && err.message ? err.message : err)); }
+    }
+
+    var TAG_FOR_CMD = {bold:'b', italic:'i', underline:'u'};
+    toolbar.querySelectorAll('[data-cmd]').forEach(function(btn){
+      function go(e){
+        e.preventDefault();
+        runOnce(function(){
+          wrapSavedRange(function(){ return document.createElement(TAG_FOR_CMD[btn.dataset.cmd] || 'b'); });
+        });
+      }
+      btn.addEventListener('touchend', go, {passive:false});
+      btn.addEventListener('click', go);
+    });
+
+    var INLINE_FORMATTING_TAGS = {B:1, STRONG:1, I:1, EM:1, U:1, SPAN:1};
+    function clearFormatting(){
+      if (!activeEditable || !savedRange || savedRange.collapsed) return;
+      var range = savedRange.cloneRange();
+      var text = range.toString();
+      var textNode = document.createTextNode(text);
+      range.deleteContents();
+      range.insertNode(textNode);
+
+      // The insertion point can still be nested inside now-empty (or partially
+      // emptied) formatting elements — walk the text node out of every inline
+      // formatting ancestor so it comes out as plain text, not just "empty tags".
+      var node = textNode;
+      var guard = 0;
+      while (node.parentNode && node.parentNode !== activeEditable &&
+             INLINE_FORMATTING_TAGS[node.parentNode.tagName] && guard < 50){
+        guard++;
+        var wrapper = node.parentNode;
+        var grandparent = wrapper.parentNode;
+        if (!grandparent) break;
+        if (wrapper.nextSibling) grandparent.insertBefore(node, wrapper.nextSibling);
+        else grandparent.appendChild(node);
+        if (!wrapper.textContent) grandparent.removeChild(wrapper);
+      }
+
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      var newRange = document.createRange();
+      newRange.selectNode(textNode);
+      sel.addRange(newRange);
+      savedRange = newRange.cloneRange();
+      activeEditable.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+
+    if (clearBtn){
+      function go(e){
+        e.preventDefault();
+        runOnce(clearFormatting);
+      }
+      clearBtn.addEventListener('touchend', go, {passive:false});
+      clearBtn.addEventListener('click', go);
+    }
+
+    if (colorBtn){
+      function toggleColorRow(e){
+        e.preventDefault();
+        runOnce(function(){
+          if (colorRow) colorRow.style.display = colorRow.style.display === 'none' ? 'flex' : 'none';
+        });
+      }
+      colorBtn.addEventListener('touchend', toggleColorRow, {passive:false});
+      colorBtn.addEventListener('click', toggleColorRow);
+    }
+    if (colorRow){
+      colorRow.querySelectorAll('.rich-color-swatch').forEach(function(sw){
+        function go(e){
+          e.preventDefault();
+          runOnce(function(){
+            wrapSavedRange(function(){
+              var span = document.createElement('span');
+              var color = sw.dataset.color;
+              if (color && color !== 'transparent') span.style.backgroundColor = color;
+              return span;
+            });
+            colorRow.style.display = 'none';
+          });
+        }
+        sw.addEventListener('touchend', go, {passive:false});
+        sw.addEventListener('click', go);
+      });
+    }
   }
 
   /* ---------------- USER-DEFINED SECTIONS (features / notes) ---------------- */
@@ -4905,16 +5399,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
             '<button type="button" class="sec-btn del" data-act="del" aria-label="Удалить">✕</button>' +
           '</div>'
         : '';
+      var contentFieldHtml = uiSettings.richTextEnabled
+        ? '<div class="section-content rich-notes" contenteditable="true" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(sec.content)+'</div>'
+        : '<textarea class="section-content" rows="1">'+escAttr(stripHtmlToText(sec.content))+'</textarea>';
       div.innerHTML =
         '<div class="section-head">'+titleHtml+controlsHtml+'</div>' +
-        '<textarea class="section-content" rows="1">'+escAttr(sec.content)+'</textarea>';
+        contentFieldHtml;
       wrap.appendChild(div);
 
       var contentTa = div.querySelector('.section-content');
-      autoGrow(contentTa);
+      var contentIsRich = contentTa.classList.contains('rich-notes');
+      if (!contentIsRich) autoGrow(contentTa);
       contentTa.addEventListener('input', function(){
-        sec.content = contentTa.value;
-        autoGrow(contentTa);
+        sec.content = contentIsRich ? contentTa.innerHTML : contentTa.value;
+        if (!contentIsRich) autoGrow(contentTa);
         saveState();
       });
 
@@ -5560,12 +6058,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---- "seen by" popup ---- */
+  var chatSeenPopupMsgId = null;
   function chatShowSeenPopup(msgEl){
     var id = msgEl.dataset.msgId;
     var d = chatMsgData[id];
     if (!d) return;
     var isMe = fbUser && d.senderId === fbUser.uid;
     if (!isMe) return; // only show for own messages, like WhatsApp
+    chatSeenPopupMsgId = id;
     var readBy = Array.isArray(d.readBy) ? d.readBy : [];
     var others = readBy.filter(function(u){ return u !== d.senderId; });
     var popup = document.getElementById('chatSeenPopup');
@@ -5586,7 +6086,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
   function chatHideSeenPopup(){
     document.getElementById('chatSeenPopup').style.display = 'none';
+    chatSeenPopupMsgId = null;
   }
+  function chatDeleteMessage(id){
+    if (!fbDb || !id) return;
+    var d = chatMsgData[id];
+    if (!d || !fbUser || d.senderId !== fbUser.uid) return;
+    var col = chatCollectionFor(chatCurrentThread);
+    fbDb.collection(col).doc(id).delete().catch(function(err){
+      alert('Не удалось удалить сообщение: ' + (err.message||err));
+    });
+  }
+  document.getElementById('chatSeenPopupDeleteBtn').addEventListener('click', function(){
+    var id = chatSeenPopupMsgId;
+    chatHideSeenPopup();
+    if (!id) return;
+    showConfirm('Удалить это сообщение?', function(){
+      chatDeleteMessage(id);
+    });
+  });
 
   var chatActiveAudio = null, chatActiveAudioBtn = null;
   function chatFormatAudioTime(sec){
@@ -6394,12 +6912,26 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var m = mapsListData[id];
       var item = document.createElement('div');
       item.className = 'chat-list-item';
+      var isMine = fbUser && m.createdByUid === fbUser.uid;
       item.innerHTML =
         '<div class="chat-list-avatar"><img src="'+escAttr(m.imageUrl)+'"></div>' +
         '<div class="chat-list-body"><div class="chat-list-name">'+escAttr(m.name||'Без названия')+'</div>' +
         '<div class="chat-list-preview">'+escAttr(m.createdBy?('от '+m.createdBy):'')+'</div></div>' +
-        (id === mapCurrentId ? '<div class="chat-list-meta"><span class="chat-list-time">✓ открыта</span></div>' : '');
-      item.addEventListener('click', function(){ mapSelectMap(id); });
+        (id === mapCurrentId ? '<div class="chat-list-meta"><span class="chat-list-time">✓ открыта</span></div>' : '') +
+        (isMine ? '<button type="button" class="map-list-del-btn" data-map-id="'+escAttr(id)+'" aria-label="Удалить карту" title="Удалить карту">✕</button>' : '');
+      item.addEventListener('click', function(e){
+        if (e.target.closest('.map-list-del-btn')) return;
+        mapSelectMap(id);
+      });
+      var delBtn = item.querySelector('.map-list-del-btn');
+      if (delBtn){
+        delBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          showConfirm('Удалить карту «'+(m.name||'Без названия')+'»? Все метки на ней тоже удалятся.', function(){
+            mapDeleteMap(id);
+          });
+        });
+      }
       wrap.appendChild(item);
     });
   }
@@ -6435,6 +6967,23 @@ input[type=checkbox]:active{transform:scale(0.88);}
       popup.style.display = 'none';
       appCloseModal();
     };
+    var editBtn = document.getElementById('mapPinEditBtn');
+    editBtn.onclick = function(){
+      showTextPrompt('Изменить метку', [
+        {id:'label', label:'Название', placeholder:'Название метки', value: p.label || ''},
+        {id:'description', label:'Описание (необязательно)', multiline:true, value: p.description || ''}
+      ], function(values){
+        if (!values.label) return;
+        if (fbDb){
+          fbDb.collection('map_pins').doc(id).update({
+            label: values.label,
+            description: values.description || ''
+          }).catch(function(err){ alert('Не удалось изменить метку: ' + (err.message||err)); });
+        }
+        popup.style.display = 'none';
+        appCloseModal();
+      });
+    };
     popup.style.display = 'block';
     appOpenModal(function(){ popup.style.display = 'none'; });
   }
@@ -6469,6 +7018,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           description: values.description,
           icon: mapPinSettings.icon,
           createdByName: name,
+          createdByUid: fbUser ? fbUser.uid : null,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
       }
@@ -6604,6 +7154,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
     document.getElementById('mapScreen').style.display = 'flex';
     appOpenModal(mapCloseViewerUIOnly);
   }
+  function mapDeleteMap(id){
+    if (!fbDb) return;
+    Promise.all([
+      fbDb.collection('map_pins').where('mapId','==',id).get(),
+      fbDb.collection('map_pings').where('mapId','==',id).get()
+    ]).then(function(results){
+      var batch = fbDb.batch();
+      results.forEach(function(snap){
+        snap.forEach(function(doc){ batch.delete(doc.ref); });
+      });
+      batch.delete(fbDb.collection('maps').doc(id));
+      return batch.commit();
+    }).then(function(){
+      if (mapCurrentId === id){
+        mapCurrentId = null;
+        try{ localStorage.removeItem(MAP_LAST_ID_KEY); }catch(e){}
+        mapCloseViewerUIOnly();
+      }
+    }).catch(function(err){
+      alert('Не удалось удалить карту: ' + (err.message||err));
+    });
+  }
   function mapCloseViewerUIOnly(){
     document.getElementById('mapScreen').style.display = 'none';
     mapPinPlacementMode = false;
@@ -6663,6 +7235,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         name: mapPendingUploadName,
         imageUrl: url,
         createdBy: creatorName,
+        createdByUid: fbUser ? fbUser.uid : null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }).then(function(docRef){
@@ -8468,6 +9041,39 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  function applyCompactNotes(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    if (uiSettings.compactNotes) shell.setAttribute('data-compact-notes', '1');
+    else shell.removeAttribute('data-compact-notes');
+  }
+
+  function bindCompactNotesToggle(){
+    var toggle = document.getElementById('compactNotesToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.compactNotes;
+    toggle.addEventListener('change', function(){
+      uiSettings.compactNotes = toggle.checked;
+      saveUiSettings();
+      applyCompactNotes();
+    });
+  }
+
+  function bindRichTextToggle(){
+    var toggle = document.getElementById('richTextToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.richTextEnabled;
+    toggle.addEventListener('change', function(){
+      uiSettings.richTextEnabled = toggle.checked;
+      saveUiSettings();
+      if (typeof renderAttacks === 'function') renderAttacks();
+      if (typeof renderItems === 'function') renderItems();
+      if (typeof renderSpells === 'function') renderSpells();
+      if (typeof renderFeaturesCard === 'function') renderFeaturesCard();
+      if (typeof renderNotesCard === 'function') renderNotesCard();
+    });
+  }
+
   function applyTwoColSkills(){
     var shell = document.querySelector('.app-shell');
     if (!shell) return;
@@ -8625,7 +9231,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false};
 
   function loadUiSettings(){
     try{
@@ -8641,6 +9247,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.mergeProfileSkills === 'boolean') uiSettings.mergeProfileSkills = loaded.mergeProfileSkills;
         if (loaded && typeof loaded.compactAttacks === 'boolean') uiSettings.compactAttacks = loaded.compactAttacks;
         if (loaded && typeof loaded.compactItems === 'boolean') uiSettings.compactItems = loaded.compactItems;
+        if (loaded && typeof loaded.compactNotes === 'boolean') uiSettings.compactNotes = loaded.compactNotes;
+        if (loaded && typeof loaded.richTextEnabled === 'boolean') uiSettings.richTextEnabled = loaded.richTextEnabled;
         if (loaded && typeof loaded.chatMuted === 'boolean') uiSettings.chatMuted = loaded.chatMuted;
         if (loaded && typeof loaded.twoColSkills === 'boolean') uiSettings.twoColSkills = loaded.twoColSkills;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
@@ -8798,6 +9406,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var input = document.createElement(f.multiline ? 'textarea' : 'input');
       if (!f.multiline) input.type = 'text';
       input.placeholder = f.placeholder || '';
+      if (f.value) input.value = f.value;
       wrap.appendChild(input);
       fieldsWrap.appendChild(wrap);
       inputs[f.id] = input;
@@ -9273,6 +9882,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindCompactAttacksToggle();
   applyCompactItems();
   bindCompactItemsToggle();
+  applyCompactNotes();
+  bindCompactNotesToggle();
+  bindRichTextToggle();
+  bindSpineCollapse();
+  bindRichTextToolbar();
   applyTwoColSkills();
   bindTwoColSkillsToggle();
   applyFontSet();
