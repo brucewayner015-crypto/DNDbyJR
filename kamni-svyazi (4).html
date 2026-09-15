@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Камни Связи</title>
+<meta name="theme-color" content="#1b1410">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+:root{
+  --leather-1:#1b1410;
+  --leather-2:#241a14;
+  --leather-edge:#0f0b08;
+  --parchment:#eee1c1;
+  --parchment-2:#e2d3ab;
+  --parchment-shadow:#c9b686;
+  --ink:#2c2011;
+  --ink-soft:#5b4a30;
+  --gold:#b9903f;
+  --gold-bright:#e0b563;
+  --wax:#7c2a2a;
+  --wax-bright:#a63c3c;
+  --emerald:#3c5a45;
+  --emerald-bright:#5a8168;
+  --arcane:#3d5c8a;
+  --arcane-bright:#6fa3e0;
+  --danger:#8f2626;
+  --ok:#3c6b4a;
+  --radius-s:6px;
+  --radius-m:12px;
+  --radius-l:18px;
+  --font-display:'Cinzel', serif;
+  --font-deco:'Cinzel Decorative', serif;
+  --font-body:'Spectral', serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.03), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 2px, transparent 2px, transparent 5px),
+    linear-gradient(180deg, var(--leather-1), var(--leather-2) 60%, var(--leather-edge));
+  color:var(--ink);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+button{font-family:inherit;}
+textarea,input{font-family:inherit;}
+
+.app-shell{
+  max-width:560px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding-bottom:92px;
+  position:relative;
+}
+
+/* ---------- HEADER / SPINE ---------- */
+.spine{
+  background:linear-gradient(180deg,#2a1e14,#1c130d);
+  border-bottom:3px solid var(--gold);
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+  padding:16px 16px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+.spine-gem{
+  width:38px;height:38px;flex:0 0 auto;position:relative;
+}
+.spine-gem .shape{
+  width:100%;height:100%;
+  clip-path:polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+  background:linear-gradient(135deg, var(--arcane-bright), var(--arcane) 60%, #1c2c46);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.5), inset 0 -6px 10px rgba(0,0,0,.45), 0 0 14px rgba(111,163,224,.55);
+  animation:idleGlow 3.4s ease-in-out infinite;
+}
+@keyframes idleGlow{
+  0%,100%{ filter:brightness(1); }
+  50%{ filter:brightness(1.18); }
+}
+.spine-title{flex:1; min-width:0;}
+.spine-title h1{
+  margin:0;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:19px;
+  letter-spacing:.5px;
+  color:var(--gold-bright);
+  text-shadow:0 1px 0 rgba(0,0,0,.5);
+}
+.spine-title .sub{
+  margin-top:2px;
+  font-size:12.5px;
+  color:#a99671;
+  font-style:italic;
+}
+.spine-settings{
+  flex:0 0 auto;
+  width:38px;height:38px;
+  border-radius:50%;
+  border:1px solid #4a3a23;
+  background:linear-gradient(180deg,#3a2c1c,#241a10);
+  color:var(--gold-bright);
+  font-size:17px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.spine-settings:active{ filter:brightness(1.2); }
+
+/* ---------- MAIN VIEWS ---------- */
+main{flex:1; position:relative;}
+.view{ display:none; padding:16px 14px 24px; animation:fadeIn .18s ease; }
+.view.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+.card{
+  background:
+    linear-gradient(var(--parchment), var(--parchment-2) 480px);
+  border:1px solid var(--parchment-shadow);
+  border-radius:var(--radius-m);
+  box-shadow:0 6px 16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.15);
+  padding:14px;
+  margin-bottom:14px;
+  color:var(--ink);
+}
+.card h2{
+  margin:0 0 10px;
+  font-family:var(--font-display);
+  font-size:14px;
+  letter-spacing:.4px;
+  color:var(--ink-soft);
+  display:flex; align-items:center; gap:8px;
+}
+
+/* ---------- CONTACTS LIST ---------- */
+.contact-row{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 4px;
+  border-bottom:1px solid rgba(91,74,48,.18);
+  cursor:pointer;
+}
+.contact-row:last-child{ border-bottom:none; }
+.gem{ width:40px;height:40px; flex:0 0 auto; position:relative; }
+.gem .shape{
+  width:100%;height:100%;
+  clip-path:polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+  background:linear-gradient(135deg, var(--g1), var(--g2));
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.45), inset 0 -5px 8px rgba(0,0,0,.4);
+}
+.contact-info{ flex:1; min-width:0; }
+.contact-info .name{
+  font-family:var(--font-display); font-weight:600; font-size:14.5px;
+  color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.contact-info .code{
+  font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); letter-spacing:.5px; margin-top:2px;
+}
+.call-btn{
+  width:36px;height:36px; border-radius:50%; border:none; flex:0 0 auto;
+  background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 65%, #7a5c26);
+  color:#2b1e0c; font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+  cursor:pointer;
+}
+.call-btn:active{ filter:brightness(1.1); transform:scale(.95); }
+
+.empty-state{
+  text-align:center; padding:30px 12px; color:var(--ink-soft); font-style:italic; font-size:14.5px;
+}
+.empty-state .big{ font-size:34px; display:block; margin-bottom:8px; }
+
+.search-wrap{ margin-bottom:12px; }
+.search-input{
+  width:100%; padding:10px 12px; border-radius:var(--radius-s);
+  border:1px solid var(--parchment-shadow);
+  background:var(--parchment-2); color:var(--ink); font-size:14.5px;
+  font-family:var(--font-body);
+}
+.search-input:focus{ outline:2px solid var(--gold); }
+
+/* FAB */
+.fab{
+  position:fixed;
+  bottom:96px;
+  right:calc((100vw - min(560px, 100vw)) / 2 + 18px);
+  width:56px;height:56px;
+  border-radius:50%;
+  border:2px solid var(--gold-bright);
+  background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 60%, #6e5220);
+  color:#2b1e0c; font-size:26px; font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.5);
+  cursor:pointer;
+  z-index:15;
+}
+.fab:active{ transform:scale(.94); }
+
+/* ---------- KEYPAD ---------- */
+.rune-display{
+  text-align:center; padding:18px 10px 10px;
+}
+.rune-display .matched{
+  font-family:var(--font-display); font-size:14px; color:var(--gold-bright);
+  min-height:18px; margin-bottom:6px; letter-spacing:.3px;
+}
+.rune-display .code{
+  font-family:var(--font-mono); font-size:30px; letter-spacing:2px; color:var(--parchment);
+  min-height:40px; word-break:break-all;
+  text-shadow:0 0 10px rgba(111,163,224,.25);
+}
+.keypad-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+  padding:6px 8px 4px;
+}
+.key{
+  aspect-ratio:1/1;
+  clip-path:polygon(20% 0%,80% 0%,100% 20%,100% 80%,80% 100%,20% 100%,0% 80%,0% 20%);
+  background:linear-gradient(160deg,#352616,#1c130c);
+  border:1px solid #4a3a23;
+  color:var(--parchment);
+  font-family:var(--font-mono); font-size:22px; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 3px 8px rgba(0,0,0,.4);
+}
+.key:active{ background:linear-gradient(160deg,#241a10,#120c07); transform:scale(.96); }
+.key.ghost{ background:transparent; border:none; box-shadow:none; cursor:default; }
+.key.backspace{ font-size:18px; color:var(--gold-bright); }
+
+.dial-actions{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  margin-top:18px;
+}
+.dial-call{
+  width:64px;height:64px; border-radius:50%; border:2px solid var(--emerald-bright);
+  background:radial-gradient(circle at 35% 30%, var(--emerald-bright), var(--emerald) 65%, #223d2c);
+  color:#eafff0; font-size:26px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.5);
+  cursor:pointer;
+}
+.dial-call:disabled{ opacity:.4; filter:grayscale(.4); cursor:not-allowed; }
+.dial-call:active:not(:disabled){ transform:scale(.94); }
+
+/* ---------- JOURNAL ---------- */
+.journal-toolbar{ display:flex; justify-content:flex-end; margin-bottom:8px; }
+.link-btn{
+  background:none; border:none; color:#c9a96a; font-family:var(--font-body); font-style:italic;
+  font-size:13px; cursor:pointer; text-decoration:underline;
+}
+.journal-row{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 4px; border-bottom:1px solid rgba(91,74,48,.18);
+}
+.journal-row:last-child{ border-bottom:none; }
+.jicon{
+  width:34px;height:34px; border-radius:50%; flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center; font-size:15px;
+}
+.jicon.outgoing{ background:rgba(60,90,69,.18); color:var(--emerald); }
+.jicon.missed{ background:rgba(143,38,38,.16); color:var(--wax); }
+.jinfo{ flex:1; min-width:0; }
+.jinfo .name{ font-family:var(--font-display); font-weight:600; font-size:14px; color:var(--ink); }
+.jinfo .meta{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+.jinfo .meta.missed-text{ color:var(--wax); }
+.jrow-actions{ display:flex; align-items:center; gap:8px; }
+.icon-btn{
+  width:32px;height:32px; border-radius:50%; border:1px solid var(--parchment-shadow);
+  background:rgba(255,255,255,.25); color:var(--ink-soft); font-size:14px;
+  display:flex;align-items:center;justify-content:center; cursor:pointer;
+}
+.icon-btn:active{ filter:brightness(.92); }
+
+/* ---------- TAB BAR ---------- */
+.tabbar{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:min(560px,100%);
+  background:linear-gradient(180deg,#241a10,#150e09);
+  border-top:3px solid var(--gold);
+  display:flex;
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  z-index:20;
+  box-shadow:0 -6px 16px rgba(0,0,0,.4);
+}
+.tab{
+  flex:1; background:none; border:none; color:#8a795c;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:6px 2px; cursor:pointer; font-family:var(--font-display); font-size:10.5px; letter-spacing:.3px;
+}
+.tab svg{ width:22px; height:22px; }
+.tab.active{ color:var(--gold-bright); }
+.tab .tab-gem .shape{
+  width:16px;height:16px;
+  clip-path:polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+  background:linear-gradient(135deg,#8a795c,#5c4d34);
+  margin:0 auto 2px;
+}
+.tab.active .tab-gem .shape{
+  background:linear-gradient(135deg, var(--gold-bright), var(--gold));
+  box-shadow:0 0 8px rgba(224,181,99,.6);
+}
+
+/* ---------- MODALS ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(8,5,3,.72);
+  display:none; align-items:flex-end; justify-content:center;
+  z-index:50; padding:0;
+}
+.modal-overlay.open{ display:flex; }
+.modal-sheet{
+  width:100%; max-width:560px;
+  background:linear-gradient(var(--parchment), var(--parchment-2) 480px);
+  border-top:3px solid var(--gold);
+  border-radius:20px 20px 0 0;
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto;
+  color:var(--ink);
+  animation:slideUp .22s ease;
+}
+@keyframes slideUp{ from{ transform:translateY(24px); opacity:.4; } to{ transform:translateY(0); opacity:1; } }
+.modal-sheet h3{
+  margin:0 0 14px; font-family:var(--font-display); font-size:16px; color:var(--ink-soft);
+}
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:5px; font-style:italic; }
+.field input, .field textarea{
+  width:100%; padding:9px 11px; border-radius:var(--radius-s);
+  border:1px solid var(--parchment-shadow); background:#fbf5e4; color:var(--ink);
+  font-size:14.5px;
+}
+.field textarea{ resize:none; min-height:56px; overflow:hidden; }
+.code-field{ display:flex; gap:8px; }
+.code-field input{ font-family:var(--font-mono); letter-spacing:1px; }
+.mini-btn{
+  flex:0 0 auto; border:1px solid var(--parchment-shadow); background:var(--parchment-2);
+  border-radius:var(--radius-s); padding:0 12px; color:var(--ink-soft); font-size:16px; cursor:pointer;
+}
+.gem-picker{ display:flex; flex-wrap:wrap; gap:10px; }
+.gem-opt{ width:36px;height:36px; cursor:pointer; position:relative; opacity:.55; }
+.gem-opt .shape{
+  width:100%;height:100%; clip-path:polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.4), inset 0 -4px 7px rgba(0,0,0,.4);
+}
+.gem-opt.selected{ opacity:1; transform:scale(1.12); filter:drop-shadow(0 0 6px rgba(0,0,0,.35)); }
+
+.modal-actions{ display:flex; gap:10px; margin-top:6px; }
+.btn{
+  flex:1; padding:11px 12px; border-radius:var(--radius-s); border:none; cursor:pointer;
+  font-family:var(--font-display); font-size:13.5px; letter-spacing:.3px; text-align:center;
+}
+.btn-primary{
+  background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#2b1e0c;
+  box-shadow:0 3px 8px rgba(0,0,0,.3);
+}
+.btn-secondary{ background:rgba(91,74,48,.15); color:var(--ink-soft); border:1px solid var(--parchment-shadow); }
+.btn-danger{ background:linear-gradient(180deg, var(--wax-bright), var(--wax)); color:#fff0ec; }
+.btn:active{ filter:brightness(1.06); transform:scale(.98); }
+.delete-link{
+  display:block; text-align:center; margin-top:4px; color:var(--wax); font-style:italic;
+  font-size:13px; background:none; border:none; cursor:pointer; text-decoration:underline;
+}
+
+/* confirm modal */
+.confirm-sheet{ text-align:center; }
+.confirm-sheet p{ font-size:14.5px; color:var(--ink); margin:0 0 18px; line-height:1.5; }
+
+/* settings modal */
+.settings-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px solid rgba(91,74,48,.18);
+}
+.settings-row:last-child{ border-bottom:none; }
+.settings-row .label{ font-size:14px; color:var(--ink); }
+.settings-row .desc{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+
+.ringtone-list{ margin-bottom:4px; }
+.ringtone-opt{
+  display:flex; align-items:center; gap:10px;
+  padding:9px 6px; border-bottom:1px solid rgba(91,74,48,.14);
+  cursor:pointer;
+}
+.ringtone-opt:last-child{ border-bottom:none; }
+.ringtone-opt .radio{
+  width:18px;height:18px; border-radius:50%; border:2px solid var(--ink-soft);
+  flex:0 0 auto; position:relative;
+}
+.ringtone-opt.selected .radio{ border-color:var(--gold); }
+.ringtone-opt.selected .radio::after{
+  content:''; position:absolute; inset:3px; border-radius:50%; background:var(--gold);
+}
+.ringtone-opt .rt-info{ flex:1; min-width:0; }
+.ringtone-opt .rt-name{ font-size:14px; color:var(--ink); }
+.ringtone-opt .rt-desc{ font-size:11.5px; color:var(--ink-soft); margin-top:1px; }
+.ringtone-opt .rt-preview{
+  flex:0 0 auto; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--parchment-shadow); background:rgba(255,255,255,.25);
+  color:var(--ink-soft); font-size:13px; display:flex;align-items:center;justify-content:center; cursor:pointer;
+}
+.ringtone-opt .rt-preview:active{ filter:brightness(.9); }
+.ringtone-opt .rt-del{
+  flex:0 0 auto; width:28px; height:28px; border-radius:50%;
+  border:1px solid rgba(143,38,38,.4); background:rgba(143,38,38,.12);
+  color:var(--wax); font-size:12px; display:flex;align-items:center;justify-content:center; cursor:pointer;
+}
+.ringtone-opt .rt-del:active{ filter:brightness(.9); }
+.ringtone-divider{
+  font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-soft);
+  margin:10px 0 2px; font-style:italic;
+}
+.upload-row{
+  display:flex; align-items:center; gap:10px; padding:10px 6px;
+  border:1px dashed var(--parchment-shadow); border-radius:var(--radius-s);
+  cursor:pointer; margin-top:4px;
+}
+.upload-row .plus{
+  width:30px;height:30px; border-radius:50%; flex:0 0 auto;
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:#2b1e0c;
+  display:flex;align-items:center;justify-content:center; font-size:17px; font-weight:700;
+}
+.upload-row .txt{ font-size:13px; color:var(--ink-soft); font-style:italic; }
+.loud-hint{ font-size:11.5px; color:var(--ink-soft); font-style:italic; margin:6px 0 2px; line-height:1.5; }
+
+/* ---------- CALL SCREEN ---------- */
+.call-overlay{
+  position:fixed; inset:0; z-index:60; display:none;
+  flex-direction:column; align-items:center; justify-content:space-between;
+  padding:60px 24px 50px;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(111,163,224,.10), transparent 60%),
+    linear-gradient(180deg, var(--leather-1), var(--leather-edge));
+  text-align:center;
+}
+.call-overlay.open{ display:flex; }
+.call-status{ color:#a99671; font-family:var(--font-display); font-size:13px; letter-spacing:1px; margin-bottom:8px; min-height:16px; }
+.call-name{ color:var(--parchment); font-family:var(--font-display); font-size:24px; font-weight:600; margin-bottom:6px; }
+.call-code{ color:#8a795c; font-family:var(--font-mono); font-size:13px; letter-spacing:1px; margin-bottom:6px; }
+.call-timer{ color:var(--gold-bright); font-family:var(--font-mono); font-size:16px; min-height:20px; }
+
+.call-gem-wrap{ position:relative; width:180px; height:180px; display:flex; align-items:center; justify-content:center; }
+.call-gem-wrap .ring{
+  position:absolute; inset:0; border-radius:50%;
+  border:1px solid rgba(111,163,224,.35);
+}
+.call-gem-wrap .ring.r1{ animation:ripple 2.4s ease-out infinite; }
+.call-gem-wrap .ring.r2{ animation:ripple 2.4s ease-out infinite; animation-delay:.8s; }
+.call-gem-wrap .ring.r3{ animation:ripple 2.4s ease-out infinite; animation-delay:1.6s; }
+@keyframes ripple{
+  0%{ transform:scale(.55); opacity:.9; }
+  100%{ transform:scale(1.15); opacity:0; }
+}
+.call-gem{ width:110px; height:110px; }
+.call-gem .shape{
+  width:100%; height:100%;
+  clip-path:polygon(50% 0%, 100% 35%, 82% 100%, 18% 100%, 0% 35%);
+  background:linear-gradient(135deg, var(--cg1, var(--arcane-bright)), var(--cg2, var(--arcane)) 60%, #16233a);
+  box-shadow:inset 0 4px 8px rgba(255,255,255,.5), inset 0 -10px 18px rgba(0,0,0,.5), 0 0 34px rgba(111,163,224,.6);
+  animation:callPulse 1.6s ease-in-out infinite;
+}
+@keyframes callPulse{
+  0%,100%{ filter:brightness(1); }
+  50%{ filter:brightness(1.3); }
+}
+
+.call-controls{ display:flex; align-items:center; gap:26px; }
+.call-toggle{
+  width:56px;height:56px; border-radius:50%; border:1px solid #4a3a23;
+  background:linear-gradient(180deg,#3a2c1c,#241a10); color:#c9b686; font-size:20px;
+  display:flex;align-items:center;justify-content:center; cursor:pointer;
+}
+.call-toggle.on{ background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#2b1e0c; }
+.call-end{
+  width:64px;height:64px; border-radius:50%; border:2px solid var(--wax-bright);
+  background:radial-gradient(circle at 35% 30%, var(--wax-bright), var(--wax) 65%, #3a1414);
+  color:#fff0ec; font-size:24px;
+  display:flex;align-items:center;justify-content:center; cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.5);
+}
+.call-end:active, .call-toggle:active{ transform:scale(.94); }
+
+.toast{
+  position:fixed; left:50%; bottom:110px; transform:translateX(-50%) translateY(20px);
+  background:#241a10; color:var(--gold-bright); border:1px solid var(--gold);
+  padding:9px 16px; border-radius:20px; font-size:13px; font-family:var(--font-display);
+  opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:70;
+  max-width:80%; text-align:center;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <header class="spine">
+    <div class="spine-gem"><div class="shape"></div></div>
+    <div class="spine-title">
+      <h1>Камни Связи</h1>
+      <div class="sub">Сеть резонансных камней</div>
+    </div>
+    <button class="spine-settings" id="btnSettings">&#9881;</button>
+  </header>
+
+  <main>
+    <!-- CONTACTS -->
+    <section class="view active" id="view-contacts">
+      <div class="search-wrap">
+        <input class="search-input" id="searchInput" placeholder="Найти собеседника…">
+      </div>
+      <div class="card">
+        <h2>Собеседники</h2>
+        <div id="contactsList"></div>
+      </div>
+    </section>
+
+    <!-- KEYPAD -->
+    <section class="view" id="view-keypad">
+      <div class="card">
+        <h2>Настройка резонанса вручную</h2>
+        <div class="rune-display">
+          <div class="matched" id="matchedName">&nbsp;</div>
+          <div class="code" id="keypadDisplay">—</div>
+        </div>
+        <div class="keypad-grid" id="keypadGrid"></div>
+        <div class="dial-actions">
+          <button class="dial-call" id="btnDialCall" disabled>&#9742;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- JOURNAL -->
+    <section class="view" id="view-journal">
+      <div class="journal-toolbar">
+        <button class="link-btn" id="btnClearJournal">очистить журнал</button>
+      </div>
+      <div class="card">
+        <h2>Журнал соединений</h2>
+        <div id="journalList"></div>
+      </div>
+    </section>
+  </main>
+
+  <button class="fab" id="fabAdd">+</button>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="contacts">
+      <div class="tab-gem"><div class="shape"></div></div>
+      Собеседники
+    </button>
+    <button class="tab" data-view="keypad">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="1.6"/><circle cx="12" cy="6" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/><circle cx="6" cy="18" r="1.6"/><circle cx="12" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/></svg>
+      Руны
+    </button>
+    <button class="tab" data-view="journal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 3v9l6 3"/><path d="M3 3v5h5"/></svg>
+      Журнал
+    </button>
+  </nav>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="modalContact">
+  <div class="modal-sheet">
+    <h3 id="contactModalTitle">Новый камень</h3>
+    <div class="field">
+      <label>Имя собеседника</label>
+      <input id="fName" maxlength="40" placeholder="например, Хранитель Ильвен">
+    </div>
+    <div class="field">
+      <label>Резонансный код</label>
+      <div class="code-field">
+        <input id="fCode" maxlength="14" placeholder="482-915" inputmode="numeric">
+        <button class="mini-btn" id="btnGenCode" title="Сгенерировать">&#9860;</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Камень</label>
+      <div class="gem-picker" id="gemPicker"></div>
+    </div>
+    <div class="field">
+      <label>Заметки</label>
+      <textarea id="fNotes" maxlength="300" placeholder="Где найти, о чём говорить, особенности связи…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btnCancelContact">Отмена</button>
+      <button class="btn btn-primary" id="btnSaveContact">Сохранить</button>
+    </div>
+    <button class="delete-link" id="btnDeleteContact" style="display:none;">Разбить этот камень (удалить)</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal-sheet confirm-sheet">
+    <h3 id="confirmTitle">Вы уверены?</h3>
+    <p id="confirmText"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btnConfirmNo">Отмена</button>
+      <button class="btn btn-danger" id="btnConfirmYes">Да, продолжить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="modalSettings">
+  <div class="modal-sheet">
+    <h3>Хранилище камней</h3>
+
+    <div class="label" style="margin-bottom:4px;">Звук вызова</div>
+    <div class="ringtone-list" id="ringtoneList"></div>
+    <div class="ringtone-divider">Свои мелодии</div>
+    <div class="ringtone-list" id="customRingtoneList"></div>
+    <label class="upload-row" id="uploadRow">
+      <div class="plus">+</div>
+      <div class="txt">Загрузить аудиофайл (mp3, wav, ogg…)</div>
+    </label>
+    <input type="file" id="fileRingtone" accept="audio/*" multiple style="display:none;">
+    <div class="loud-hint">Звук воспроизводится на максимальной громкости, которую допускает браузер (через лимитер с усилением). Для действительно громкого сигнала выкрутите также системную громкость устройства.</div>
+
+    <div class="settings-row" style="margin-top:8px;">
+      <div>
+        <div class="label">Экспорт данных</div>
+        <div class="desc">Сохранить собеседников и журнал в файл</div>
+      </div>
+      <button class="btn btn-secondary" id="btnExport" style="flex:0 0 auto; padding:8px 14px;">Экспорт</button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="label">Импорт данных</div>
+        <div class="desc">Загрузить ранее сохранённый файл</div>
+      </div>
+      <button class="btn btn-secondary" id="btnImport" style="flex:0 0 auto; padding:8px 14px;">Импорт</button>
+    </div>
+    <input type="file" id="fileImport" accept="application/json" style="display:none;">
+    <div class="settings-row">
+      <div>
+        <div class="label">Разбить все камни</div>
+        <div class="desc">Удалить всех собеседников и весь журнал</div>
+      </div>
+      <button class="btn btn-danger" id="btnWipeAll" style="flex:0 0 auto; padding:8px 14px;">Стереть всё</button>
+    </div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn btn-primary" id="btnCloseSettings">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALL SCREEN -->
+<div class="call-overlay" id="callScreen">
+  <div>
+    <div class="call-status" id="callStatus">Настройка резонанса…</div>
+    <div class="call-name" id="callName">—</div>
+    <div class="call-code" id="callCode"></div>
+    <div class="call-timer" id="callTimer">&nbsp;</div>
+  </div>
+  <div class="call-gem-wrap">
+    <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+    <div class="call-gem" id="callGem"><div class="shape"></div></div>
+  </div>
+  <div class="call-controls">
+    <button class="call-toggle" id="btnMute" title="Заглушить">&#128263;</button>
+    <button class="call-end" id="btnEndCall" title="Разорвать связь">&#9742;</button>
+    <button class="call-toggle" id="btnSpeaker" title="Громкая связь">&#128266;</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GEMS = {
+    sapphire:{n:'Сапфир', g1:'#5b8fd4', g2:'#1f3a63'},
+    emerald:{n:'Изумруд', g1:'#4fae7c', g2:'#1f4d34'},
+    ruby:{n:'Рубин', g1:'#c23c52', g2:'#6e1f2a'},
+    amethyst:{n:'Аметист', g1:'#9c5fd6', g2:'#4a2a6e'},
+    topaz:{n:'Топаз', g1:'#e0b04a', g2:'#7a5a1f'},
+    onyx:{n:'Оникс', g1:'#5a5568', g2:'#16151a'},
+    amber:{n:'Янтарь', g1:'#e0983f', g2:'#7a4a1f'},
+    opal:{n:'Опал', g1:'#6fe0d0', g2:'#2a6e6a'}
+  };
+  var GEM_KEYS = Object.keys(GEMS);
+
+  var STORE_KEY = 'stones_data_v1';
+  var state = loadState();
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        var d = JSON.parse(raw);
+        if(d && Array.isArray(d.contacts) && Array.isArray(d.journal)){
+          if(!d.settings) d.settings = {ringtone:'chime', customRingtones:[]};
+          if(!d.settings.ringtone) d.settings.ringtone = 'chime';
+          if(!Array.isArray(d.settings.customRingtones)) d.settings.customRingtones = [];
+          return d;
+        }
+      }
+    }catch(e){}
+    return {
+      contacts:[
+        {id:cryptoId(), name:'Хранитель Ильвен', code:'482915', gem:'sapphire', notes:'Смотритель маяка на северном мысу. Отвечает не сразу.'},
+        {id:cryptoId(), name:'Старейшина Марвен', code:'119302', gem:'emerald', notes:'Совет деревни. Лучше звонить утром.'},
+        {id:cryptoId(), name:'Тень-в-переулке', code:'675210', gem:'onyx', notes:'Информатор. Код меняет раз в сезон.'}
+      ],
+      journal:[],
+      settings:{ringtone:'chime', customRingtones:[]}
+    };
+  }
+  function saveState(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); return true; }
+    catch(e){ return false; }
+  }
+  function cryptoId(){
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,9);
+  }
+
+  /* ---------- toast ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+
+  /* ---------- tabs ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  var views = document.querySelectorAll('.view');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.classList.remove('active'); });
+      views.forEach(function(v){ v.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('view-' + tab.dataset.view).classList.add('active');
+      if(tab.dataset.view === 'contacts') renderContacts();
+      if(tab.dataset.view === 'journal') renderJournal();
+    });
+  });
+  document.getElementById('fabAdd').addEventListener('click', function(){ openContactModal(null); });
+
+  /* ---------- code formatting ---------- */
+  function formatCode(raw){
+    var digits = (raw||'').replace(/\D/g,'').slice(0,9);
+    var parts = [];
+    for(var i=0;i<digits.length;i+=3){ parts.push(digits.slice(i,i+3)); }
+    return parts.join('-');
+  }
+  function rawCode(raw){ return (raw||'').replace(/\D/g,''); }
+
+  /* ---------- CONTACTS RENDER ---------- */
+  var contactsListEl = document.getElementById('contactsList');
+  function renderContacts(){
+    var q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+    var list = state.contacts.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'ru'); });
+    if(q){
+      list = list.filter(function(c){
+        return c.name.toLowerCase().indexOf(q) !== -1 || rawCode(c.code).indexOf(q.replace(/\D/g,'')) !== -1;
+      });
+    }
+    contactsListEl.innerHTML = '';
+    if(list.length === 0){
+      contactsListEl.innerHTML = '<div class="empty-state"><span class="big">&#128142;</span>Пока нет собеседников.<br>Добавьте первый камень связи.</div>';
+      return;
+    }
+    list.forEach(function(c){
+      var gem = GEMS[c.gem] || GEMS.sapphire;
+      var row = document.createElement('div');
+      row.className = 'contact-row';
+      row.innerHTML =
+        '<div class="gem" style="--g1:'+gem.g1+';--g2:'+gem.g2+'"><div class="shape"></div></div>' +
+        '<div class="contact-info"><div class="name"></div><div class="code">' + formatCode(c.code) + '</div></div>' +
+        '<button class="call-btn" title="Позвать">&#9742;</button>';
+      row.querySelector('.name').textContent = c.name;
+      row.addEventListener('click', function(e){
+        if(e.target.closest('.call-btn')) return;
+        openContactModal(c.id);
+      });
+      row.querySelector('.call-btn').addEventListener('click', function(e){
+        e.stopPropagation();
+        startCall(c);
+      });
+      contactsListEl.appendChild(row);
+    });
+  }
+  document.getElementById('searchInput').addEventListener('input', renderContacts);
+
+  /* ---------- CONTACT MODAL ---------- */
+  var modalContact = document.getElementById('modalContact');
+  var editingId = null;
+  var selectedGem = 'sapphire';
+
+  var gemPicker = document.getElementById('gemPicker');
+  GEM_KEYS.forEach(function(key){
+    var g = GEMS[key];
+    var opt = document.createElement('div');
+    opt.className = 'gem-opt';
+    opt.dataset.gem = key;
+    opt.title = g.n;
+    opt.innerHTML = '<div class="shape" style="background:linear-gradient(135deg,'+g.g1+','+g.g2+')"></div>';
+    opt.addEventListener('click', function(){
+      selectedGem = key;
+      gemPicker.querySelectorAll('.gem-opt').forEach(function(o){ o.classList.remove('selected'); });
+      opt.classList.add('selected');
+    });
+    gemPicker.appendChild(opt);
+  });
+
+  function openContactModal(id){
+    editingId = id;
+    var c = id ? state.contacts.find(function(x){ return x.id === id; }) : null;
+    document.getElementById('contactModalTitle').textContent = c ? 'Изменить камень' : 'Новый камень';
+    document.getElementById('fName').value = c ? c.name : '';
+    document.getElementById('fCode').value = c ? formatCode(c.code) : '';
+    document.getElementById('fNotes').value = c ? c.notes : '';
+    autoGrow(document.getElementById('fNotes'));
+    selectedGem = c ? c.gem : GEM_KEYS[Math.floor(Math.random()*GEM_KEYS.length)];
+    gemPicker.querySelectorAll('.gem-opt').forEach(function(o){
+      o.classList.toggle('selected', o.dataset.gem === selectedGem);
+    });
+    document.getElementById('btnDeleteContact').style.display = c ? 'block' : 'none';
+    modalContact.classList.add('open');
+  }
+  function closeContactModal(){ modalContact.classList.remove('open'); editingId = null; }
+
+  document.getElementById('btnCancelContact').addEventListener('click', closeContactModal);
+  modalContact.addEventListener('click', function(e){ if(e.target === modalContact) closeContactModal(); });
+
+  document.getElementById('fCode').addEventListener('input', function(e){
+    var pos = e.target.selectionStart;
+    var before = e.target.value.length;
+    e.target.value = formatCode(e.target.value);
+    var after = e.target.value.length;
+    try{ e.target.selectionEnd = pos + (after-before); }catch(err){}
+  });
+  document.getElementById('btnGenCode').addEventListener('click', function(){
+    var code = '';
+    for(var i=0;i<6;i++){ code += Math.floor(Math.random()*10); }
+    document.getElementById('fCode').value = formatCode(code);
+  });
+
+  document.getElementById('btnSaveContact').addEventListener('click', function(){
+    var name = document.getElementById('fName').value.trim();
+    var code = rawCode(document.getElementById('fCode').value);
+    var notes = document.getElementById('fNotes').value.trim();
+    if(!name){ showToast('Дайте имя собеседнику'); return; }
+    if(code.length < 3){ showToast('Резонансный код слишком короткий'); return; }
+    if(editingId){
+      var c = state.contacts.find(function(x){ return x.id === editingId; });
+      c.name = name; c.code = code; c.gem = selectedGem; c.notes = notes;
+    } else {
+      state.contacts.push({id:cryptoId(), name:name, code:code, gem:selectedGem, notes:notes});
+    }
+    saveState();
+    closeContactModal();
+    renderContacts();
+    showToast('Камень настроен');
+  });
+
+  document.getElementById('btnDeleteContact').addEventListener('click', function(){
+    var id = editingId;
+    askConfirm('Разбить камень?', 'Связь с этим собеседником будет потеряна безвозвратно.', function(){
+      state.contacts = state.contacts.filter(function(x){ return x.id !== id; });
+      saveState();
+      closeContactModal();
+      renderContacts();
+      showToast('Камень разбит');
+    });
+  });
+
+  function autoGrow(el){
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight) + 'px';
+  }
+  document.getElementById('fNotes').addEventListener('input', function(){ autoGrow(this); });
+
+  /* ---------- CONFIRM MODAL ---------- */
+  var modalConfirm = document.getElementById('modalConfirm');
+  var confirmCb = null;
+  function askConfirm(title, text, cb){
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = text;
+    confirmCb = cb;
+    modalConfirm.classList.add('open');
+  }
+  document.getElementById('btnConfirmNo').addEventListener('click', function(){
+    modalConfirm.classList.remove('open'); confirmCb = null;
+  });
+  document.getElementById('btnConfirmYes').addEventListener('click', function(){
+    modalConfirm.classList.remove('open');
+    var cb = confirmCb; confirmCb = null;
+    if(cb) cb();
+  });
+  modalConfirm.addEventListener('click', function(e){ if(e.target === modalConfirm){ modalConfirm.classList.remove('open'); confirmCb=null; } });
+
+  /* ---------- SETTINGS MODAL ---------- */
+  var modalSettings = document.getElementById('modalSettings');
+  document.getElementById('btnSettings').addEventListener('click', function(){ modalSettings.classList.add('open'); });
+  document.getElementById('btnCloseSettings').addEventListener('click', function(){ modalSettings.classList.remove('open'); });
+  modalSettings.addEventListener('click', function(e){ if(e.target === modalSettings) modalSettings.classList.remove('open'); });
+
+  document.getElementById('btnExport').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'kamni-svyazi.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Файл сохранён');
+  });
+  document.getElementById('btnImport').addEventListener('click', function(){
+    document.getElementById('fileImport').click();
+  });
+  document.getElementById('fileImport').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var d = JSON.parse(ev.target.result);
+        if(d && Array.isArray(d.contacts) && Array.isArray(d.journal)){
+          state = d;
+          saveState();
+          renderContacts(); renderJournal();
+          showToast('Данные загружены');
+        } else {
+          showToast('Файл не распознан');
+        }
+      }catch(err){ showToast('Не удалось прочитать файл'); }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+  document.getElementById('btnWipeAll').addEventListener('click', function(){
+    askConfirm('Стереть всё?', 'Все собеседники и журнал соединений будут удалены без возможности восстановления.', function(){
+      state = {contacts:[], journal:[]};
+      saveState();
+      renderContacts(); renderJournal();
+      modalSettings.classList.remove('open');
+      showToast('Хранилище очищено');
+    });
+  });
+
+  /* ---------- KEYPAD ---------- */
+  var keypadGrid = document.getElementById('keypadGrid');
+  var typed = '';
+  var KEYS = ['1','2','3','4','5','6','7','8','9','','0','back'];
+  KEYS.forEach(function(k){
+    var btn = document.createElement('button');
+    if(k === ''){
+      btn.className = 'key ghost';
+    } else if(k === 'back'){
+      btn.className = 'key backspace';
+      btn.innerHTML = '&#9003;';
+      btn.addEventListener('click', function(){ typed = typed.slice(0,-1); updateKeypad(); });
+    } else {
+      btn.className = 'key';
+      btn.textContent = k;
+      btn.addEventListener('click', function(){
+        if(typed.length < 9){ typed += k; updateKeypad(); }
+      });
+    }
+    keypadGrid.appendChild(btn);
+  });
+  function updateKeypad(){
+    document.getElementById('keypadDisplay').textContent = typed ? formatCode(typed) : '—';
+    var match = state.contacts.find(function(c){ return c.code === typed; });
+    document.getElementById('matchedName').textContent = match ? match.name : '\u00A0';
+    document.getElementById('btnDialCall').disabled = typed.length < 3;
+  }
+  document.getElementById('btnDialCall').addEventListener('click', function(){
+    var match = state.contacts.find(function(c){ return c.code === typed; });
+    var target = match || {name:null, code:typed, gem:'arcane'};
+    startCall(target);
+    typed = ''; updateKeypad();
+  });
+
+  /* ---------- JOURNAL ---------- */
+  var journalListEl = document.getElementById('journalList');
+  function fmtTime(ts){
+    var d = new Date(ts);
+    var now = new Date();
+    var sameDay = d.toDateString() === now.toDateString();
+    var hh = ('0'+d.getHours()).slice(-2), mm = ('0'+d.getMinutes()).slice(-2);
+    if(sameDay) return 'сегодня, ' + hh + ':' + mm;
+    var dd = ('0'+d.getDate()).slice(-2), mo = ('0'+(d.getMonth()+1)).slice(-2);
+    return dd + '.' + mo + ', ' + hh + ':' + mm;
+  }
+  function fmtDur(sec){
+    var m = Math.floor(sec/60), s = sec%60;
+    return m + ':' + ('0'+s).slice(-2);
+  }
+  function renderJournal(){
+    var list = state.journal.slice().sort(function(a,b){ return b.ts - a.ts; });
+    journalListEl.innerHTML = '';
+    if(list.length === 0){
+      journalListEl.innerHTML = '<div class="empty-state"><span class="big">&#128220;</span>Журнал пуст.<br>Здесь появятся ваши соединения.</div>';
+      return;
+    }
+    list.forEach(function(entry){
+      var row = document.createElement('div');
+      row.className = 'journal-row';
+      var missed = entry.type === 'missed';
+      row.innerHTML =
+        '<div class="jicon ' + (missed?'missed':'outgoing') + '">' + (missed ? '&#9889;' : '&#8599;') + '</div>' +
+        '<div class="jinfo"><div class="name"></div><div class="meta' + (missed?' missed-text':'') + '"></div></div>' +
+        '<div class="jrow-actions"><button class="icon-btn" data-act="call" title="Позвать снова">&#9742;</button>' +
+        '<button class="icon-btn" data-act="del" title="Удалить запись">&#10005;</button></div>';
+      row.querySelector('.name').textContent = entry.name || ('Код ' + formatCode(entry.code));
+      var metaText = fmtTime(entry.ts) + ' · не ответил, гудки ' + fmtDur(entry.duration);
+      row.querySelector('.meta').textContent = metaText;
+      row.querySelector('[data-act="call"]').addEventListener('click', function(){
+        var match = state.contacts.find(function(c){ return c.code === entry.code; });
+        startCall(match || {name:entry.name, code:entry.code, gem:'arcane'});
+      });
+      row.querySelector('[data-act="del"]').addEventListener('click', function(){
+        askConfirm('Удалить запись?', 'Эта запись будет удалена из журнала.', function(){
+          state.journal = state.journal.filter(function(x){ return x.id !== entry.id; });
+          saveState(); renderJournal();
+        });
+      });
+      journalListEl.appendChild(row);
+    });
+  }
+  document.getElementById('btnClearJournal').addEventListener('click', function(){
+    if(state.journal.length === 0) return;
+    askConfirm('Очистить журнал?', 'Вся история соединений будет удалена.', function(){
+      state.journal = [];
+      saveState(); renderJournal();
+    });
+  });
+
+  /* ---------- RINGTONE ENGINE ---------- */
+  var RINGTONES = {
+    chime:{ name:'Хрустальный перезвон', desc:'Три восходящих звонких удара', cycle:1700 },
+    hum:{ name:'Гул старых чар', desc:'Низкий пульсирующий гул', cycle:1500 },
+    pulse:{ name:'Рунный пульс', desc:'Два коротких резких сигнала', cycle:950 },
+    choir:{ name:'Небесный хор', desc:'Плотный нарастающий аккорд', cycle:2300 },
+    echo:{ name:'Эхо пещеры', desc:'Одиночный удар с затухающим эхом', cycle:2000 }
+  };
+  var RINGTONE_KEYS = Object.keys(RINGTONES);
+
+  var audioCtx = null;
+  var loudChain = null;
+  function getAudio(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // Loudness chain: heavy limiter (compressor) followed by makeup gain,
+      // so every ringtone plays back at the loudest level the browser allows
+      // without harsh clipping.
+      var limiter = audioCtx.createDynamicsCompressor();
+      limiter.threshold.setValueAtTime(-42, audioCtx.currentTime);
+      limiter.knee.setValueAtTime(6, audioCtx.currentTime);
+      limiter.ratio.setValueAtTime(20, audioCtx.currentTime);
+      limiter.attack.setValueAtTime(0.001, audioCtx.currentTime);
+      limiter.release.setValueAtTime(0.12, audioCtx.currentTime);
+      var makeup = audioCtx.createGain();
+      makeup.gain.setValueAtTime(3.2, audioCtx.currentTime);
+      limiter.connect(makeup);
+      makeup.connect(audioCtx.destination);
+      loudChain = limiter;
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function tone(ctx, t0, freq, dur, opts){
+    opts = opts || {};
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.type = opts.type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    if(opts.slideTo){ osc.frequency.exponentialRampToValueAtTime(opts.slideTo, t0 + dur); }
+    var peak = opts.peak != null ? opts.peak : 1;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + (opts.attack || 0.015));
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g);
+    g.connect(loudChain);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+  }
+  function playRingtoneCycle(type){
+    var ctx = getAudio();
+    var t0 = ctx.currentTime + 0.02;
+    if(type === 'chime'){
+      tone(ctx, t0, 880, 0.28, {peak:1});
+      tone(ctx, t0+0.16, 1174.7, 0.28, {peak:1});
+      tone(ctx, t0+0.32, 1568, 0.42, {peak:1});
+    } else if(type === 'hum'){
+      tone(ctx, t0, 130, 0.5, {type:'sawtooth', peak:0.9});
+      tone(ctx, t0+0.05, 261.6, 0.5, {type:'sine', peak:0.6});
+      tone(ctx, t0+0.55, 130, 0.5, {type:'sawtooth', peak:0.9});
+      tone(ctx, t0+0.6, 261.6, 0.5, {type:'sine', peak:0.6});
+    } else if(type === 'pulse'){
+      tone(ctx, t0, 990, 0.12, {type:'square', peak:0.85, attack:0.004});
+      tone(ctx, t0+0.18, 990, 0.12, {type:'square', peak:0.85, attack:0.004});
+    } else if(type === 'choir'){
+      tone(ctx, t0, 523.25, 1.1, {peak:0.8, attack:0.25});
+      tone(ctx, t0, 659.25, 1.1, {peak:0.8, attack:0.25});
+      tone(ctx, t0, 784.0, 1.1, {peak:0.8, attack:0.25});
+    } else if(type === 'echo'){
+      tone(ctx, t0, 700, 0.5, {peak:1, attack:0.005});
+      tone(ctx, t0+0.28, 700, 0.35, {peak:0.55});
+      tone(ctx, t0+0.52, 700, 0.3, {peak:0.28});
+      tone(ctx, t0+0.74, 700, 0.25, {peak:0.12});
+    }
+  }
+  var ringLoopInt = null;
+  var ringSource = null;
+  var customBufferCache = {};
+
+  function findCustom(id){
+    return (state.settings.customRingtones || []).find(function(x){ return x.id === id; });
+  }
+  function decodeCustom(entry){
+    if(customBufferCache[entry.id]) return customBufferCache[entry.id];
+    var ctx = getAudio();
+    var p = fetch(entry.dataUrl)
+      .then(function(r){ return r.arrayBuffer(); })
+      .then(function(buf){ return ctx.decodeAudioData(buf); });
+    customBufferCache[entry.id] = p;
+    p.catch(function(){ delete customBufferCache[entry.id]; });
+    return p;
+  }
+  function playCustomOnce(entry){
+    decodeCustom(entry).then(function(buffer){
+      var ctx = getAudio();
+      var src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(loudChain);
+      src.start(0);
+    }).catch(function(){ showToast('Не удалось прочитать этот файл'); });
+  }
+  function playCustomLoop(entry){
+    decodeCustom(entry).then(function(buffer){
+      if(!callState) return; // call already ended before decoding finished
+      var ctx = getAudio();
+      var src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.loop = true;
+      src.connect(loudChain);
+      src.start(0);
+      ringSource = src;
+    }).catch(function(){
+      showToast('Файл не воспроизводится — включена стандартная мелодия');
+      fallbackBuiltinLoop('chime');
+    });
+  }
+  function fallbackBuiltinLoop(type){
+    playRingtoneCycle(type);
+    ringLoopInt = setInterval(function(){ playRingtoneCycle(type); }, RINGTONES[type].cycle);
+  }
+  function startRingLoop(){
+    stopRingLoop();
+    var sel = (state.settings && state.settings.ringtone) || 'chime';
+    if(sel.indexOf('custom:') === 0){
+      var entry = findCustom(sel.slice(7));
+      if(entry){ playCustomLoop(entry); return; }
+      sel = 'chime';
+      state.settings.ringtone = 'chime';
+      saveState();
+    }
+    var type = RINGTONES[sel] ? sel : 'chime';
+    fallbackBuiltinLoop(type);
+  }
+  function stopRingLoop(){
+    if(ringLoopInt){ clearInterval(ringLoopInt); ringLoopInt = null; }
+    if(ringSource){ try{ ringSource.stop(); }catch(e){} ringSource = null; }
+  }
+
+  var ringtoneListEl = document.getElementById('ringtoneList');
+  var customRingtoneListEl = document.getElementById('customRingtoneList');
+
+  function renderRingtoneList(){
+    ringtoneListEl.innerHTML = '';
+    var current = (state.settings && state.settings.ringtone) || 'chime';
+    RINGTONE_KEYS.forEach(function(key){
+      var rt = RINGTONES[key];
+      var row = document.createElement('div');
+      row.className = 'ringtone-opt' + (key === current ? ' selected' : '');
+      row.innerHTML =
+        '<div class="radio"></div>' +
+        '<div class="rt-info"><div class="rt-name"></div><div class="rt-desc"></div></div>' +
+        '<button class="rt-preview" title="Прослушать">&#9658;</button>';
+      row.querySelector('.rt-name').textContent = rt.name;
+      row.querySelector('.rt-desc').textContent = rt.desc;
+      row.addEventListener('click', function(e){
+        if(e.target.closest('.rt-preview')) return;
+        state.settings.ringtone = key;
+        saveState();
+        renderRingtoneList();
+        renderCustomRingtoneList();
+      });
+      row.querySelector('.rt-preview').addEventListener('click', function(e){
+        e.stopPropagation();
+        playRingtoneCycle(key);
+      });
+      ringtoneListEl.appendChild(row);
+    });
+  }
+
+  function renderCustomRingtoneList(){
+    customRingtoneListEl.innerHTML = '';
+    var list = state.settings.customRingtones || [];
+    var current = (state.settings && state.settings.ringtone) || 'chime';
+    if(list.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'loud-hint';
+      empty.style.margin = '2px 0 4px';
+      empty.textContent = 'Пока нет своих файлов — загрузите их ниже.';
+      customRingtoneListEl.appendChild(empty);
+      return;
+    }
+    list.forEach(function(entry){
+      var key = 'custom:' + entry.id;
+      var row = document.createElement('div');
+      row.className = 'ringtone-opt' + (key === current ? ' selected' : '');
+      row.innerHTML =
+        '<div class="radio"></div>' +
+        '<div class="rt-info"><div class="rt-name"></div><div class="rt-desc">свой файл</div></div>' +
+        '<button class="rt-preview" title="Прослушать">&#9658;</button>' +
+        '<button class="rt-del" title="Удалить">&#10005;</button>';
+      row.querySelector('.rt-name').textContent = entry.name;
+      row.addEventListener('click', function(e){
+        if(e.target.closest('.rt-preview') || e.target.closest('.rt-del')) return;
+        state.settings.ringtone = key;
+        saveState();
+        renderRingtoneList();
+        renderCustomRingtoneList();
+      });
+      row.querySelector('.rt-preview').addEventListener('click', function(e){
+        e.stopPropagation();
+        playCustomOnce(entry);
+      });
+      row.querySelector('.rt-del').addEventListener('click', function(e){
+        e.stopPropagation();
+        askConfirm('Удалить файл?', '«' + entry.name + '» будет удалён из настроек звука.', function(){
+          state.settings.customRingtones = state.settings.customRingtones.filter(function(x){ return x.id !== entry.id; });
+          delete customBufferCache[entry.id];
+          if(state.settings.ringtone === key) state.settings.ringtone = 'chime';
+          saveState();
+          renderRingtoneList();
+          renderCustomRingtoneList();
+        });
+      });
+      customRingtoneListEl.appendChild(row);
+    });
+  }
+
+  document.getElementById('uploadRow').addEventListener('click', function(){
+    document.getElementById('fileRingtone').click();
+  });
+  document.getElementById('fileRingtone').addEventListener('change', function(e){
+    var files = Array.prototype.slice.call(e.target.files || []);
+    e.target.value = '';
+    if(files.length === 0) return;
+    files.forEach(function(file){
+      if(file.type.indexOf('audio') !== 0){
+        showToast('«' + file.name + '» — не аудиофайл, пропущен');
+        return;
+      }
+      if(file.size > 8 * 1024 * 1024){
+        showToast('«' + file.name + '» слишком большой (>8 МБ), пропущен');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var entry = {
+          id: cryptoId(),
+          name: file.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Своя мелодия',
+          dataUrl: ev.target.result
+        };
+        state.settings.customRingtones.push(entry);
+        var ok = saveState();
+        if(!ok){
+          state.settings.customRingtones.pop();
+          showToast('Не хватило места в хранилище браузера для этого файла');
+          return;
+        }
+        state.settings.ringtone = 'custom:' + entry.id;
+        saveState();
+        renderRingtoneList();
+        renderCustomRingtoneList();
+        showToast('Мелодия «' + entry.name + '» добавлена');
+      };
+      reader.onerror = function(){ showToast('Не удалось прочитать «' + file.name + '»'); };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  renderRingtoneList();
+  renderCustomRingtoneList();
+
+  /* ---------- CALL SCREEN ---------- */
+  var callScreen = document.getElementById('callScreen');
+  var callGem = document.getElementById('callGem');
+  var callStatus = document.getElementById('callStatus');
+  var callName = document.getElementById('callName');
+  var callCode = document.getElementById('callCode');
+  var callTimer = document.getElementById('callTimer');
+  var callState = null; // {startTs, timerInt, target}
+
+  function startCall(target){
+    if(callState) return;
+    var gem = GEMS[target.gem] || null;
+    if(gem){
+      callGem.style.setProperty('--cg1', gem.g1);
+      callGem.style.setProperty('--cg2', gem.g2);
+    } else {
+      callGem.style.removeProperty('--cg1');
+      callGem.style.removeProperty('--cg2');
+    }
+    callName.textContent = target.name || 'Неизвестный резонанс';
+    callCode.textContent = formatCode(target.code);
+    callStatus.textContent = 'Гудки… собеседник не отвечает';
+    callTimer.textContent = fmtDur(0);
+    document.getElementById('btnMute').classList.remove('on');
+    document.getElementById('btnSpeaker').classList.remove('on');
+    callState = { startTs:Date.now(), timerInt:null, target:target };
+    callScreen.classList.add('open');
+    startRingLoop();
+
+    callState.timerInt = setInterval(function(){
+      if(!callState) return;
+      var sec = Math.floor((Date.now() - callState.startTs)/1000);
+      callTimer.textContent = fmtDur(sec);
+    }, 1000);
+  }
+
+  function endCall(){
+    if(!callState) return;
+    stopRingLoop();
+    clearInterval(callState.timerInt);
+    var target = callState.target;
+    var rang = Math.max(1, Math.floor((Date.now() - callState.startTs)/1000));
+    state.journal.push({id:cryptoId(), name:target.name||null, code:target.code, type:'missed', duration:rang, ts:Date.now()});
+    saveState();
+    callScreen.classList.remove('open');
+    callState = null;
+    renderJournal();
+  }
+  document.getElementById('btnEndCall').addEventListener('click', endCall);
+  document.getElementById('btnMute').addEventListener('click', function(){ this.classList.toggle('on'); });
+  document.getElementById('btnSpeaker').addEventListener('click', function(){ this.classList.toggle('on'); });
+
+  /* ---------- init ---------- */
+  updateKeypad();
+  renderContacts();
+  renderJournal();
+})();
+</script>
+</body>
+</html>
