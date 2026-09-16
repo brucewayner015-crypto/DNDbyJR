@@ -1717,10 +1717,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .dyn-drag-handle span{
   width:4px;height:4px;border-radius:50%;
   background:var(--ink-soft);
-  opacity:0.55;
-}
+  opacity:0.55;}
 .dyn-drag-handle:active{cursor:grabbing;}
 .dyn-drag-handle:active span{opacity:0.9;background:var(--gold);}
+.app-shell[data-drag-handle-left="1"] .dyn-drag-handle{
+  top:7px;left:10px;
+  width:24px;height:22px;
+  transform:none;
+  justify-content:center;
+}
+.app-shell[data-drag-handle-left="1"] .dyn-item-actions{left:auto;right:10px;}
 .dyn-item-actions{
   position:absolute;
   top:7px;right:10px;
@@ -4132,6 +4138,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <div class="settings-divider"></div>
 
+        <p class="modal-text" style="margin-bottom:8px;">Перетаскивание карточек</p>
+        <label class="inline-check">
+          <input type="checkbox" id="dragHandleLeftToggle"> Точки для перемещения — в левом углу
+        </label>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:2px;" data-i18n="settings.scaleTitle">Масштаб интерфейса</p>
         <div class="scale-control">
           <button class="scale-btn" id="scaleMinus" aria-label="Уменьшить">−</button>
@@ -4342,7 +4355,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.14-13';
+  var APP_VERSION = '2026.09.14-14';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -9094,6 +9107,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  function applyDragHandleLeft(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    if (uiSettings.dragHandleLeft) shell.setAttribute('data-drag-handle-left', '1');
+    else shell.removeAttribute('data-drag-handle-left');
+  }
+
+  function bindDragHandleLeftToggle(){
+    var toggle = document.getElementById('dragHandleLeftToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.dragHandleLeft;
+    toggle.addEventListener('change', function(){
+      uiSettings.dragHandleLeft = toggle.checked;
+      saveUiSettings();
+      applyDragHandleLeft();
+    });
+  }
+
   function renderBtnShapeGrid(){
     var wrap = document.getElementById('btnShapeGrid');
     if (!wrap) return;
@@ -9233,7 +9264,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false, dragHandleLeft: false};
 
   function loadUiSettings(){
     try{
@@ -9253,6 +9284,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.richTextEnabled === 'boolean') uiSettings.richTextEnabled = loaded.richTextEnabled;
         if (loaded && typeof loaded.chatMuted === 'boolean') uiSettings.chatMuted = loaded.chatMuted;
         if (loaded && typeof loaded.twoColSkills === 'boolean') uiSettings.twoColSkills = loaded.twoColSkills;
+        if (loaded && typeof loaded.dragHandleLeft === 'boolean') uiSettings.dragHandleLeft = loaded.dragHandleLeft;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -9891,6 +9923,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindRichTextToolbar();
   applyTwoColSkills();
   bindTwoColSkillsToggle();
+  applyDragHandleLeft();
+  bindDragHandleLeftToggle();
   applyFontSet();
   applyIconSet();
   applyI18n();
