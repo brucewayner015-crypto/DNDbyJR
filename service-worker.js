@@ -1,41 +1,66 @@
-const CACHE_NAME = 'dnevnik-cache-v1';
+const CACHE_NAME = 'dnd-sheet-cache-v113-1789512585';
 const ASSETS = [
-  './',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './icons/icon-maskable-512.png',
+  './dm.html',
+  './dm-manifest.json',
+  './icons-dm/icon-192.png',
+  './icons-dm/icon-512.png',
+  './icons-dm/icon-maskable-512.png',
+  './icons-dm/apple-touch-icon.png'
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', function(event){
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return networkResponse;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
+    caches.open(CACHE_NAME).then(function(cache){
+      return cache.addAll(ASSETS);
+    }).then(function(){
+      return self.skipWaiting();
     })
   );
+});
+
+self.addEventListener('activate', function(event){
+  event.waitUntil(
+    caches.keys().then(function(keys){
+      return Promise.all(
+        keys.filter(function(key){ return key !== CACHE_NAME; })
+            .map(function(key){ return caches.delete(key); })
+      );
+    }).then(function(){
+      return self.clients.claim();
+    })
+  );
+});
+
+// Network-first strategy: always tries to fetch the latest version from the
+// hosted site first (so updates show up as soon as you're online), and only
+// falls back to the cached copy when there is no connection.
+self.addEventListener('fetch', function(event){
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    fetch(event.request).then(function(response){
+      var copy = response.clone();
+      caches.open(CACHE_NAME).then(function(cache){
+        cache.put(event.request, copy);
+      });
+      return response;
+    }).catch(function(){
+      return caches.match(event.request).then(function(cached){
+        if (cached) return cached;
+        if (event.request.mode === 'navigate'){
+          if (event.request.url.indexOf('dm.html') !== -1) return caches.match('./dm.html');
+          return caches.match('./index.html');
+        }
+      });
+    })
+  );
+});
+
+// Lets the page force this worker to take over immediately after an update.
+self.addEventListener('message', function(event){
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
