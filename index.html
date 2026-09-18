@@ -4195,9 +4195,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
         <div class="settings-divider"></div>
 
         <p class="modal-text" style="margin-bottom:6px;">Восстановить персонажа по ID</p>
-        <div class="settings-hint" style="margin-bottom:8px;">Если сменили браузер или очистили данные — вставьте сюда свой старый ID, чтобы забрать персонажа обратно. Текущий персонаж на этом устройстве будет заменён.</div>
+        <div class="settings-hint" style="margin-bottom:8px;">Если сменили браузер или очистили данные — вставьте сюда свой старый ID. Приложение переключится на него целиком: персонаж, чат и карта станут такими же, как были там — это не копия, а полноценный переход.</div>
         <input type="text" id="restoreUidInput" placeholder="Старый ID аккаунта" style="margin-bottom:8px;">
-        <button class="update-btn" id="btnRestoreByUid">⭯ Восстановить</button>
+        <button class="update-btn" id="btnRestoreByUid">⭯ Переключиться на этот ID</button>
         <div class="update-status" id="restoreUidStatus"></div>
 
         <div class="settings-divider"></div>
@@ -4376,7 +4376,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.17-1';
+  var APP_VERSION = '2026.09.17-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4447,6 +4447,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
     appId: "1:914138982194:web:1bbd13654057099204592b"
   };
   var fbDb = null, fbUser = null, fbReady = false;
+  var MY_ID_KEY = 'dnd5e_my_player_id';
+  function getMyId(){
+    try{
+      var override = localStorage.getItem(MY_ID_KEY);
+      if (override) return override;
+    }catch(e){}
+    return fbUser ? fbUser.uid : null;
+  }
+  function setMyId(id){
+    try{
+      if (id) localStorage.setItem(MY_ID_KEY, id);
+      else localStorage.removeItem(MY_ID_KEY);
+    }catch(e){}
+  }
   var cloudSyncTimer = null;
 
   function setAccountStatus(kind, text){
@@ -4458,7 +4472,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function updateAccountUidUI(){
     var uidEl = document.getElementById('fbUidText');
-    if (uidEl) uidEl.textContent = fbUser ? fbUser.uid : '—';
+    if (uidEl) uidEl.textContent = fbUser ? getMyId() : '—';
   }
 
   function initFirebase(){
@@ -4497,7 +4511,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     clearTimeout(cloudSyncTimer);
     cloudSyncTimer = setTimeout(function(){
       try{
-        fbDb.collection('characters').doc(fbUser.uid).set({
+        fbDb.collection('characters').doc(getMyId()).set({
           state: state,
           characterName: (state.meta && state.meta.name) ? state.meta.name : '',
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -5714,7 +5728,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     overlay.classList.add('active');
     appOpenModal(itemCloseSendPickerUIOnly);
     chatLoadKnownPlayers().then(function(){
-      var others = chatKnownPlayers.filter(function(p){ return p.uid !== fbUser.uid; });
+      var others = chatKnownPlayers.filter(function(p){ return p.uid !== getMyId(); });
       if (!others.length){
         list.innerHTML = '<div class="chat-gallery-empty">Другие игроки пока не найдены.</div>';
         return;
@@ -5746,9 +5760,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var item = itemSendPendingItem, idx = itemSendPendingIdx;
     if (!item || !fbDb || !fbUser) return;
     var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : 'Без имени';
-    var threadId = chatComputeThreadId(fbUser.uid, player.uid);
+    var threadId = chatComputeThreadId(getMyId(), player.uid);
     var payload = {
-      senderId: fbUser.uid, senderName: myName,
+      senderId: getMyId(), senderName: myName,
       text: '',
       replyTo: null, replyToName: null, replyToText: null,
       mediaUrl: null, mediaType: null, mediaName: null,
@@ -5758,8 +5772,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
       },
       threadId: threadId,
       recipientId: player.uid,
-      participants: [fbUser.uid, player.uid],
-      readBy: [fbUser.uid],
+      participants: [getMyId(), player.uid],
+      readBy: [getMyId()],
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     fbDb.collection('dm_messages').add(payload).then(function(){
@@ -5820,7 +5834,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         snap.docChanges().forEach(function(change){
           if (change.type !== 'added') return;
           var d = change.doc.data();
-          if (!fbUser || d.senderId === fbUser.uid) return;
+          if (!fbUser || d.senderId === getMyId()) return;
           var myName = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
           var isMention = chatCheckMentionText(d.text, myName);
           var body = d.itemOffer ? ('🎁 ' + (d.itemOffer.itemName||'')) : (d.text || (d.mediaUrl ? '📎 Вложение' : ''));
@@ -5931,7 +5945,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function chatBuildMessageEl(id, d){
     var el = document.createElement('div');
-    var isMe = fbUser && d.senderId === fbUser.uid;
+    var isMe = fbUser && d.senderId === getMyId();
     el.className = 'chat-msg' + (isMe ? ' is-me' : '');
     el.dataset.msgId = id;
 
@@ -5972,14 +5986,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
     Object.keys(chatMsgData).forEach(function(id){
       var d = chatMsgData[id];
       var readBy = Array.isArray(d.readBy) ? d.readBy : [];
-      if (d.senderId !== fbUser.uid && readBy.indexOf(fbUser.uid) === -1) toMark.push(id);
+      if (d.senderId !== getMyId() && readBy.indexOf(getMyId()) === -1) toMark.push(id);
     });
     if (!toMark.length) return;
     var batch = fbDb.batch();
     toMark.forEach(function(id){
-      batch.update(fbDb.collection(col).doc(id), { readBy: firebase.firestore.FieldValue.arrayUnion(fbUser.uid) });
+      batch.update(fbDb.collection(col).doc(id), { readBy: firebase.firestore.FieldValue.arrayUnion(getMyId()) });
       var d = chatMsgData[id];
-      if (d){ d.readBy = (d.readBy||[]).concat([fbUser.uid]); }
+      if (d){ d.readBy = (d.readBy||[]).concat([getMyId()]); }
     });
     batch.commit().catch(function(err){ console.warn('mark read failed', err); });
   }
@@ -5999,7 +6013,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function chatMaybeNotify(thread, data){
-    if (!fbUser || data.senderId === fbUser.uid) return;
+    if (!fbUser || data.senderId === getMyId()) return;
     if (uiSettings.chatMuted) return;
     var isDM = thread.type === 'dm';
     var isMention = thread.type === 'group' && chatCheckMention(data.text);
@@ -6054,7 +6068,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }
       wrap.appendChild(el);
       chatMsgElements[id] = el;
-      if (change.type === 'added' && (!fbUser || data.senderId !== fbUser.uid)){
+      if (change.type === 'added' && (!fbUser || data.senderId !== getMyId())){
         receivedFromOther = true;
         if (chatNotifyReady) chatMaybeNotify(threadForNotify, data);
       }
@@ -6103,7 +6117,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var id = msgEl.dataset.msgId;
     var d = chatMsgData[id];
     if (!d) return;
-    var isMe = fbUser && d.senderId === fbUser.uid;
+    var isMe = fbUser && d.senderId === getMyId();
     if (!isMe) return; // only show for own messages, like WhatsApp
     chatSeenPopupMsgId = id;
     var readBy = Array.isArray(d.readBy) ? d.readBy : [];
@@ -6131,7 +6145,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function chatDeleteMessage(id){
     if (!fbDb || !id) return;
     var d = chatMsgData[id];
-    if (!d || !fbUser || d.senderId !== fbUser.uid) return;
+    if (!d || !fbUser || d.senderId !== getMyId()) return;
     var col = chatCollectionFor(chatCurrentThread);
     fbDb.collection(col).doc(id).delete().catch(function(err){
       alert('Не удалось удалить сообщение: ' + (err.message||err));
@@ -6382,7 +6396,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     appOpenModal(chatCloseGalleryUIOnly);
     var col = chatCollectionFor(chatCurrentThread);
     var query = fbDb.collection(col).orderBy('createdAt','desc').limit(300);
-    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
+    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('participants','array-contains',getMyId()).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
     query.get().then(function(snap){
       var items = [];
       snap.forEach(function(doc){
@@ -6574,20 +6588,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (!name) name = 'Без имени';
 
     var payload = {
-      senderId: fbUser.uid,
+      senderId: getMyId(),
       senderName: name,
       text: text,
       replyTo: chatReplyTarget ? chatReplyTarget.id : null,
       replyToName: chatReplyTarget ? chatReplyTarget.name : null,
       replyToText: chatReplyTarget ? chatReplyTarget.text : null,
       mediaUrl: null, mediaType: null, mediaName: null,
-      readBy: [fbUser.uid],
+      readBy: [getMyId()],
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     if (chatCurrentThread.type === 'dm'){
       payload.threadId = chatCurrentThread.threadId;
       payload.recipientId = chatCurrentThread.recipientId;
-      payload.participants = [fbUser.uid, chatCurrentThread.recipientId];
+      payload.participants = [getMyId(), chatCurrentThread.recipientId];
     }
 
     var sendBtn = document.getElementById('chatSendMicBtn');
@@ -6636,7 +6650,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function chatLoadMyAvatar(){
     var preview = document.getElementById('chatMyAvatarPreview');
     if (!fbDb || !fbUser || !preview) return;
-    fbDb.collection('characters').doc(fbUser.uid).get().then(function(doc){
+    fbDb.collection('characters').doc(getMyId()).get().then(function(doc){
       var url = doc.exists ? doc.data().avatarUrl : null;
       preview.innerHTML = url ? '<img src="'+escAttr(url)+'">' : '👤';
     }).catch(function(){});
@@ -6650,7 +6664,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var preview = document.getElementById('chatMyAvatarPreview');
     preview.innerHTML = '⏳';
     chatUploadMedia(file, file.name).then(function(url){
-      return fbDb.collection('characters').doc(fbUser.uid).set({avatarUrl: url}, {merge:true});
+      return fbDb.collection('characters').doc(getMyId()).set({avatarUrl: url}, {merge:true});
     }).then(function(){
       chatLoadMyAvatar();
       chatLoadKnownPlayers().then(chatRenderConvList);
@@ -6708,7 +6722,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
 
     var entries = [{type:'group', uid:null, name:'Общий чат'}].concat(
-      chatKnownPlayers.filter(function(p){ return !fbUser || p.uid !== fbUser.uid; })
+      chatKnownPlayers.filter(function(p){ return !fbUser || p.uid !== getMyId(); })
         .map(function(p){ return {type:'dm', uid:p.uid, name:p.name, avatarUrl:p.avatarUrl}; })
     );
 
@@ -6716,7 +6730,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var col = entry.type === 'group' ? 'chat_messages' : 'dm_messages';
       var q = entry.type === 'group'
         ? fbDb.collection(col).orderBy('createdAt','desc').limit(1)
-        : fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==', chatComputeThreadId(fbUser.uid, entry.uid)).orderBy('createdAt','desc').limit(1);
+        : fbDb.collection(col).where('participants','array-contains',getMyId()).where('threadId','==', chatComputeThreadId(getMyId(), entry.uid)).orderBy('createdAt','desc').limit(1);
       return q.get().then(function(snap){
         var last = null;
         snap.forEach(function(doc){ last = doc.data(); });
@@ -6750,7 +6764,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           if (r.entry.type === 'group'){
             chatOpenThread({type:'group'});
           } else {
-            chatOpenThread({type:'dm', threadId: chatComputeThreadId(fbUser.uid, r.entry.uid), recipientId: r.entry.uid, recipientName: r.entry.name});
+            chatOpenThread({type:'dm', threadId: chatComputeThreadId(getMyId(), r.entry.uid), recipientId: r.entry.uid, recipientName: r.entry.name});
           }
         });
         wrap.appendChild(item);
@@ -6784,7 +6798,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var col = chatCollectionFor(thread);
     var query = thread.type === 'group'
       ? fbDb.collection(col).orderBy('createdAt','asc').limitToLast(150)
-      : fbDb.collection(col).where('participants','array-contains',fbUser.uid).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
+      : fbDb.collection(col).where('participants','array-contains',getMyId()).where('threadId','==', thread.threadId).orderBy('createdAt','asc').limitToLast(150);
     chatUnsubscribe = query.onSnapshot(function(snap){
                                           chatApplySnapshot(snap);
                                           chatNotifyReady = true;
@@ -6952,7 +6966,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var m = mapsListData[id];
       var item = document.createElement('div');
       item.className = 'chat-list-item';
-      var isMine = fbUser && m.createdByUid === fbUser.uid;
+      var isMine = fbUser && m.createdByUid === getMyId();
       item.innerHTML =
         '<div class="chat-list-avatar"><img src="'+escAttr(m.imageUrl)+'"></div>' +
         '<div class="chat-list-body"><div class="chat-list-name">'+escAttr(m.name||'Без названия')+'</div>' +
@@ -7058,7 +7072,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
           description: values.description,
           icon: mapPinSettings.icon,
           createdByName: name,
-          createdByUid: fbUser ? fbUser.uid : null,
+          createdByUid: fbUser ? getMyId() : null,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).catch(function(err){ alert('Не удалось сохранить метку: ' + (err.message||err)); });
       }
@@ -7275,7 +7289,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         name: mapPendingUploadName,
         imageUrl: url,
         createdBy: creatorName,
-        createdByUid: fbUser ? fbUser.uid : null,
+        createdByUid: fbUser ? getMyId() : null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }).then(function(docRef){
@@ -7601,7 +7615,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var name = (state.meta && state.meta.name) ? state.meta.name.trim() : '';
     if (!name) name = 'Без имени';
     try{
-      fbDb.collection('tetris_scores').doc(fbUser.uid).set({
+      fbDb.collection('tetris_scores').doc(getMyId()).set({
         name: name,
         score: tetrisBest,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -7902,7 +7916,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         rank++;
         var d = doc.data();
         var row = document.createElement('div');
-        row.className = 'tetris-leaderboard-row' + (fbUser && doc.id === fbUser.uid ? ' is-me' : '');
+        row.className = 'tetris-leaderboard-row' + (fbUser && doc.id === getMyId() ? ' is-me' : '');
         row.innerHTML = '<span class="lb-rank">'+rank+'</span><span class="lb-name">'+escAttr(d.name||'—')+'</span><span class="lb-score">'+(d.score||0)+'</span>';
         listEl.appendChild(row);
       });
@@ -9956,7 +9970,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var btnCopyUid = document.getElementById('btnCopyUid');
   if (btnCopyUid){
     btnCopyUid.addEventListener('click', function(){
-      var uid = fbUser ? fbUser.uid : '';
+      var uid = fbUser ? getMyId() : '';
       if (!uid) return;
       function markCopied(){
         btnCopyUid.classList.add('copied');
@@ -9976,35 +9990,23 @@ input[type=checkbox]:active{transform:scale(0.88);}
     btnRestoreByUid.addEventListener('click', function(){
       var input = document.getElementById('restoreUidInput');
       var statusEl = document.getElementById('restoreUidStatus');
-      var oldUid = (input.value || '').trim();
+      var newId = (input.value || '').trim();
       statusEl.textContent = '';
       statusEl.style.color = '';
-      if (!oldUid){ statusEl.textContent = 'Введите ID.'; return; }
+      if (!newId){ statusEl.textContent = 'Введите ID.'; return; }
       if (!fbDb || !fbUser){ statusEl.textContent = 'Нет подключения к облаку — попробуйте через пару секунд.'; return; }
-      if (oldUid === fbUser.uid){ statusEl.textContent = 'Это и есть текущий ID этого устройства.'; return; }
-      showConfirm('Заменить персонажа на этом устройстве данными из ID «'+oldUid+'»? Текущий лист на этом устройстве будет перезаписан.', function(){
-        statusEl.textContent = 'Ищем персонажа…';
-        fbDb.collection('characters').doc(oldUid).get().then(function(doc){
-          if (!doc.exists || !doc.data() || !doc.data().state){
-            statusEl.style.color = 'var(--wax)';
-            statusEl.textContent = 'Персонаж с таким ID не найден.';
-            return null;
-          }
-          var oldData = doc.data();
-          return fbDb.collection('characters').doc(fbUser.uid).set({
-            state: oldData.state,
-            characterName: oldData.characterName || '',
-            avatarUrl: oldData.avatarUrl || null,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, {merge: true}).then(function(){
-            applyLoadedState(oldData.state);
+      if (newId === getMyId()){ statusEl.textContent = 'Это и есть текущий ID.'; return; }
+      showConfirm('Переключиться на ID «'+newId+'»? Персонаж, чат и карта на этом устройстве станут такими же, как под этим ID. Несохранённые локальные изменения будут заменены.', function(){
+        statusEl.textContent = 'Переключаемся…';
+        fbDb.collection('characters').doc(newId).get().then(function(doc){
+          setMyId(newId);
+          if (doc.exists && doc.data() && doc.data().state){
+            applyLoadedState(doc.data().state);
             saveState();
-            renderAll();
-            if (typeof chatLoadMyAvatar === 'function') chatLoadMyAvatar();
-            statusEl.style.color = 'var(--ok)';
-            statusEl.textContent = '✓ Персонаж восстановлен!';
-            input.value = '';
-          });
+          }
+          statusEl.style.color = 'var(--ok)';
+          statusEl.textContent = '✓ Готово! Перезагружаем…';
+          setTimeout(function(){ window.location.reload(); }, 600);
         }).catch(function(err){
           statusEl.style.color = 'var(--wax)';
           statusEl.textContent = 'Ошибка: ' + (err.message || err);
