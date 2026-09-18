@@ -4181,6 +4181,27 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
         <div class="settings-divider"></div>
 
+        <p class="modal-text" style="margin-bottom:6px;">Мой аккаунт</p>
+        <div class="account-status-row">
+          <span class="account-status-dot" id="fbStatusDot"></span>
+          <span class="account-status-text" id="fbStatusText">—</span>
+        </div>
+        <div class="feedback-email-row" style="margin-top:6px;">
+          <span class="feedback-email-text" id="fbUidText" style="word-break:break-all;">—</span>
+          <button type="button" class="feedback-copy-btn" id="btnCopyUid" title="Скопировать ID">⧉</button>
+        </div>
+        <div class="settings-hint">Этот ID — ваша анонимная учётная запись. Сохраните его в заметках на телефоне: если очистите данные браузера, это единственный способ вернуть доступ к персонажу и переписке.</div>
+
+        <div class="settings-divider"></div>
+
+        <p class="modal-text" style="margin-bottom:6px;">Восстановить персонажа по ID</p>
+        <div class="settings-hint" style="margin-bottom:8px;">Если сменили браузер или очистили данные — вставьте сюда свой старый ID, чтобы забрать персонажа обратно. Текущий персонаж на этом устройстве будет заменён.</div>
+        <input type="text" id="restoreUidInput" placeholder="Старый ID аккаунта" style="margin-bottom:8px;">
+        <button class="update-btn" id="btnRestoreByUid">⭯ Восстановить</button>
+        <div class="update-status" id="restoreUidStatus"></div>
+
+        <div class="settings-divider"></div>
+
         <p class="modal-text" style="margin-bottom:6px;" data-i18n="settings.charDataTitle">Данные персонажа</p>
         <div class="data-btn-row">
           <button class="util-btn" id="btnExport" data-i18n="btn.export">⬇ Экспорт</button>
@@ -4355,7 +4376,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.14-14';
+  var APP_VERSION = '2026.09.17-1';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4510,25 +4531,29 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  function applyLoadedState(loaded){
+    state = Object.assign(defaultState(), loaded);
+    // deep-merge nested objects to survive schema additions
+    ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
+      state[key] = Object.assign(defaultState()[key], loaded[key] || {});
+    });
+    migrateLegacySections(state, loaded);
+    if (!Array.isArray(state.attacks)) state.attacks = [];
+    if (!Array.isArray(state.items)) state.items = [];
+    if (!Array.isArray(state.spells)) state.spells = [];
+    if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
+    if (!state.combat.conditions) state.combat.conditions = [];
+    state.combat.conditions = migrateConditions(state.combat.conditions);
+    if (!state.combat.deathSuccess) state.combat.deathSuccess = [false,false,false];
+    if (!state.combat.deathFail) state.combat.deathFail = [false,false,false];
+  }
+
   function loadState(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       var loaded = JSON.parse(raw);
-      state = Object.assign(defaultState(), loaded);
-      // deep-merge nested objects to survive schema additions
-      ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
-        state[key] = Object.assign(defaultState()[key], loaded[key] || {});
-      });
-      migrateLegacySections(state, loaded);
-      if (!Array.isArray(state.attacks)) state.attacks = [];
-      if (!Array.isArray(state.items)) state.items = [];
-      if (!Array.isArray(state.spells)) state.spells = [];
-      if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
-      if (!state.combat.conditions) state.combat.conditions = [];
-      state.combat.conditions = migrateConditions(state.combat.conditions);
-      if (!state.combat.deathSuccess) state.combat.deathSuccess = [false,false,false];
-      if (!state.combat.deathFail) state.combat.deathFail = [false,false,false];
+      applyLoadedState(loaded);
     }catch(e){ console.warn('Не удалось загрузить сохранённые данные', e); }
   }
 
@@ -9812,16 +9837,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     reader.onload = function(){
       try{
         var loaded = JSON.parse(reader.result);
-        state = Object.assign(defaultState(), loaded);
-        ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
-          state[key] = Object.assign(defaultState()[key], loaded[key] || {});
-        });
-        migrateLegacySections(state, loaded);
-        state.combat.conditions = migrateConditions(state.combat.conditions);
-        if (!Array.isArray(state.attacks)) state.attacks = [];
-        if (!Array.isArray(state.items)) state.items = [];
-        if (!Array.isArray(state.spells)) state.spells = [];
-        if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
+        applyLoadedState(loaded);
         renderAll();
         saveState();
         alert(t('alert.charLoaded'));
@@ -9952,6 +9968,48 @@ input[type=checkbox]:active{transform:scale(0.88);}
       } else {
         window.prompt('Скопируйте ID вручную:', uid);
       }
+    });
+  }
+
+  var btnRestoreByUid = document.getElementById('btnRestoreByUid');
+  if (btnRestoreByUid){
+    btnRestoreByUid.addEventListener('click', function(){
+      var input = document.getElementById('restoreUidInput');
+      var statusEl = document.getElementById('restoreUidStatus');
+      var oldUid = (input.value || '').trim();
+      statusEl.textContent = '';
+      statusEl.style.color = '';
+      if (!oldUid){ statusEl.textContent = 'Введите ID.'; return; }
+      if (!fbDb || !fbUser){ statusEl.textContent = 'Нет подключения к облаку — попробуйте через пару секунд.'; return; }
+      if (oldUid === fbUser.uid){ statusEl.textContent = 'Это и есть текущий ID этого устройства.'; return; }
+      showConfirm('Заменить персонажа на этом устройстве данными из ID «'+oldUid+'»? Текущий лист на этом устройстве будет перезаписан.', function(){
+        statusEl.textContent = 'Ищем персонажа…';
+        fbDb.collection('characters').doc(oldUid).get().then(function(doc){
+          if (!doc.exists || !doc.data() || !doc.data().state){
+            statusEl.style.color = 'var(--wax)';
+            statusEl.textContent = 'Персонаж с таким ID не найден.';
+            return null;
+          }
+          var oldData = doc.data();
+          return fbDb.collection('characters').doc(fbUser.uid).set({
+            state: oldData.state,
+            characterName: oldData.characterName || '',
+            avatarUrl: oldData.avatarUrl || null,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, {merge: true}).then(function(){
+            applyLoadedState(oldData.state);
+            saveState();
+            renderAll();
+            if (typeof chatLoadMyAvatar === 'function') chatLoadMyAvatar();
+            statusEl.style.color = 'var(--ok)';
+            statusEl.textContent = '✓ Персонаж восстановлен!';
+            input.value = '';
+          });
+        }).catch(function(err){
+          statusEl.style.color = 'var(--wax)';
+          statusEl.textContent = 'Ошибка: ' + (err.message || err);
+        });
+      });
     });
   }
 
