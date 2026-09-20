@@ -1852,32 +1852,38 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 .currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
 
-.equip-slots-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
+.equip-slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .equip-slot{
-  aspect-ratio:1;
   position:relative;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  display:flex;flex-direction:column;
   background:rgba(255,255,255,0.35);
   border:1.5px dashed var(--parchment-shadow);
   border-radius:8px;
   cursor:pointer;
-  padding:2px 1px;
-  text-align:center;
+  overflow:hidden;
   transition:border-color .15s ease, background-color .15s ease, transform .1s ease;
 }
-.equip-slot:active{transform:scale(0.95);}
-.equip-slot .equip-slot-icon{font-size:16px;opacity:0.45;line-height:1;}
+.equip-slot:active{transform:scale(0.96);}
+.equip-slot-visual{
+  width:100%;
+  aspect-ratio:1;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.05);
+  flex-shrink:0;
+}
+.equip-slot .equip-slot-icon{font-size:26px;opacity:0.4;line-height:1;}
 .equip-slot-icon-img{
-  width:20px;height:20px;
+  width:100%;height:100%;
   object-fit:cover;
-  border-radius:4px;
-  opacity:0.55;
+  display:block;
 }
 .equip-slot.filled .equip-slot-icon-img{opacity:1;}
+.equip-slot-caption{padding:3px 3px 4px;text-align:center;min-width:0;}
 .equip-slot .equip-slot-label{
-  font-family:var(--font-display);font-size:6.5px;letter-spacing:0.2px;
+  font-family:var(--font-display);font-size:8px;letter-spacing:0.2px;
   color:var(--ink-soft);text-transform:uppercase;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+  display:block;
 }
 .equip-slot.filled{
   border-style:solid;
@@ -1886,18 +1892,20 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .equip-slot.filled .equip-slot-icon{opacity:1;}
 .equip-slot .equip-slot-name{
-  font-size:7px;color:var(--ink);
+  font-size:9px;color:var(--ink);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
   font-weight:700;
+  display:block;
 }
 .equip-slot-del{
-  position:absolute;top:-5px;right:-5px;
-  width:16px;height:16px;border-radius:50%;
+  position:absolute;top:4px;right:4px;
+  width:18px;height:18px;border-radius:50%;
   background:var(--wax);color:#fff;border:1px solid var(--parchment);
-  font-size:8px;line-height:1;
+  font-size:9px;line-height:1;
   display:flex;align-items:center;justify-content:center;
   padding:0;cursor:pointer;
   z-index:2;
+  box-shadow:0 1px 3px rgba(0,0,0,0.4);
 }
 .currency-grid .field{margin-bottom:0;}
 .currency-grid input{text-align:center;font-family:var(--font-mono);}
@@ -4483,7 +4491,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.17-7';
+  var APP_VERSION = '2026.09.17-8';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5232,8 +5240,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
         ? '<img class="equip-slot-icon-img" src="'+escAttr(slot.iconUrl)+'">'
         : '<span class="equip-slot-icon">'+escAttr(slot.icon || '❔')+'</span>';
       el.innerHTML =
-        iconHtml +
-        (filled ? '<span class="equip-slot-name">'+escAttr(slot.itemName)+'</span>' : '<span class="equip-slot-label">'+escAttr(slot.label||'')+'</span>') +
+        '<div class="equip-slot-visual">' + iconHtml + '</div>' +
+        '<div class="equip-slot-caption">' +
+          (filled ? '<span class="equip-slot-name">'+escAttr(slot.itemName)+'</span>' : '<span class="equip-slot-label">'+escAttr(slot.label||'')+'</span>') +
+        '</div>' +
         (equipSlotsEditMode ? '<button type="button" class="equip-slot-del" data-idx="'+idx+'" aria-label="Удалить слот">✕</button>' : '');
       el.addEventListener('click', function(e){
         if (e.target.closest('.equip-slot-del')) return;
