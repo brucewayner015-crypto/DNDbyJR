@@ -1852,23 +1852,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 .currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
 
-.equip-slots-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.equip-slots-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
 .equip-slot{
   aspect-ratio:1;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   background:rgba(255,255,255,0.35);
-  border:2px dashed var(--parchment-shadow);
-  border-radius:var(--radius-s);
+  border:1.5px dashed var(--parchment-shadow);
+  border-radius:8px;
   cursor:pointer;
-  padding:4px 2px;
+  padding:2px 1px;
   text-align:center;
   transition:border-color .15s ease, background-color .15s ease, transform .1s ease;
 }
 .equip-slot:active{transform:scale(0.95);}
-.equip-slot .equip-slot-icon{font-size:22px;opacity:0.45;}
+.equip-slot .equip-slot-icon{font-size:16px;opacity:0.45;line-height:1;}
+.equip-slot-icon-img{
+  width:20px;height:20px;
+  object-fit:cover;
+  border-radius:4px;
+  opacity:0.55;
+}
+.equip-slot.filled .equip-slot-icon-img{opacity:1;}
 .equip-slot .equip-slot-label{
-  font-family:var(--font-display);font-size:8.5px;letter-spacing:0.3px;
+  font-family:var(--font-display);font-size:6.5px;letter-spacing:0.2px;
   color:var(--ink-soft);text-transform:uppercase;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
 }
 .equip-slot.filled{
   border-style:solid;
@@ -1877,9 +1886,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 .equip-slot.filled .equip-slot-icon{opacity:1;}
 .equip-slot .equip-slot-name{
-  font-size:9px;color:var(--ink);
+  font-size:7px;color:var(--ink);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
   font-weight:700;
+}
+.equip-slot-del{
+  position:absolute;top:-5px;right:-5px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--wax);color:#fff;border:1px solid var(--parchment);
+  font-size:8px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;cursor:pointer;
+  z-index:2;
 }
 .currency-grid .field{margin-bottom:0;}
 .currency-grid input{text-align:center;font-family:var(--font-mono);}
@@ -3406,6 +3424,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .modal-btn.cancel{background:rgba(255,255,255,0.4);border-color:var(--ink-soft);color:var(--ink-soft);}
 .modal-btn.danger{background:linear-gradient(180deg,var(--wax-bright),var(--wax));border-color:var(--wax);color:var(--parchment);}
 .text-prompt-field{margin-bottom:12px;text-align:left;}
+.text-prompt-image-preview{
+  width:56px;height:56px;
+  border:1.5px dashed var(--parchment-shadow);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:rgba(255,255,255,0.35);
+  margin-bottom:6px;
+}
+.text-prompt-image-preview img{width:100%;height:100%;object-fit:cover;}
+.text-prompt-image-placeholder{font-size:9px;color:var(--ink-soft);text-align:center;padding:2px;}
+.text-prompt-image-btns{display:flex;gap:6px;}
+.text-prompt-image-btn{
+  flex:1;
+  padding:6px;
+  border-radius:6px;
+  border:1px solid var(--parchment-shadow);
+  background:rgba(255,255,255,0.4);
+  color:var(--ink);
+  font-size:11px;
+  cursor:pointer;
+}
 .text-prompt-field label{
   display:block;font-family:var(--font-display);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;
   color:var(--ink-soft);margin-bottom:4px;
@@ -3593,8 +3633,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <!-- ================= PAGE 4: ИНВЕНТАРЬ ================= -->
   <section class="page" data-page="inventory">
     <div class="card" id="equipmentSlotsCard" style="display:none;">
-      <h2>🧍 Экипировка</h2>
+      <h2>🧍 <span>Экипировка</span> <span class="h2-btn-group"><button class="h2-edit-btn" id="btnEditEquipSlots" title="Управление слотами">✎</button></span></h2>
       <div class="equip-slots-grid" id="equipSlotsGrid"></div>
+      <button class="add-btn" id="addEquipSlot" style="display:none;">+ добавить слот</button>
     </div>
     <div class="card">
       <h2 data-i18n="card.wallet">Кошелёк</h2>
@@ -4442,7 +4483,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.17-5';
+  var APP_VERSION = '2026.09.17-7';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4470,7 +4511,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
       attacks:[],
       currency:{cp:0,sp:0,ep:0,gp:0,pp:0},
       items:[],
-      equipment:{helmet:null, chest:null, gloves:null, pants:null, boots:null},
+      equipment:[
+        {icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:''},
+        {icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:''},
+        {icon:'🧤', iconUrl:'', label:'Перчатки', itemName:'', itemNotes:''},
+        {icon:'👖', iconUrl:'', label:'Штаны', itemName:'', itemNotes:''},
+        {icon:'🥾', iconUrl:'', label:'Обувь', itemName:'', itemNotes:''}
+      ],
       spellAbility:'none',
       slots: slots,
       spells:[],
@@ -4615,13 +4662,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function applyLoadedState(loaded){
     state = Object.assign(defaultState(), loaded);
     // deep-merge nested objects to survive schema additions
-    ['meta','abilities','saves','skills','combat','currency','traits','equipment'].forEach(function(key){
+    ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
       state[key] = Object.assign(defaultState()[key], loaded[key] || {});
     });
     migrateLegacySections(state, loaded);
     if (!Array.isArray(state.attacks)) state.attacks = [];
     if (!Array.isArray(state.items)) state.items = [];
     if (!Array.isArray(state.spells)) state.spells = [];
+    if (!Array.isArray(state.equipment)) state.equipment = defaultState().equipment;
     if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
     if (!state.combat.conditions) state.combat.conditions = [];
     state.combat.conditions = migrateConditions(state.combat.conditions);
@@ -5168,68 +5216,91 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- ITEMS (dynamic) ---------------- */
-  /* ---------------- EQUIPMENT SLOTS (developer feature) ---------------- */
-  var EQUIP_SLOTS = [
-    {id:'helmet', label:'Шлем', icon:'⛑'},
-    {id:'chest', label:'Нагрудник', icon:'🥋'},
-    {id:'gloves', label:'Перчатки', icon:'🧤'},
-    {id:'pants', label:'Штаны', icon:'👖'},
-    {id:'boots', label:'Обувь', icon:'🥾'}
-  ];
+  /* ---------------- EQUIPMENT SLOTS (developer feature, fully custom) ---------------- */
+  var equipSlotsEditMode = false;
 
   function renderEquipmentSlots(){
     var grid = document.getElementById('equipSlotsGrid');
     if (!grid) return;
-    if (!state.equipment) state.equipment = defaultState().equipment;
+    if (!Array.isArray(state.equipment)) state.equipment = [];
     grid.innerHTML = '';
-    EQUIP_SLOTS.forEach(function(slotDef){
-      var item = state.equipment[slotDef.id];
+    state.equipment.forEach(function(slot, idx){
+      var filled = !!(slot.itemName && slot.itemName.trim());
       var el = document.createElement('div');
-      el.className = 'equip-slot' + (item ? ' filled' : '');
+      el.className = 'equip-slot' + (filled ? ' filled' : '');
+      var iconHtml = slot.iconUrl
+        ? '<img class="equip-slot-icon-img" src="'+escAttr(slot.iconUrl)+'">'
+        : '<span class="equip-slot-icon">'+escAttr(slot.icon || '❔')+'</span>';
       el.innerHTML =
-        '<span class="equip-slot-icon">'+slotDef.icon+'</span>' +
-        (item ? '<span class="equip-slot-name">'+escAttr(item.name || 'Без названия')+'</span>' : '<span class="equip-slot-label">'+slotDef.label+'</span>');
-      el.addEventListener('click', function(){
-        if (item) openEquipDetails(slotDef);
-        else openEquipCreate(slotDef);
+        iconHtml +
+        (filled ? '<span class="equip-slot-name">'+escAttr(slot.itemName)+'</span>' : '<span class="equip-slot-label">'+escAttr(slot.label||'')+'</span>') +
+        (equipSlotsEditMode ? '<button type="button" class="equip-slot-del" data-idx="'+idx+'" aria-label="Удалить слот">✕</button>' : '');
+      el.addEventListener('click', function(e){
+        if (e.target.closest('.equip-slot-del')) return;
+        if (equipSlotsEditMode) openEquipSlotEdit(idx);
+        else if (filled) openEquipDetails(idx);
+        else openEquipCreate(idx);
       });
       grid.appendChild(el);
     });
+    grid.querySelectorAll('.equip-slot-del').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var idx = Number(btn.dataset.idx);
+        var slot = state.equipment[idx];
+        showConfirm('Удалить слот «'+(slot && slot.label || '')+'»?', function(){
+          state.equipment.splice(idx,1);
+          saveState();
+          preserveScroll(renderEquipmentSlots);
+        });
+      });
+    });
   }
 
-  function openEquipCreate(slotDef){
-    showTextPrompt('Экипировать: ' + slotDef.label, [
-      {id:'name', label:'Название', placeholder:slotDef.label},
+  function openEquipCreate(idx){
+    var slot = state.equipment[idx];
+    showTextPrompt('Экипировать: ' + (slot.label||''), [
+      {id:'name', label:'Название предмета', placeholder:slot.label||''},
       {id:'notes', label:'Заметки (необязательно)', multiline:true}
     ], function(values){
       if (!values.name) return;
-      state.equipment[slotDef.id] = {name: values.name, notes: values.notes || ''};
+      slot.itemName = values.name;
+      slot.itemNotes = values.notes || '';
       saveState();
       renderEquipmentSlots();
     });
   }
 
-  function openEquipDetails(slotDef){
-    var item = state.equipment[slotDef.id];
-    if (!item) return;
-    var body = (item.notes || '').trim();
-    var msg = slotDef.icon + ' ' + item.name + (body ? ('\n\n' + body) : '');
-    if (window.confirm(msg + '\n\n— ОК, чтобы изменить\n— Отмена, чтобы просто закрыть')){
-      showTextPrompt('Изменить: ' + slotDef.label, [
-        {id:'name', label:'Название', placeholder:slotDef.label, value: item.name || ''},
-        {id:'notes', label:'Заметки (необязательно)', multiline:true, value: item.notes || ''}
+  function openEquipDetails(idx){
+    var slot = state.equipment[idx];
+    var body = (slot.itemNotes || '').trim();
+    var msg = (slot.icon||'') + ' ' + slot.itemName + (body ? ('\n\n' + body) : '');
+    if (window.confirm(msg + '\n\n— ОК, чтобы изменить\n— Отмена, чтобы закрыть')){
+      showTextPrompt('Изменить: ' + (slot.label||''), [
+        {id:'name', label:'Название предмета', placeholder:slot.label||'', value: slot.itemName || ''},
+        {id:'notes', label:'Заметки (необязательно)', multiline:true, value: slot.itemNotes || ''}
       ], function(values){
-        if (!values.name){
-          state.equipment[slotDef.id] = null;
-          saveState();
-          renderEquipmentSlots();
-          return;
-        }
-        state.equipment[slotDef.id] = {name: values.name, notes: values.notes || ''};
+        slot.itemName = values.name || '';
+        slot.itemNotes = values.notes || '';
         saveState();
         renderEquipmentSlots();
       });
     }
+  }
+
+  function openEquipSlotEdit(idx){
+    var slot = state.equipment[idx];
+    showTextPrompt('Настроить слот', [
+      {id:'label', label:'Название слота', placeholder:'Шлем', value: slot.label || ''},
+      {id:'icon', label:'Эмодзи (если без картинки)', placeholder:'⛑', value: slot.icon || ''},
+      {id:'iconUrl', type:'image', label:'Своя картинка (PNG/JPG/GIF) — перебивает эмодзи', value: slot.iconUrl || ''}
+    ], function(values){
+      slot.label = values.label || '';
+      slot.icon = values.icon || '❔';
+      slot.iconUrl = values.iconUrl || '';
+      saveState();
+      renderEquipmentSlots();
+    });
   }
 
   function applyEquipmentEnabled(){
@@ -5252,6 +5323,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
       saveUiSettings();
       applyEquipmentEnabled();
     });
+  }
+
+  function bindEquipSlotsEditToggle(){
+    var btn = document.getElementById('btnEditEquipSlots');
+    var addBtn = document.getElementById('addEquipSlot');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      equipSlotsEditMode = !equipSlotsEditMode;
+      btn.classList.toggle('active', equipSlotsEditMode);
+      btn.textContent = equipSlotsEditMode ? '✓' : '✎';
+      if (addBtn) addBtn.style.display = equipSlotsEditMode ? '' : 'none';
+      renderEquipmentSlots();
+    });
+    if (addBtn){
+      addBtn.addEventListener('click', function(){
+        if (!Array.isArray(state.equipment)) state.equipment = [];
+        state.equipment.push({icon:'❔', iconUrl:'', label:'Новый слот', itemName:'', itemNotes:''});
+        saveState();
+        preserveScroll(renderEquipmentSlots);
+        openEquipSlotEdit(state.equipment.length - 1);
+      });
+    }
   }
 
   function renderItems(){
@@ -9699,12 +9792,63 @@ input[type=checkbox]:active{transform:scale(0.88);}
     titleEl.textContent = title;
     fieldsWrap.innerHTML = '';
     var inputs = {};
+    var imageValues = {};
     fields.forEach(function(f){
       var wrap = document.createElement('div');
       wrap.className = 'text-prompt-field';
       var label = document.createElement('label');
       label.textContent = f.label;
       wrap.appendChild(label);
+
+      if (f.type === 'image'){
+        imageValues[f.id] = f.value || '';
+        var preview = document.createElement('div');
+        preview.className = 'text-prompt-image-preview';
+        function updatePreview(){
+          preview.innerHTML = imageValues[f.id] ? '<img src="'+escAttr(imageValues[f.id])+'">' : '<span class="text-prompt-image-placeholder">нет картинки</span>';
+        }
+        updatePreview();
+        var fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*,.gif';
+        fileInput.style.display = 'none';
+        var uploadBtn = document.createElement('button');
+        uploadBtn.type = 'button';
+        uploadBtn.className = 'text-prompt-image-btn';
+        uploadBtn.textContent = '📷 Загрузить';
+        uploadBtn.addEventListener('click', function(){ fileInput.click(); });
+        var clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'text-prompt-image-btn';
+        clearBtn.textContent = '✕ Убрать';
+        clearBtn.addEventListener('click', function(){
+          imageValues[f.id] = '';
+          updatePreview();
+        });
+        fileInput.addEventListener('change', function(){
+          var file = fileInput.files[0];
+          fileInput.value = '';
+          if (!file) return;
+          preview.innerHTML = '⏳';
+          chatUploadMedia(file, file.name).then(function(url){
+            imageValues[f.id] = url;
+            updatePreview();
+          }).catch(function(err){
+            alert('Не удалось загрузить: ' + (err && err.message ? err.message : err));
+            updatePreview();
+          });
+        });
+        var btnRow = document.createElement('div');
+        btnRow.className = 'text-prompt-image-btns';
+        btnRow.appendChild(uploadBtn);
+        btnRow.appendChild(clearBtn);
+        wrap.appendChild(preview);
+        wrap.appendChild(btnRow);
+        wrap.appendChild(fileInput);
+        fieldsWrap.appendChild(wrap);
+        return;
+      }
+
       var input = document.createElement(f.multiline ? 'textarea' : 'input');
       if (!f.multiline) input.type = 'text';
       input.placeholder = f.placeholder || '';
@@ -9716,7 +9860,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     overlay.classList.add('active');
     appOpenModal(cleanupUIOnly);
-    setTimeout(function(){ var first = fieldsWrap.querySelector('input,textarea'); if (first) first.focus(); }, 250);
+    setTimeout(function(){ var first = fieldsWrap.querySelector('input:not([type="file"]),textarea'); if (first) first.focus(); }, 250);
 
     function cleanupUIOnly(){
       overlay.classList.remove('active');
@@ -9728,7 +9872,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
     function onCancel(){ cleanup(); }
     function onOk(){
       var values = {};
-      fields.forEach(function(f){ values[f.id] = inputs[f.id].value.trim(); });
+      fields.forEach(function(f){
+        values[f.id] = f.type === 'image' ? imageValues[f.id] : inputs[f.id].value.trim();
+      });
       cleanup();
       onSubmit(values);
     }
@@ -10187,6 +10333,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindDragHandleLeftToggle();
   applyEquipmentEnabled();
   bindEquipmentEnabledToggle();
+  bindEquipSlotsEditToggle();
   bindCollapsibleCard('cardPersonality', 'dnd5e_card_collapsed_personality');
   bindCollapsibleCard('cardFeatures', 'dnd5e_card_collapsed_features');
   bindCollapsibleCard('cardProfsLangs', 'dnd5e_card_collapsed_profslangs');
