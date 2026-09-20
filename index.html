@@ -1235,6 +1235,10 @@ body{
   border-radius:calc(var(--radius-l) - 4px);
   pointer-events:none;
 }
+.card.card-collapsed > *:not(h2){display:none;}
+.card.card-collapsed{padding-bottom:14px;}
+.card-collapse-btn{transition:transform .15s ease;}
+.card.card-collapsed .card-collapse-btn{transform:rotate(-90deg);}
 .card h2{
   font-family:var(--font-display);
   font-size:calc(14px * var(--ui-font-scale));
@@ -1305,6 +1309,9 @@ body{
 /* ---------- USER SECTIONS (custom subheadings) ---------- */
 .sections-wrap{display:flex;flex-direction:column;gap:12px;}
 .section-item{padding-bottom:10px;border-bottom:1px dashed rgba(91,74,48,0.3);}
+.section-item.collapsed{padding-bottom:6px;}
+.section-item.collapsed .section-body{display:none;}
+.section-body{margin-top:0;}
 .section-item:last-child{border-bottom:none;padding-bottom:0;}
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 .section-title-display{
@@ -1763,18 +1770,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .app-shell[data-compact-items="1"] #itemsWrap .field{margin-top:4px !important;}
 .app-shell[data-compact-items="1"] #itemsWrap .dyn-notes.rich-notes{min-height:26px;}
 
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] .card{padding:12px 12px 10px;margin-bottom:8px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] h2{font-size:calc(14px * var(--ui-font-scale));margin-bottom:8px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] .field-label{font-size:9px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] .field{margin-bottom:6px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] input,
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] textarea,
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] .rich-notes{font-size:calc(11.5px * var(--ui-font-scale));padding:5px 6px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] textarea{min-height:34px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] .add-btn{font-size:11px;padding:6px;margin-top:6px;}
+.app-shell[data-compact-notes="1"] .page[data-page="traits"] .h2-edit-btn{width:24px;height:24px;font-size:11px;}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap,
 .app-shell[data-compact-notes="1"] #notesSectionsWrap{gap:6px;}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-item,
 .app-shell[data-compact-notes="1"] #notesSectionsWrap .section-item{padding-bottom:5px;}
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-head,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-head{margin-bottom:4px;gap:5px;}
+.app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-controls,
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-controls{gap:3px;}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-title-input,
 .app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-input,
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-title-display,
-.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-display{font-size:calc(12px * var(--ui-font-scale));}
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-title-display{font-size:calc(11.5px * var(--ui-font-scale));padding-bottom:3px;}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .section-content,
-.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-content{font-size:calc(11.5px * var(--ui-font-scale));min-height:32px;padding:5px 6px;}
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .section-content{min-height:28px;}
 .app-shell[data-compact-notes="1"] #featuresSectionsWrap .sec-btn,
-.app-shell[data-compact-notes="1"] #notesSectionsWrap .sec-btn{width:20px;height:20px;font-size:10px;}
+.app-shell[data-compact-notes="1"] #notesSectionsWrap .sec-btn{width:19px;height:19px;font-size:9.5px;}
 .add-btn{
   margin-top:8px;
   width:100%;
@@ -1830,6 +1851,36 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 
 .currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+
+.equip-slots-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.equip-slot{
+  aspect-ratio:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:rgba(255,255,255,0.35);
+  border:2px dashed var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  cursor:pointer;
+  padding:4px 2px;
+  text-align:center;
+  transition:border-color .15s ease, background-color .15s ease, transform .1s ease;
+}
+.equip-slot:active{transform:scale(0.95);}
+.equip-slot .equip-slot-icon{font-size:22px;opacity:0.45;}
+.equip-slot .equip-slot-label{
+  font-family:var(--font-display);font-size:8.5px;letter-spacing:0.3px;
+  color:var(--ink-soft);text-transform:uppercase;
+}
+.equip-slot.filled{
+  border-style:solid;
+  border-color:var(--gold);
+  background:linear-gradient(180deg, rgba(224,181,99,0.25), rgba(224,181,99,0.1));
+}
+.equip-slot.filled .equip-slot-icon{opacity:1;}
+.equip-slot .equip-slot-name{
+  font-size:9px;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+  font-weight:700;
+}
 .currency-grid .field{margin-bottom:0;}
 .currency-grid input{text-align:center;font-family:var(--font-mono);}
 .coin{
@@ -3541,6 +3592,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   <!-- ================= PAGE 4: ИНВЕНТАРЬ ================= -->
   <section class="page" data-page="inventory">
+    <div class="card" id="equipmentSlotsCard" style="display:none;">
+      <h2>🧍 Экипировка</h2>
+      <div class="equip-slots-grid" id="equipSlotsGrid"></div>
+    </div>
     <div class="card">
       <h2 data-i18n="card.wallet">Кошелёк</h2>
       <div class="currency-grid">
@@ -3596,24 +3651,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   <!-- ================= PAGE 6: ЧЕРТЫ ================= -->
   <section class="page" data-page="traits">
-    <div class="card">
+    <div class="card" id="cardPersonality">
       <h2 data-i18n="card.personality">Черты характера</h2>
       <div class="field"><label class="field-label" data-i18n="field.personalityTraits">Черты личности</label><textarea data-field="traits.personality"></textarea></div>
       <div class="field"><label class="field-label" data-i18n="field.ideals">Идеалы</label><textarea data-field="traits.ideals"></textarea></div>
       <div class="field"><label class="field-label" data-i18n="field.bonds">Привязанности</label><textarea data-field="traits.bonds"></textarea></div>
       <div class="field"><label class="field-label" data-i18n="field.flaws">Слабости</label><textarea data-field="traits.flaws"></textarea></div>
     </div>
-    <div class="card">
-      <h2><span data-i18n="card.features">Умения и особенности</span> <button class="h2-edit-btn" id="btnEditFeatures" title="Управление разделами">✎</button></h2>
+    <div class="card" id="cardFeatures">
+      <h2><span data-i18n="card.features">Умения и особенности</span> <span class="h2-btn-group"><button class="h2-edit-btn" id="btnCollapseAllFeatures" title="Свернуть/развернуть все">⬍</button><button class="h2-edit-btn" id="btnEditFeatures" title="Управление разделами">✎</button></span></h2>
       <div class="sections-wrap" id="featuresSectionsWrap"></div>
       <button class="add-btn" id="addFeatureSection" style="display:none;" data-i18n="btn.addSection">+ добавить подзаголовок</button>
     </div>
-    <div class="card">
+    <div class="card" id="cardProfsLangs">
       <h2 data-i18n="card.profsLangs">Владения и языки</h2>
       <textarea data-field="traits.profs" style="min-height:80px;"></textarea>
     </div>
-    <div class="card">
-      <h2><span data-i18n="card.notes">Заметки</span> <button class="h2-edit-btn" id="btnEditNotes" title="Управление разделами">✎</button></h2>
+    <div class="card" id="cardNotes">
+      <h2><span data-i18n="card.notes">Заметки</span> <span class="h2-btn-group"><button class="h2-edit-btn" id="btnCollapseAllNotes" title="Свернуть/развернуть все">⬍</button><button class="h2-edit-btn" id="btnEditNotes" title="Управление разделами">✎</button></span></h2>
       <div class="sections-wrap" id="notesSectionsWrap"></div>
       <button class="add-btn" id="addNoteSection" style="display:none;" data-i18n="btn.addSection">+ добавить подзаголовок</button>
     </div>
@@ -3966,6 +4021,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       <button class="settings-tab" data-settings-pane="sound"><span class="settings-tab-ico">🔊</span><span>Звук</span></button>
       <button class="settings-tab" data-settings-pane="data"><span class="settings-tab-ico">💾</span><span data-i18n="settings.tabData">Данные</span></button>
       <button class="settings-tab" data-settings-pane="support"><span class="settings-tab-ico">💝</span><span data-i18n="settings.tabSupport">Донат</span></button>
+      <button class="settings-tab" data-settings-pane="dev" id="devSettingsTab" style="display:none;"><span class="settings-tab-ico">🛠</span><span>Разработчик</span></button>
     </div>
 
     <div class="settings-body">
@@ -4232,6 +4288,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
         </div>
         <a class="update-btn" id="btnMailTo" href="mailto:brucewayner015@gmail.com?subject=Лист%20персонажа%20D%26D%20—%20отзыв" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-top:8px;" data-i18n="btn.writeEmail">✉ Написать письмо</a>
       </div>
+
+      <div class="settings-pane" data-pane="dev">
+        <p class="modal-text" style="margin-bottom:8px;">🛠 Настройки разработчика</p>
+        <div class="settings-hint" style="margin-bottom:10px;">Экспериментальные функции. Могут работать нестабильно.</div>
+
+        <label class="inline-check">
+          <input type="checkbox" id="equipmentEnabledToggle"> Снаряжение (шлем/броня/перчатки/штаны/обувь)
+        </label>
+        <div class="settings-hint" style="margin-top:6px;">Добавляет карточку «Снаряжение» на вкладку «Вещи» — пять слотов под конкретные предметы экипировки.</div>
+      </div>
     </div>
 
     <button class="modal-btn cancel" id="settingsCloseBtn" data-i18n="btn.done">Готово</button>
@@ -4376,7 +4442,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.17-2';
+  var APP_VERSION = '2026.09.17-5';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4404,6 +4470,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       attacks:[],
       currency:{cp:0,sp:0,ep:0,gp:0,pp:0},
       items:[],
+      equipment:{helmet:null, chest:null, gloves:null, pants:null, boots:null},
       spellAbility:'none',
       slots: slots,
       spells:[],
@@ -4548,7 +4615,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function applyLoadedState(loaded){
     state = Object.assign(defaultState(), loaded);
     // deep-merge nested objects to survive schema additions
-    ['meta','abilities','saves','skills','combat','currency','traits'].forEach(function(key){
+    ['meta','abilities','saves','skills','combat','currency','traits','equipment'].forEach(function(key){
       state[key] = Object.assign(defaultState()[key], loaded[key] || {});
     });
     migrateLegacySections(state, loaded);
@@ -5101,6 +5168,92 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- ITEMS (dynamic) ---------------- */
+  /* ---------------- EQUIPMENT SLOTS (developer feature) ---------------- */
+  var EQUIP_SLOTS = [
+    {id:'helmet', label:'Шлем', icon:'⛑'},
+    {id:'chest', label:'Нагрудник', icon:'🥋'},
+    {id:'gloves', label:'Перчатки', icon:'🧤'},
+    {id:'pants', label:'Штаны', icon:'👖'},
+    {id:'boots', label:'Обувь', icon:'🥾'}
+  ];
+
+  function renderEquipmentSlots(){
+    var grid = document.getElementById('equipSlotsGrid');
+    if (!grid) return;
+    if (!state.equipment) state.equipment = defaultState().equipment;
+    grid.innerHTML = '';
+    EQUIP_SLOTS.forEach(function(slotDef){
+      var item = state.equipment[slotDef.id];
+      var el = document.createElement('div');
+      el.className = 'equip-slot' + (item ? ' filled' : '');
+      el.innerHTML =
+        '<span class="equip-slot-icon">'+slotDef.icon+'</span>' +
+        (item ? '<span class="equip-slot-name">'+escAttr(item.name || 'Без названия')+'</span>' : '<span class="equip-slot-label">'+slotDef.label+'</span>');
+      el.addEventListener('click', function(){
+        if (item) openEquipDetails(slotDef);
+        else openEquipCreate(slotDef);
+      });
+      grid.appendChild(el);
+    });
+  }
+
+  function openEquipCreate(slotDef){
+    showTextPrompt('Экипировать: ' + slotDef.label, [
+      {id:'name', label:'Название', placeholder:slotDef.label},
+      {id:'notes', label:'Заметки (необязательно)', multiline:true}
+    ], function(values){
+      if (!values.name) return;
+      state.equipment[slotDef.id] = {name: values.name, notes: values.notes || ''};
+      saveState();
+      renderEquipmentSlots();
+    });
+  }
+
+  function openEquipDetails(slotDef){
+    var item = state.equipment[slotDef.id];
+    if (!item) return;
+    var body = (item.notes || '').trim();
+    var msg = slotDef.icon + ' ' + item.name + (body ? ('\n\n' + body) : '');
+    if (window.confirm(msg + '\n\n— ОК, чтобы изменить\n— Отмена, чтобы просто закрыть')){
+      showTextPrompt('Изменить: ' + slotDef.label, [
+        {id:'name', label:'Название', placeholder:slotDef.label, value: item.name || ''},
+        {id:'notes', label:'Заметки (необязательно)', multiline:true, value: item.notes || ''}
+      ], function(values){
+        if (!values.name){
+          state.equipment[slotDef.id] = null;
+          saveState();
+          renderEquipmentSlots();
+          return;
+        }
+        state.equipment[slotDef.id] = {name: values.name, notes: values.notes || ''};
+        saveState();
+        renderEquipmentSlots();
+      });
+    }
+  }
+
+  function applyEquipmentEnabled(){
+    var card = document.getElementById('equipmentSlotsCard');
+    if (!card) return;
+    if (uiSettings.equipmentEnabled){
+      card.style.display = '';
+      renderEquipmentSlots();
+    } else {
+      card.style.display = 'none';
+    }
+  }
+
+  function bindEquipmentEnabledToggle(){
+    var toggle = document.getElementById('equipmentEnabledToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.equipmentEnabled;
+    toggle.addEventListener('change', function(){
+      uiSettings.equipmentEnabled = toggle.checked;
+      saveUiSettings();
+      applyEquipmentEnabled();
+    });
+  }
+
   function renderItems(){
     var wrap = document.getElementById('itemsWrap');
     wrap.innerHTML = '';
@@ -5442,28 +5595,37 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
     sections.forEach(function(sec, idx){
       var div = document.createElement('div');
-      div.className = 'section-item';
+      var collapsed = !!sec.collapsed;
+      div.className = 'section-item' + (collapsed ? ' collapsed' : '');
       var titleHtml = editMode
         ? '<input type="text" class="section-title-input" placeholder="'+t('section.noTitle')+'" value="'+escAttr(sec.title)+'">'
         : '<div class="section-title-display">'+(sec.title ? escAttr(sec.title) : '<span class="section-title-empty">'+t('section.noTitle')+'</span>')+'</div>';
+      var collapseBtnHtml = '<button type="button" class="sec-btn sec-collapse-btn" data-act="collapse" aria-label="Свернуть/развернуть">'+(collapsed?'▸':'▾')+'</button>';
       var controlsHtml = editMode
         ? '<div class="section-controls">' +
+            collapseBtnHtml +
             '<button type="button" class="sec-btn" data-act="up"'+(idx===0?' disabled':'')+' aria-label="Выше">▲</button>' +
             '<button type="button" class="sec-btn" data-act="down"'+(idx===sections.length-1?' disabled':'')+' aria-label="Ниже">▼</button>' +
             '<button type="button" class="sec-btn del" data-act="del" aria-label="Удалить">✕</button>' +
           '</div>'
-        : '';
+        : '<div class="section-controls">' + collapseBtnHtml + '</div>';
       var contentFieldHtml = uiSettings.richTextEnabled
         ? '<div class="section-content rich-notes" contenteditable="true" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(sec.content)+'</div>'
         : '<textarea class="section-content" rows="1">'+escAttr(stripHtmlToText(sec.content))+'</textarea>';
       div.innerHTML =
         '<div class="section-head">'+titleHtml+controlsHtml+'</div>' +
-        contentFieldHtml;
+        '<div class="section-body">' + contentFieldHtml + '</div>';
       wrap.appendChild(div);
+
+      div.querySelector('[data-act="collapse"]').addEventListener('click', function(){
+        sec.collapsed = !sec.collapsed;
+        saveState();
+        preserveScroll(function(){ rerenderFn(); });
+      });
 
       var contentTa = div.querySelector('.section-content');
       var contentIsRich = contentTa.classList.contains('rich-notes');
-      if (!contentIsRich) autoGrow(contentTa);
+      if (!contentIsRich && !collapsed) autoGrow(contentTa);
       contentTa.addEventListener('input', function(){
         sec.content = contentIsRich ? contentTa.innerHTML : contentTa.value;
         if (!contentIsRich) autoGrow(contentTa);
@@ -5495,6 +5657,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
         });
       }
     });
+  }
+
+  function toggleAllSections(sections, rerenderFn){
+    if (!sections.length) return;
+    var anyExpanded = sections.some(function(s){ return !s.collapsed; });
+    sections.forEach(function(s){ s.collapsed = anyExpanded; });
+    saveState();
+    preserveScroll(function(){ rerenderFn(); });
+  }
+
+  function bindCollapsibleCard(cardId, storageKey){
+    var card = document.getElementById(cardId);
+    if (!card) return;
+    var h2 = card.querySelector('h2');
+    if (!h2) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'h2-edit-btn card-collapse-btn';
+    btn.title = 'Свернуть/развернуть';
+    btn.textContent = '▾';
+    var collapsed = false;
+    try{ collapsed = localStorage.getItem(storageKey) === '1'; }catch(e){}
+    function applyState(){ card.classList.toggle('card-collapsed', collapsed); }
+    btn.addEventListener('click', function(){
+      collapsed = !collapsed;
+      try{ localStorage.setItem(storageKey, collapsed ? '1' : '0'); }catch(e){}
+      preserveScroll(applyState);
+    });
+    var existingGroup = h2.querySelector('.h2-btn-group');
+    if (existingGroup) existingGroup.insertBefore(btn, existingGroup.firstChild);
+    else {
+      var group = document.createElement('span');
+      group.className = 'h2-btn-group';
+      group.appendChild(btn);
+      h2.appendChild(group);
+    }
+    applyState();
   }
 
   function renderFeaturesCard(){
@@ -8004,6 +8203,29 @@ input[type=checkbox]:active{transform:scale(0.88);}
     var area = document.getElementById('settingsOverlay');
     if (!gear || !area) return;
 
+    /* ---- 20-tap developer unlock ---- */
+    var DEV_UNLOCK_KEY = 'dnd5e_dev_unlocked';
+    var devTapCount = 0, devTapResetTimer = null;
+    function unlockDeveloperSettings(){
+      try{ localStorage.setItem(DEV_UNLOCK_KEY, '1'); }catch(e){}
+      var tab = document.getElementById('devSettingsTab');
+      if (tab) tab.style.display = '';
+      showItemToast('🛠 Настройки разработчика разблокированы!');
+    }
+    if (localStorage.getItem(DEV_UNLOCK_KEY) === '1'){
+      var devTabInit = document.getElementById('devSettingsTab');
+      if (devTabInit) devTabInit.style.display = '';
+    }
+    gear.addEventListener('click', function(){
+      devTapCount++;
+      clearTimeout(devTapResetTimer);
+      devTapResetTimer = setTimeout(function(){ devTapCount = 0; }, 2500);
+      if (devTapCount >= 20){
+        devTapCount = 0;
+        unlockDeveloperSettings();
+      }
+    });
+
     var activePointers = {};
     var pivotId = null, otherId = null, lastAngle = 0, totalRotation = 0, tracking = false;
     var longPressTimer = null;
@@ -8490,6 +8712,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
       btnEditFeatures.textContent = featuresEditMode ? '✓' : '✎';
       renderFeaturesCard();
     });
+    document.getElementById('btnCollapseAllFeatures').addEventListener('click', function(){
+      toggleAllSections(state.traits.featuresSections, renderFeaturesCard);
+    });
     document.getElementById('addFeatureSection').addEventListener('click', function(){
       state.traits.featuresSections.push({title:'', content:''});
       preserveScroll(function(){
@@ -8507,6 +8732,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
       btnEditNotes.classList.toggle('active', notesEditMode);
       btnEditNotes.textContent = notesEditMode ? '✓' : '✎';
       renderNotesCard();
+    });
+    document.getElementById('btnCollapseAllNotes').addEventListener('click', function(){
+      toggleAllSections(state.traits.notesSections, renderNotesCard);
     });
     document.getElementById('addNoteSection').addEventListener('click', function(){
       state.traits.notesSections.push({title:'', content:''});
@@ -9303,7 +9531,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false, dragHandleLeft: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false, dragHandleLeft: false, equipmentEnabled: false};
 
   function loadUiSettings(){
     try{
@@ -9324,6 +9552,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.chatMuted === 'boolean') uiSettings.chatMuted = loaded.chatMuted;
         if (loaded && typeof loaded.twoColSkills === 'boolean') uiSettings.twoColSkills = loaded.twoColSkills;
         if (loaded && typeof loaded.dragHandleLeft === 'boolean') uiSettings.dragHandleLeft = loaded.dragHandleLeft;
+        if (loaded && typeof loaded.equipmentEnabled === 'boolean') uiSettings.equipmentEnabled = loaded.equipmentEnabled;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -9907,6 +10136,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     renderSpells();
     renderFeaturesCard();
     renderNotesCard();
+    if (uiSettings.equipmentEnabled) renderEquipmentSlots();
     recalc();
     relockStatCards();
   }
@@ -9955,6 +10185,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   bindTwoColSkillsToggle();
   applyDragHandleLeft();
   bindDragHandleLeftToggle();
+  applyEquipmentEnabled();
+  bindEquipmentEnabledToggle();
+  bindCollapsibleCard('cardPersonality', 'dnd5e_card_collapsed_personality');
+  bindCollapsibleCard('cardFeatures', 'dnd5e_card_collapsed_features');
+  bindCollapsibleCard('cardProfsLangs', 'dnd5e_card_collapsed_profslangs');
+  bindCollapsibleCard('cardNotes', 'dnd5e_card_collapsed_notes');
   applyFontSet();
   applyIconSet();
   applyI18n();
