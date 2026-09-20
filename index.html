@@ -1852,7 +1852,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 .currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
 
-.equip-slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.equip-slots-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:70px;gap:6px;}
 .equip-slot{
   position:relative;
   display:flex;flex-direction:column;
@@ -1861,15 +1861,15 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-radius:8px;
   cursor:pointer;
   overflow:hidden;
-  transition:border-color .15s ease, background-color .15s ease, transform .1s ease;
+  transition:border-color .15s ease, background-color .15s ease;
 }
-.equip-slot:active{transform:scale(0.96);}
+.equip-slot:active{transform:scale(0.98);}
+.equip-slot.dragging{opacity:0.8;box-shadow:0 8px 20px rgba(0,0,0,0.45);z-index:5;}
 .equip-slot-visual{
-  width:100%;
-  aspect-ratio:1;
+  flex:1;
+  min-height:0;
   display:flex;align-items:center;justify-content:center;
   background:rgba(0,0,0,0.05);
-  flex-shrink:0;
 }
 .equip-slot .equip-slot-icon{font-size:26px;opacity:0.4;line-height:1;}
 .equip-slot-icon-img{
@@ -1898,14 +1898,54 @@ input[type=checkbox]:active{transform:scale(0.88);}
   display:block;
 }
 .equip-slot-del{
-  position:absolute;top:4px;right:4px;
+  position:absolute;top:4px;left:4px;
   width:18px;height:18px;border-radius:50%;
   background:var(--wax);color:#fff;border:1px solid var(--parchment);
   font-size:9px;line-height:1;
   display:flex;align-items:center;justify-content:center;
   padding:0;cursor:pointer;
-  z-index:2;
+  z-index:3;
   box-shadow:0 1px 3px rgba(0,0,0,0.4);
+}
+.equip-move-handle{
+  position:absolute;
+  top:2px;left:50%;
+  transform:translateX(-50%);
+  width:34px;height:14px;
+  display:flex;align-items:center;justify-content:center;gap:2px;
+  cursor:grab;
+  touch-action:none;
+  z-index:3;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.equip-move-handle span{
+  width:3px;height:3px;border-radius:50%;
+  background:rgba(255,255,255,0.9);
+  box-shadow:0 0 2px rgba(0,0,0,0.7);
+}
+.equip-resize-handle{
+  position:absolute;
+  bottom:0;right:0;
+  width:18px;height:18px;
+  cursor:nwse-resize;
+  touch-action:none;
+  z-index:3;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.equip-resize-handle::before{
+  content:"";
+  position:absolute;
+  right:3px;bottom:3px;
+  width:8px;height:8px;
+  border-right:2px solid var(--gold);
+  border-bottom:2px solid var(--gold);
+  opacity:0.85;
 }
 .currency-grid .field{margin-bottom:0;}
 .currency-grid input{text-align:center;font-family:var(--font-mono);}
@@ -3485,6 +3525,24 @@ input[type=checkbox]:active{transform:scale(0.88);}
   font-size:11px;
   cursor:pointer;
 }
+.text-prompt-choice-row{display:flex;gap:6px;flex-wrap:wrap;}
+.text-prompt-choice-btn{
+  flex:1;
+  min-width:70px;
+  padding:7px 6px;
+  border-radius:6px;
+  border:1px solid var(--parchment-shadow);
+  background:rgba(255,255,255,0.4);
+  color:var(--ink);
+  font-size:11px;
+  cursor:pointer;
+}
+.text-prompt-choice-btn.active{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#2c2011;
+  font-weight:700;
+}
 .text-prompt-field label{
   display:block;font-family:var(--font-display);font-size:11px;letter-spacing:0.5px;text-transform:uppercase;
   color:var(--ink-soft);margin-bottom:4px;
@@ -4532,7 +4590,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.20-1';
+  var APP_VERSION = '2026.09.20-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4561,11 +4619,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
       currency:{cp:0,sp:0,ep:0,gp:0,pp:0},
       items:[],
       equipment:[
-        {icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:''},
-        {icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:''},
-        {icon:'🧤', iconUrl:'', label:'Перчатки', itemName:'', itemNotes:''},
-        {icon:'👖', iconUrl:'', label:'Штаны', itemName:'', itemNotes:''},
-        {icon:'🥾', iconUrl:'', label:'Обувь', itemName:'', itemNotes:''}
+        {icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {icon:'🧤', iconUrl:'', label:'Перчатки', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {icon:'👖', iconUrl:'', label:'Штаны', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {icon:'🥾', iconUrl:'', label:'Обувь', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'}
       ],
       spellAbility:'none',
       slots: slots,
@@ -4719,6 +4777,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (!Array.isArray(state.items)) state.items = [];
     if (!Array.isArray(state.spells)) state.spells = [];
     if (!Array.isArray(state.equipment)) state.equipment = defaultState().equipment;
+    state.equipment.forEach(function(slot){
+      if (!slot.colSpan) slot.colSpan = 1;
+      if (!slot.rowSpan) slot.rowSpan = 1;
+      if (!slot.imageFit) slot.imageFit = 'cover';
+    });
     if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
     if (!state.combat.conditions) state.combat.conditions = [];
     state.combat.conditions = migrateConditions(state.combat.conditions);
@@ -5277,17 +5340,22 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var filled = !!(slot.itemName && slot.itemName.trim());
       var el = document.createElement('div');
       el.className = 'equip-slot' + (filled ? ' filled' : '');
+      el.style.gridColumn = 'span ' + (slot.colSpan || 1);
+      el.style.gridRow = 'span ' + (slot.rowSpan || 1);
+      el.dataset.idx = idx;
       var iconHtml = slot.iconUrl
-        ? '<img class="equip-slot-icon-img" src="'+escAttr(slot.iconUrl)+'">'
+        ? '<img class="equip-slot-icon-img" src="'+escAttr(slot.iconUrl)+'" style="object-fit:'+escAttr(slot.imageFit||'cover')+';">'
         : '<span class="equip-slot-icon">'+escAttr(slot.icon || '❔')+'</span>';
       el.innerHTML =
         '<div class="equip-slot-visual">' + iconHtml + '</div>' +
         '<div class="equip-slot-caption">' +
           (filled ? '<span class="equip-slot-name">'+escAttr(slot.itemName)+'</span>' : '<span class="equip-slot-label">'+escAttr(slot.label||'')+'</span>') +
         '</div>' +
-        (equipSlotsEditMode ? '<button type="button" class="equip-slot-del" data-idx="'+idx+'" aria-label="Удалить слот">✕</button>' : '');
+        (equipSlotsEditMode ? '<button type="button" class="equip-slot-del" data-idx="'+idx+'" aria-label="Удалить слот">✕</button>' : '') +
+        (equipSlotsEditMode ? '<div class="equip-move-handle" title="Переместить"><span></span><span></span><span></span></div>' : '') +
+        (equipSlotsEditMode ? '<div class="equip-resize-handle" title="Изменить размер"></div>' : '');
       el.addEventListener('click', function(e){
-        if (e.target.closest('.equip-slot-del')) return;
+        if (e.target.closest('.equip-slot-del, .equip-move-handle, .equip-resize-handle')) return;
         if (equipSlotsEditMode) openEquipSlotEdit(idx);
         else if (filled) openEquipDetails(idx);
         else openEquipCreate(idx);
@@ -5306,6 +5374,126 @@ input[type=checkbox]:active{transform:scale(0.88);}
         });
       });
     });
+    bindEquipSlotDrag(grid);
+  }
+
+  var equipDragBound = false;
+  function bindEquipSlotDrag(grid){
+    if (equipDragBound) return;
+    equipDragBound = true;
+
+    function getPt(e){
+      if (e.touches && e.touches.length) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+      if (e.changedTouches && e.changedTouches.length) return {x:e.changedTouches[0].clientX, y:e.changedTouches[0].clientY};
+      return {x:e.clientX, y:e.clientY};
+    }
+
+    /* ---- move (reorder) ---- */
+    var moveEl = null, moveIdx = null;
+    function onMoveStart(e){
+      var handle = e.target.closest('.equip-move-handle');
+      if (!handle) return;
+      moveEl = handle.closest('.equip-slot');
+      if (!moveEl) return;
+      e.preventDefault();
+      moveIdx = Number(moveEl.dataset.idx);
+      moveEl.classList.add('dragging');
+      if (e.type === 'touchstart'){
+        document.addEventListener('touchmove', onMoveMove, {passive:false});
+        document.addEventListener('touchend', onMoveEnd);
+        document.addEventListener('touchcancel', onMoveEnd);
+      } else {
+        document.addEventListener('mousemove', onMoveMove, {passive:false});
+        document.addEventListener('mouseup', onMoveEnd);
+      }
+    }
+    function onMoveMove(e){
+      if (!moveEl) return;
+      e.preventDefault();
+      var pt = getPt(e);
+      var under = document.elementFromPoint(pt.x, pt.y);
+      var overSlot = under ? under.closest('.equip-slot') : null;
+      if (!overSlot || overSlot === moveEl) return;
+      var overIdx = Number(overSlot.dataset.idx);
+      if (overIdx === moveIdx) return;
+      var arr = state.equipment;
+      var moved = arr.splice(moveIdx, 1)[0];
+      arr.splice(overIdx, 0, moved);
+      moveIdx = overIdx;
+      saveState();
+      renderEquipmentSlots();
+      moveEl = document.querySelector('.equip-slot[data-idx="'+moveIdx+'"]');
+      if (moveEl) moveEl.classList.add('dragging');
+    }
+    function onMoveEnd(){
+      document.removeEventListener('touchmove', onMoveMove);
+      document.removeEventListener('touchend', onMoveEnd);
+      document.removeEventListener('touchcancel', onMoveEnd);
+      document.removeEventListener('mousemove', onMoveMove);
+      document.removeEventListener('mouseup', onMoveEnd);
+      if (moveEl) moveEl.classList.remove('dragging');
+      moveEl = null; moveIdx = null;
+    }
+    grid.addEventListener('touchstart', onMoveStart, {passive:false});
+    grid.addEventListener('mousedown', onMoveStart);
+
+    /* ---- resize ---- */
+    var resizeEl = null, resizeIdx = null, resizeStart = null, resizeStartSpan = null, colW = 0, rowH = 0;
+    function onResizeStart(e){
+      var handle = e.target.closest('.equip-resize-handle');
+      if (!handle) return;
+      resizeEl = handle.closest('.equip-slot');
+      if (!resizeEl) return;
+      e.preventDefault();
+      resizeIdx = Number(resizeEl.dataset.idx);
+      var slot = state.equipment[resizeIdx];
+      resizeStartSpan = {col: slot.colSpan||1, row: slot.rowSpan||1};
+      resizeStart = getPt(e);
+      var gridRect = grid.getBoundingClientRect();
+      colW = gridRect.width / 4;
+      rowH = 76; // matches grid-auto-rows + gap
+      resizeEl.classList.add('dragging');
+      if (e.type === 'touchstart'){
+        document.addEventListener('touchmove', onResizeMove, {passive:false});
+        document.addEventListener('touchend', onResizeEnd);
+        document.addEventListener('touchcancel', onResizeEnd);
+      } else {
+        document.addEventListener('mousemove', onResizeMove, {passive:false});
+        document.addEventListener('mouseup', onResizeEnd);
+      }
+    }
+    function onResizeMove(e){
+      if (!resizeEl) return;
+      e.preventDefault();
+      var pt = getPt(e);
+      var dCol = Math.round((pt.x - resizeStart.x) / colW);
+      var dRow = Math.round((pt.y - resizeStart.y) / rowH);
+      var newCol = Math.max(1, Math.min(4, resizeStartSpan.col + dCol));
+      var newRow = Math.max(1, Math.min(3, resizeStartSpan.row + dRow));
+      resizeEl.style.gridColumn = 'span ' + newCol;
+      resizeEl.style.gridRow = 'span ' + newRow;
+      resizeEl._pendingCol = newCol;
+      resizeEl._pendingRow = newRow;
+    }
+    function onResizeEnd(){
+      document.removeEventListener('touchmove', onResizeMove);
+      document.removeEventListener('touchend', onResizeEnd);
+      document.removeEventListener('touchcancel', onResizeEnd);
+      document.removeEventListener('mousemove', onResizeMove);
+      document.removeEventListener('mouseup', onResizeEnd);
+      if (resizeEl && resizeIdx !== null){
+        var slot = state.equipment[resizeIdx];
+        if (slot){
+          slot.colSpan = resizeEl._pendingCol || slot.colSpan || 1;
+          slot.rowSpan = resizeEl._pendingRow || slot.rowSpan || 1;
+          saveState();
+        }
+        resizeEl.classList.remove('dragging');
+      }
+      resizeEl = null; resizeIdx = null;
+    }
+    grid.addEventListener('touchstart', onResizeStart, {passive:false});
+    grid.addEventListener('mousedown', onResizeStart);
   }
 
   function openEquipCreate(idx){
@@ -5353,11 +5541,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
     showTextPrompt('Настроить слот', [
       {id:'label', label:'Название слота', placeholder:'Шлем', value: slot.label || ''},
       {id:'icon', label:'Эмодзи (если без картинки)', placeholder:'⛑', value: slot.icon || ''},
-      {id:'iconUrl', type:'image', label:'Своя картинка (PNG/JPG/GIF) — перебивает эмодзи', value: slot.iconUrl || ''}
+      {id:'iconUrl', type:'image', label:'Своя картинка (PNG/JPG/GIF) — перебивает эмодзи', value: slot.iconUrl || ''},
+      {id:'imageFit', type:'choice', label:'Как показывать картинку в карточке', value: slot.imageFit || 'cover', options:[
+        {value:'cover', label:'Заполнить'},
+        {value:'contain', label:'Уместить'},
+        {value:'fill', label:'Растянуть'}
+      ]}
     ], function(values){
       slot.label = values.label || '';
       slot.icon = values.icon || '❔';
       slot.iconUrl = values.iconUrl || '';
+      slot.imageFit = values.imageFit || 'cover';
       saveState();
       renderEquipmentSlots();
     });
@@ -5399,7 +5593,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (addBtn){
       addBtn.addEventListener('click', function(){
         if (!Array.isArray(state.equipment)) state.equipment = [];
-        state.equipment.push({icon:'❔', iconUrl:'', label:'Новый слот', itemName:'', itemNotes:''});
+        state.equipment.push({icon:'❔', iconUrl:'', label:'Новый слот', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'});
         saveState();
         preserveScroll(renderEquipmentSlots);
         openEquipSlotEdit(state.equipment.length - 1);
@@ -9916,6 +10110,27 @@ input[type=checkbox]:active{transform:scale(0.88);}
         return;
       }
 
+      if (f.type === 'choice'){
+        imageValues[f.id] = f.value || (f.options && f.options[0] && f.options[0].value) || '';
+        var choiceRow = document.createElement('div');
+        choiceRow.className = 'text-prompt-choice-row';
+        (f.options||[]).forEach(function(opt){
+          var optBtn = document.createElement('button');
+          optBtn.type = 'button';
+          optBtn.className = 'text-prompt-choice-btn' + (imageValues[f.id] === opt.value ? ' active' : '');
+          optBtn.textContent = opt.label;
+          optBtn.addEventListener('click', function(){
+            imageValues[f.id] = opt.value;
+            choiceRow.querySelectorAll('.text-prompt-choice-btn').forEach(function(b){ b.classList.remove('active'); });
+            optBtn.classList.add('active');
+          });
+          choiceRow.appendChild(optBtn);
+        });
+        wrap.appendChild(choiceRow);
+        fieldsWrap.appendChild(wrap);
+        return;
+      }
+
       var input = document.createElement(f.multiline ? 'textarea' : 'input');
       if (!f.multiline) input.type = 'text';
       input.placeholder = f.placeholder || '';
@@ -9940,7 +10155,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     function onOk(){
       var values = {};
       fields.forEach(function(f){
-        values[f.id] = f.type === 'image' ? imageValues[f.id] : inputs[f.id].value.trim();
+        values[f.id] = (f.type === 'image' || f.type === 'choice') ? imageValues[f.id] : inputs[f.id].value.trim();
       });
       cleanup();
       onSubmit(values);
