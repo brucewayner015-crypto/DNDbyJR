@@ -2733,6 +2733,37 @@ input[type=checkbox]:active{transform:scale(0.88);}
 }
 #mapAddPinBtn.active{background:linear-gradient(180deg, var(--wax-bright), var(--wax));}
 
+.equip-details-popup{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  z-index:165;
+  background:var(--parchment);
+  border:2px solid var(--gold);
+  border-radius:var(--radius-s);
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  padding:18px 16px 16px;
+  max-width:260px;
+  width:88%;
+  text-align:center;
+}
+#equipDetailsClose{position:absolute;top:8px;right:8px;}
+.equip-details-icon{
+  width:72px;height:72px;
+  margin:0 auto 10px;
+  border-radius:12px;
+  border:2px solid var(--gold);
+  background:rgba(255,255,255,0.4);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  font-size:38px;
+}
+.equip-details-icon img{width:100%;height:100%;object-fit:cover;}
+.equip-details-name{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--ink);margin-bottom:8px;}
+.equip-details-notes{font-size:13px;color:var(--ink);line-height:1.45;white-space:pre-wrap;text-align:left;margin-bottom:12px;max-height:180px;overflow-y:auto;}
+.equip-details-notes:empty{display:none;}
+.equip-details-actions .map-pin-edit-btn{margin-top:0;}
+
 .map-pin-settings-popup{
   position:absolute;
   top:56px;right:10px;
@@ -3955,6 +3986,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
   </div>
 </div>
 
+<div class="equip-details-popup" id="equipDetailsPopup" style="display:none;">
+  <button class="chat-reply-cancel" id="equipDetailsClose" aria-label="Закрыть">✕</button>
+  <div class="equip-details-icon" id="equipDetailsIcon"></div>
+  <div class="equip-details-name" id="equipDetailsName"></div>
+  <div class="equip-details-notes" id="equipDetailsNotes"></div>
+  <div class="equip-details-actions">
+    <button class="map-pin-edit-btn" id="equipDetailsEditBtn">✎ Изменить</button>
+  </div>
+</div>
+
 <div class="rich-toolbar" id="richToolbar" style="display:none;">
   <div class="rich-toolbar-row">
     <button type="button" data-cmd="bold"><b>Ж</b></button>
@@ -4491,7 +4532,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.17-8';
+  var APP_VERSION = '2026.09.20-1';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5283,9 +5324,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function openEquipDetails(idx){
     var slot = state.equipment[idx];
-    var body = (slot.itemNotes || '').trim();
-    var msg = (slot.icon||'') + ' ' + slot.itemName + (body ? ('\n\n' + body) : '');
-    if (window.confirm(msg + '\n\n— ОК, чтобы изменить\n— Отмена, чтобы закрыть')){
+    var popup = document.getElementById('equipDetailsPopup');
+    document.getElementById('equipDetailsIcon').innerHTML = slot.iconUrl
+      ? '<img src="'+escAttr(slot.iconUrl)+'">'
+      : escAttr(slot.icon || '❔');
+    document.getElementById('equipDetailsName').textContent = slot.itemName || '';
+    document.getElementById('equipDetailsNotes').textContent = slot.itemNotes || '';
+    var editBtn = document.getElementById('equipDetailsEditBtn');
+    editBtn.onclick = function(){
       showTextPrompt('Изменить: ' + (slot.label||''), [
         {id:'name', label:'Название предмета', placeholder:slot.label||'', value: slot.itemName || ''},
         {id:'notes', label:'Заметки (необязательно)', multiline:true, value: slot.itemNotes || ''}
@@ -5294,8 +5340,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
         slot.itemNotes = values.notes || '';
         saveState();
         renderEquipmentSlots();
+        popup.style.display = 'none';
+        appCloseModal();
       });
-    }
+    };
+    popup.style.display = 'block';
+    appOpenModal(function(){ popup.style.display = 'none'; });
   }
 
   function openEquipSlotEdit(idx){
@@ -5353,6 +5403,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
         saveState();
         preserveScroll(renderEquipmentSlots);
         openEquipSlotEdit(state.equipment.length - 1);
+      });
+    }
+    var closeBtn = document.getElementById('equipDetailsClose');
+    if (closeBtn){
+      closeBtn.addEventListener('click', function(){
+        document.getElementById('equipDetailsPopup').style.display = 'none';
+        appCloseModal();
       });
     }
   }
