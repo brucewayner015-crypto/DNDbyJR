@@ -4590,7 +4590,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.20-3';
+  var APP_VERSION = '2026.09.20-4';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4727,23 +4727,27 @@ input[type=checkbox]:active{transform:scale(0.88);}
     }
   }
 
+  function flushSyncToCloud(){
+    clearTimeout(cloudSyncTimer);
+    if (!fbReady || !fbDb || !fbUser) return Promise.resolve();
+    try{
+      return fbDb.collection('characters').doc(getMyId()).set({
+        state: state,
+        characterName: (state.meta && state.meta.name) ? state.meta.name : '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, {merge: true}).then(function(){
+        setAccountStatus('ok', 'Подключено — лист синхронизируется');
+      }).catch(function(err){
+        console.warn('Cloud sync failed', err);
+        setAccountStatus('err', 'Не удалось сохранить в облако (см. консоль)');
+      });
+    }catch(e){ console.warn(e); return Promise.resolve(); }
+  }
+
   function syncToCloud(){
     if (!fbReady || !fbDb || !fbUser) return;
     clearTimeout(cloudSyncTimer);
-    cloudSyncTimer = setTimeout(function(){
-      try{
-        fbDb.collection('characters').doc(getMyId()).set({
-          state: state,
-          characterName: (state.meta && state.meta.name) ? state.meta.name : '',
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, {merge: true}).then(function(){
-          setAccountStatus('ok', 'Подключено — лист синхронизируется');
-        }).catch(function(err){
-          console.warn('Cloud sync failed', err);
-          setAccountStatus('err', 'Не удалось сохранить в облако (см. консоль)');
-        });
-      }catch(e){ console.warn(e); }
-    }, 800);
+    cloudSyncTimer = setTimeout(flushSyncToCloud, 800);
   }
 
   /* ---------------- iOS "add to home screen" hint ---------------- */
@@ -4814,7 +4818,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }catch(e){ console.warn('Не удалось сохранить', e); }
-    syncToCloud();
+    return flushSyncToCloud();
   }
 
   function getPath(obj, path){
@@ -10014,7 +10018,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function checkForUpdate(){
-    flushSaveState();
+    if (document.activeElement && typeof document.activeElement.blur === 'function'){
+      document.activeElement.blur();
+    }
     var btn = document.getElementById('btnCheckUpdate');
     var status = document.getElementById('updateStatus');
     btn.disabled = true;
@@ -10036,18 +10042,25 @@ input[type=checkbox]:active{transform:scale(0.88);}
       return Promise.all(tasks);
     };
 
-    cleanup().then(function(){
-      status.className = 'update-status ok';
-      status.textContent = t('update.done');
-      try{ sessionStorage.setItem('dnd_just_updated', '1'); }catch(e){}
-      setTimeout(function(){
-        // cache-busting reload so the HTTP cache can't serve a stale copy either
-        window.location.href = window.location.pathname + '?_u=' + Date.now();
-      }, 400);
-    }).catch(function(err){
-      btn.disabled = false;
-      status.className = 'update-status err';
-      status.textContent = t('update.failed') + (err && err.message ? ' (' + err.message + ')' : '');
+    // wait for the flush to settle (or time out after 2s so a slow/offline
+    // cloud write can never block the update check indefinitely) before
+    // touching caches/service worker and reloading
+    var flushDone = Promise.resolve(flushSaveState());
+    var flushTimeout = new Promise(function(resolve){ setTimeout(resolve, 2000); });
+    Promise.race([flushDone, flushTimeout]).then(function(){
+      cleanup().then(function(){
+        status.className = 'update-status ok';
+        status.textContent = t('update.done');
+        try{ sessionStorage.setItem('dnd_just_updated', '1'); }catch(e){}
+        setTimeout(function(){
+          // cache-busting reload so the HTTP cache can't serve a stale copy either
+          window.location.href = window.location.pathname + '?_u=' + Date.now();
+        }, 400);
+      }).catch(function(err){
+        btn.disabled = false;
+        status.className = 'update-status err';
+        status.textContent = t('update.failed') + (err && err.message ? ' (' + err.message + ')' : '');
+      });
     });
   }
 
