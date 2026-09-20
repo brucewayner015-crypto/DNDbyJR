@@ -4590,7 +4590,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.20-2';
+  var APP_VERSION = '2026.09.20-3';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4807,6 +4807,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }catch(e){ console.warn('Не удалось сохранить', e); }
       syncToCloud();
     }, 300);
+  }
+
+  function flushSaveState(){
+    clearTimeout(saveTimer);
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){ console.warn('Не удалось сохранить', e); }
+    syncToCloud();
   }
 
   function getPath(obj, path){
@@ -10006,6 +10014,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function checkForUpdate(){
+    flushSaveState();
     var btn = document.getElementById('btnCheckUpdate');
     var status = document.getElementById('updateStatus');
     btn.disabled = true;
@@ -10616,6 +10625,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
   applyEquipmentEnabled();
   bindEquipmentEnabledToggle();
   bindEquipSlotsEditToggle();
+
+  /* Force an immediate (non-debounced) save whenever the app is backgrounded,
+     hidden, or closed — mobile browsers can kill a page without waiting for
+     pending timers, so relying on the debounce alone can silently lose the
+     last edit. */
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') flushSaveState();
+  });
+  window.addEventListener('pagehide', flushSaveState);
+  window.addEventListener('beforeunload', flushSaveState);
   bindCollapsibleCard('cardPersonality', 'dnd5e_card_collapsed_personality');
   bindCollapsibleCard('cardFeatures', 'dnd5e_card_collapsed_features');
   bindCollapsibleCard('cardProfsLangs', 'dnd5e_card_collapsed_profslangs');
