@@ -2804,6 +2804,64 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .equip-details-notes:empty{display:none;}
 .equip-details-actions .map-pin-edit-btn{margin-top:0;}
 
+.group-picker-popup{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  z-index:200;
+  background:var(--parchment);
+  border:2px solid var(--gold);
+  border-radius:var(--radius-s);
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  padding:10px;
+  width:88%;
+  max-width:260px;
+  max-height:70vh;
+  overflow-y:auto;
+}
+.group-picker-list{display:flex;flex-direction:column;gap:2px;}
+.group-picker-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12.5px;
+  color:var(--ink);
+  background:none;border:none;
+  text-align:left;
+  width:100%;
+}
+.group-picker-item:active{background:rgba(0,0,0,0.06);}
+.group-picker-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,0.2);}
+.group-picker-none .group-picker-dot{background:repeating-conic-gradient(#999 0% 25%, #ccc 0% 50%) 50% / 6px 6px;}
+.group-picker-title{
+  font-family:var(--font-display);font-weight:700;font-size:10.5px;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--gold);padding:2px 8px 6px;border-bottom:1px solid var(--parchment-shadow);margin-bottom:2px;
+}
+.group-picker-row{display:flex;align-items:center;gap:2px;}
+.group-picker-row .group-picker-item{flex:1;}
+.group-picker-row-edit{
+  flex-shrink:0;
+  width:26px;height:26px;border-radius:6px;
+  border:none;background:none;
+  color:var(--ink-soft);font-size:12px;cursor:pointer;
+}
+.group-picker-additem{
+  display:block;width:100%;
+  margin-top:4px;
+  padding:7px 8px;
+  background:none;border:none;border-top:1px solid var(--parchment-shadow);
+  color:var(--gold-deep, var(--ink));font-size:12.5px;font-weight:700;text-align:left;
+  cursor:pointer;
+}
+.group-edit-mode-overlay{
+  position:absolute;inset:0;
+  z-index:4;
+  cursor:pointer;
+  background:rgba(224,181,99,0.06);
+  border-radius:inherit;
+}
+
 .map-pin-settings-popup{
   position:absolute;
   top:56px;right:10px;
@@ -3249,6 +3307,22 @@ input[type=checkbox]:active{transform:scale(0.88);}
   transition:transform .1s ease;
 }
 .color-swatch-btn:active{transform:scale(0.92);}
+.group-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.group-color-swatch{
+  width:32px;height:32px;border-radius:50%;
+  border:2px solid var(--gold);
+  padding:0;cursor:pointer;flex-shrink:0;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,0.35), inset 0 -2px 3px rgba(0,0,0,0.25);
+}
+.group-name-input{flex:1;min-width:0;}
+.group-del-btn{
+  flex-shrink:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--wax);color:#fff;border:none;
+  font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.group-empty-hint{font-size:11.5px;color:var(--ink-soft);font-style:italic;}
 .custom-color-controls{
   display:flex;
   align-items:center;
@@ -3721,7 +3795,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     </div>
 
     <div class="card">
-      <h2 data-i18n="card.attacksSpells">Атаки и заклинания в бою</h2>
+      <h2><span data-i18n="card.attacksSpells">Атаки и заклинания в бою</span> <span class="h2-btn-group" id="attacksGroupBtnGroup" style="display:none;"><button class="h2-edit-btn" id="btnEditAttackGroups" title="Управление группами">✎</button></span></h2>
       <div class="dyn-list" id="attacksWrap"></div>
       <button class="add-btn" id="addAttack" data-i18n="btn.addAttack">+ добавить атаку</button>
     </div>
@@ -3745,7 +3819,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       </div>
     </div>
     <div class="card">
-      <h2 data-i18n="card.equipment">Снаряжение</h2>
+      <h2><span data-i18n="card.equipment">Снаряжение</span> <span class="h2-btn-group" id="itemsGroupBtnGroup" style="display:none;"><button class="h2-edit-btn" id="btnEditItemGroups" title="Управление группами">✎</button></span></h2>
       <div class="dyn-list" id="itemsWrap"></div>
       <button class="add-btn" id="addItem" data-i18n="btn.addItem">+ добавить предмет</button>
     </div>
@@ -4052,6 +4126,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <div class="equip-details-actions">
     <button class="map-pin-edit-btn" id="equipDetailsEditBtn">✎ Изменить</button>
   </div>
+</div>
+
+<div class="group-picker-popup" id="groupPickerPopup" style="display:none;">
+  <div class="group-picker-title" id="groupPickerTitle">Группа предмета</div>
+  <div class="group-picker-list" id="groupPickerList"></div>
+  <button type="button" class="group-picker-additem" id="groupPickerAddBtn">+ Новая группа</button>
 </div>
 
 <div class="rich-toolbar" id="richToolbar" style="display:none;">
@@ -4445,6 +4525,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
           <input type="checkbox" id="equipmentEnabledToggle"> Снаряжение (шлем/броня/перчатки/штаны/обувь)
         </label>
         <div class="settings-hint" style="margin-top:6px;">Добавляет карточку «Снаряжение» на вкладку «Вещи» — пять слотов под конкретные предметы экипировки.</div>
+
+        <div class="settings-divider"></div>
+
+        <label class="inline-check">
+          <input type="checkbox" id="groupsEnabledToggle"> Группы для атак и вещей
+        </label>
+        <div class="settings-hint" style="margin-top:6px;">Добавляет кнопку ✎ на карточки «Атаки» и «Снаряжение» — включаете её, тапаете по предмету и назначаете/создаёте группу с цветом прямо там.</div>
       </div>
     </div>
 
@@ -4590,7 +4677,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.20-4';
+  var APP_VERSION = '2026.09.20-6';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4618,6 +4705,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       attacks:[],
       currency:{cp:0,sp:0,ep:0,gp:0,pp:0},
       items:[],
+      groups:[],
       equipment:[
         {icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
         {icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
@@ -4781,6 +4869,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (!Array.isArray(state.items)) state.items = [];
     if (!Array.isArray(state.spells)) state.spells = [];
     if (!Array.isArray(state.equipment)) state.equipment = defaultState().equipment;
+    if (!Array.isArray(state.groups)) state.groups = [];
     state.equipment.forEach(function(slot){
       if (!slot.colSpan) slot.colSpan = 1;
       if (!slot.rowSpan) slot.rowSpan = 1;
@@ -5312,14 +5401,27 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var notesFieldHtml = uiSettings.richTextEnabled
         ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(atk.notes)+'</div>'
         : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(atk.notes))+'</textarea>';
+      var atkGroup = uiSettings.groupsEnabled ? getGroupById(atk.groupId) : null;
+      if (atkGroup) div.style.background = 'linear-gradient(180deg, '+atkGroup.color+'33, '+atkGroup.color+'18)';
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
           '<button type="button" class="del-btn" data-act="del">✕</button>' +
         '</div>' +
         topRowHtml +
-        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>';
+        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>' +
+        (attackGroupsEditMode ? '<div class="group-edit-mode-overlay" data-act="groupedit" title="Тап — изменить группу"></div>' : '');
       wrap.appendChild(div);
+      if (attackGroupsEditMode){
+        div.querySelector('[data-act="groupedit"]').addEventListener('click', function(e){
+          e.stopPropagation();
+          openGroupPicker(atk, function(groupId){
+            state.attacks[idx].groupId = groupId;
+            saveState();
+            renderAttacks();
+          });
+        });
+      }
       div.querySelectorAll('textarea.dyn-notes').forEach(autoGrow);
       div.querySelectorAll('[data-k]').forEach(function(inp){
         var isRich = inp.classList.contains('rich-notes');
@@ -5591,6 +5693,151 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
   }
 
+  /* ---------------- GROUPS (developer feature) for attacks/items ---------------- */
+
+  function applyGroupsEnabled(){
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    if (uiSettings.groupsEnabled) shell.setAttribute('data-groups-enabled', '1');
+    else shell.removeAttribute('data-groups-enabled');
+    var attacksGrp = document.getElementById('attacksGroupBtnGroup');
+    var itemsGrp = document.getElementById('itemsGroupBtnGroup');
+    if (attacksGrp) attacksGrp.style.display = uiSettings.groupsEnabled ? '' : 'none';
+    if (itemsGrp) itemsGrp.style.display = uiSettings.groupsEnabled ? '' : 'none';
+    if (!uiSettings.groupsEnabled){ attackGroupsEditMode = false; itemGroupsEditMode = false; }
+    if (typeof renderAttacks === 'function') renderAttacks();
+    if (typeof renderItems === 'function') renderItems();
+  }
+
+  function bindGroupsEnabledToggle(){
+    var toggle = document.getElementById('groupsEnabledToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.groupsEnabled;
+    toggle.addEventListener('change', function(){
+      uiSettings.groupsEnabled = toggle.checked;
+      saveUiSettings();
+      applyGroupsEnabled();
+    });
+  }
+
+  var attackGroupsEditMode = false;
+  var itemGroupsEditMode = false;
+
+  function bindGroupsEditModeToggles(){
+    var attackBtn = document.getElementById('btnEditAttackGroups');
+    if (attackBtn){
+      attackBtn.addEventListener('click', function(){
+        attackGroupsEditMode = !attackGroupsEditMode;
+        attackBtn.classList.toggle('active', attackGroupsEditMode);
+        attackBtn.textContent = attackGroupsEditMode ? '✓' : '✎';
+        renderAttacks();
+      });
+    }
+    var itemBtn = document.getElementById('btnEditItemGroups');
+    if (itemBtn){
+      itemBtn.addEventListener('click', function(){
+        itemGroupsEditMode = !itemGroupsEditMode;
+        itemBtn.classList.toggle('active', itemGroupsEditMode);
+        itemBtn.textContent = itemGroupsEditMode ? '✓' : '✎';
+        renderItems();
+      });
+    }
+  }
+
+  function getGroupById(id){
+    if (!id || !Array.isArray(state.groups)) return null;
+    for (var i=0;i<state.groups.length;i++){ if (state.groups[i].id === id) return state.groups[i]; }
+    return null;
+  }
+
+
+  function openGroupPicker(target, onSelect){
+    var popup = document.getElementById('groupPickerPopup');
+    var list = document.getElementById('groupPickerList');
+    var titleEl = document.getElementById('groupPickerTitle');
+    if (titleEl) titleEl.textContent = 'Группа: ' + (target.name || t('noname'));
+    list.innerHTML = '';
+
+    function closePopup(){ popup.style.display = 'none'; appCloseModal(); }
+
+    var noneBtn = document.createElement('button');
+    noneBtn.type = 'button';
+    noneBtn.className = 'group-picker-item group-picker-none';
+    noneBtn.innerHTML = '<span class="group-picker-dot"></span><span>Без группы</span>';
+    noneBtn.addEventListener('click', function(){ onSelect(''); closePopup(); });
+    list.appendChild(noneBtn);
+
+    (state.groups||[]).forEach(function(g){
+      var row = document.createElement('div');
+      row.className = 'group-picker-row';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'group-picker-item';
+      btn.innerHTML = '<span class="group-picker-dot" style="background:'+escAttr(g.color||'#ccc')+';"></span><span>'+escAttr(g.name||'')+'</span>';
+      btn.addEventListener('click', function(){ onSelect(g.id); closePopup(); });
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'group-picker-row-edit';
+      editBtn.textContent = '✎';
+      editBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        showTextPrompt('Изменить группу', [
+          {id:'name', label:'Название группы', value: g.name || ''}
+        ], function(values){
+          g.name = values.name || g.name;
+          saveState();
+          openColorPicker('group_'+g.id, g.color || '#8bc34a', function(hex){
+            g.color = hex;
+            saveState();
+            if (uiSettings.groupsEnabled){ renderAttacks(); renderItems(); }
+          });
+        });
+      });
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'group-picker-row-edit';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        showConfirm('Удалить группу «'+(g.name||'')+'»? С атак/вещей группа тоже снимется.', function(){
+          var gi = state.groups.indexOf(g);
+          if (gi > -1) state.groups.splice(gi,1);
+          (state.attacks||[]).forEach(function(a){ if (a.groupId === g.id) a.groupId = ''; });
+          (state.items||[]).forEach(function(it){ if (it.groupId === g.id) it.groupId = ''; });
+          saveState();
+          if (uiSettings.groupsEnabled){ renderAttacks(); renderItems(); }
+          openGroupPicker(target, onSelect);
+        });
+      });
+      row.appendChild(btn);
+      row.appendChild(editBtn);
+      row.appendChild(delBtn);
+      list.appendChild(row);
+    });
+
+    popup.style.display = 'block';
+    appOpenModal(function(){ popup.style.display = 'none'; });
+
+    var addBtn = document.getElementById('groupPickerAddBtn');
+    addBtn.onclick = function(){
+      showTextPrompt('Новая группа', [
+        {id:'name', label:'Название группы', placeholder:'Ядовитое'}
+      ], function(values){
+        var id = 'grp' + Date.now() + Math.floor(Math.random()*1000);
+        var g = {id:id, name: values.name || 'Новая группа', color:'#8bc34a'};
+        if (!Array.isArray(state.groups)) state.groups = [];
+        state.groups.push(g);
+        saveState();
+        openColorPicker('group_'+g.id, g.color, function(hex){
+          g.color = hex;
+          saveState();
+          onSelect(g.id);
+          closePopup();
+        });
+      });
+    };
+  }
+
   function bindEquipSlotsEditToggle(){
     var btn = document.getElementById('btnEditEquipSlots');
     var addBtn = document.getElementById('addEquipSlot');
@@ -5630,6 +5877,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var notesFieldHtml = uiSettings.richTextEnabled
         ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(item.notes)+'</div>'
         : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(item.notes))+'</textarea>';
+      var itemGroup = uiSettings.groupsEnabled ? getGroupById(item.groupId) : null;
+      if (itemGroup) div.style.background = 'linear-gradient(180deg, '+itemGroup.color+'33, '+itemGroup.color+'18)';
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
@@ -5640,8 +5889,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
           '<div><label class="field-label">'+t('field.item')+'</label><input type="text" data-k="name" value="'+escAttr(item.name)+'"></div>' +
           '<div><label class="field-label">'+t('field.qty')+'</label><input type="number" data-k="qty" value="'+escAttr(item.qty)+'"></div>' +
         '</div>' +
-        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>';
+        '<div class="field" style="margin-top:6px;"><label class="field-label">'+t('field.notes')+'</label>'+notesFieldHtml+'</div>' +
+        (itemGroupsEditMode ? '<div class="group-edit-mode-overlay" data-act="groupedit" title="Тап — изменить группу"></div>' : '');
       wrap.appendChild(div);
+      if (itemGroupsEditMode){
+        div.querySelector('[data-act="groupedit"]').addEventListener('click', function(e){
+          e.stopPropagation();
+          openGroupPicker(item, function(groupId){
+            state.items[idx].groupId = groupId;
+            saveState();
+            renderItems();
+          });
+        });
+      }
       div.querySelectorAll('textarea.dyn-notes').forEach(autoGrow);
       div.querySelectorAll('[data-k]').forEach(function(inp){
         var isRich = inp.classList.contains('rich-notes');
@@ -9368,17 +9628,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return {h:h*360, s:s*100, v:v*100};
   }
 
-  var CP_STATE = {key:null, h:0, s:0, v:0};
+  var CP_STATE = {h:0, s:0, v:100, key:null, callback:null};
 
-  function openColorPicker(key){
+  function openColorPicker(key, initialHex, onChange){
     CP_STATE.key = key;
-    var hex = (uiSettings.customColors || defaultCustomColors())[key];
+    CP_STATE.callback = onChange || null;
+    var hex = onChange ? (initialHex || '#ffffff') : (uiSettings.customColors || defaultCustomColors())[key];
     var rgb = hexToRgb(hex);
     var hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
     CP_STATE.h = hsv.h; CP_STATE.s = hsv.s; CP_STATE.v = hsv.v;
     updateColorPickerUI();
     var titleEl = document.getElementById('colorPickerTitle');
-    if (titleEl) titleEl.textContent = CUSTOM_COLOR_KEYS[key] ? t(CUSTOM_COLOR_KEYS[key]) : t('colorpicker.title');
+    if (titleEl) titleEl.textContent = onChange ? (CP_STATE.titleOverride || t('colorpicker.title')) : (CUSTOM_COLOR_KEYS[key] ? t(CUSTOM_COLOR_KEYS[key]) : t('colorpicker.title'));
     document.getElementById('colorPickerOverlay').classList.add('active');
   }
 
@@ -9400,7 +9661,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   function applyColorPickerValue(){
     var rgb = hsvToRgb(CP_STATE.h, CP_STATE.s, CP_STATE.v);
     var hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-    if (CP_STATE.key){
+    if (CP_STATE.callback){
+      CP_STATE.callback(hex);
+    } else if (CP_STATE.key){
       setCustomColor(CP_STATE.key, hex);
       refreshCustomThemeInputs();
     }
@@ -9457,10 +9720,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     document.getElementById('cpDoneBtn').addEventListener('click', function(){
       document.getElementById('colorPickerOverlay').classList.remove('active');
+      CP_STATE.callback = null;
     });
     var overlay = document.getElementById('colorPickerOverlay');
     overlay.addEventListener('click', function(e){
-      if (e.target === overlay) overlay.classList.remove('active');
+      if (e.target === overlay){
+        overlay.classList.remove('active');
+        CP_STATE.callback = null;
+      }
     });
   }
 
@@ -10638,6 +10905,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   applyEquipmentEnabled();
   bindEquipmentEnabledToggle();
   bindEquipSlotsEditToggle();
+  bindGroupsEnabledToggle();
+  bindGroupsEditModeToggles();
+  applyGroupsEnabled();
 
   /* Force an immediate (non-debounced) save whenever the app is backgrounded,
      hidden, or closed — mobile browsers can kill a page without waiting for
