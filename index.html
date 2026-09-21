@@ -4677,7 +4677,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.20-6';
+  var APP_VERSION = '2026.09.21-1';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5786,6 +5786,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         ], function(values){
           g.name = values.name || g.name;
           saveState();
+          closePopup();
           openColorPicker('group_'+g.id, g.color || '#8bc34a', function(hex){
             g.color = hex;
             saveState();
@@ -5827,12 +5828,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
         var g = {id:id, name: values.name || 'Новая группа', color:'#8bc34a'};
         if (!Array.isArray(state.groups)) state.groups = [];
         state.groups.push(g);
+        onSelect(g.id);
         saveState();
+        closePopup();
         openColorPicker('group_'+g.id, g.color, function(hex){
           g.color = hex;
           saveState();
-          onSelect(g.id);
-          closePopup();
+          if (uiSettings.groupsEnabled){ renderAttacks(); renderItems(); }
         });
       });
     };
