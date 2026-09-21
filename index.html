@@ -1360,7 +1360,7 @@ label.field-label{
   font-size:calc(10px * var(--ui-font-scale));
   letter-spacing:0.8px;
   text-transform:uppercase;
-  color:var(--ink-soft);
+  color:var(--group-text-color, var(--ink-soft));
   margin-bottom:4px;
 }
 input[type=text], input[type=number], select, textarea{
@@ -2809,6 +2809,42 @@ input[type=checkbox]:active{transform:scale(0.88);}
   z-index:199;
   background:rgba(0,0,0,0.5);
 }
+.group-theme-editor{
+  position:fixed;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%) !important;
+  z-index:210;
+  opacity:1 !important;
+  max-height:85vh;
+}
+#groupThemeCloseBtn{position:absolute;top:10px;right:10px;}
+.group-theme-name-input{width:100%;margin-bottom:12px;text-align:center;font-weight:700;}
+.group-theme-preview{
+  border-radius:var(--radius-s);
+  padding:14px 12px 12px;
+  margin-bottom:14px;
+  text-align:left;
+  border:1px solid var(--parchment-shadow);
+  transition:background .15s ease, border-color .15s ease;
+}
+.group-theme-preview-label{
+  font-family:var(--font-display);font-size:9px;letter-spacing:0.5px;text-transform:uppercase;
+  opacity:0.75;margin-bottom:3px;
+}
+.group-theme-preview-name{
+  font-weight:700;font-size:13px;
+  background:rgba(255,255,255,0.45);
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:6px;
+  padding:6px 8px;
+}
+.group-theme-preview-notes{
+  font-size:12px;
+  background:rgba(255,255,255,0.45);
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:6px;
+  padding:6px 8px;
+}
 .group-picker-popup{
   position:fixed;
   left:50%;top:50%;
@@ -4143,6 +4179,45 @@ input[type=checkbox]:active{transform:scale(0.88);}
   <button type="button" class="group-picker-additem" id="groupPickerAddBtn">+ Новая группа</button>
 </div>
 
+<div class="group-picker-backdrop" id="groupThemeBackdrop" style="display:none;"></div>
+<div class="modal-card wide group-theme-editor" id="groupThemeEditor" style="display:none;">
+  <button class="chat-reply-cancel" id="groupThemeCloseBtn" aria-label="Закрыть">✕</button>
+  <p class="modal-text" style="margin-bottom:10px;">Оформление группы</p>
+
+  <input type="text" id="groupThemeNameInput" class="group-theme-name-input" placeholder="Название группы">
+
+  <div class="group-theme-preview" id="groupThemePreview">
+    <div class="group-theme-preview-label">ПРЕДМЕТ</div>
+    <div class="group-theme-preview-name">Пример предмета</div>
+    <div class="group-theme-preview-label" style="margin-top:8px;">ЗАМЕТКИ</div>
+    <div class="group-theme-preview-notes">Так будет выглядеть карточка этой группы</div>
+  </div>
+
+  <div class="custom-color-row">
+    <label>Фон карточки</label>
+    <div class="custom-color-controls">
+      <button type="button" class="color-swatch-btn" id="gtBgSwatch" aria-label="Выбрать цвет"></button>
+      <input type="text" class="custom-hex-input" id="gtBgHex" maxlength="9">
+    </div>
+  </div>
+  <div class="custom-color-row">
+    <label>Окантовка</label>
+    <div class="custom-color-controls">
+      <button type="button" class="color-swatch-btn" id="gtBorderSwatch" aria-label="Выбрать цвет"></button>
+      <input type="text" class="custom-hex-input" id="gtBorderHex" maxlength="7">
+    </div>
+  </div>
+  <div class="custom-color-row">
+    <label>Текст / подписи</label>
+    <div class="custom-color-controls">
+      <button type="button" class="color-swatch-btn" id="gtTextSwatch" aria-label="Выбрать цвет"></button>
+      <input type="text" class="custom-hex-input" id="gtTextHex" maxlength="7">
+    </div>
+  </div>
+
+  <button class="modal-btn cancel" id="groupThemeDoneBtn" style="margin-top:14px;">Готово</button>
+</div>
+
 <div class="rich-toolbar" id="richToolbar" style="display:none;">
   <div class="rich-toolbar-row">
     <button type="button" data-cmd="bold"><b>Ж</b></button>
@@ -4686,7 +4761,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.21-2';
+  var APP_VERSION = '2026.09.21-3';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5411,7 +5486,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(atk.notes)+'</div>'
         : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(atk.notes))+'</textarea>';
       var atkGroup = uiSettings.groupsEnabled ? getGroupById(atk.groupId) : null;
-      if (atkGroup) div.style.background = 'linear-gradient(180deg, '+atkGroup.color+'33, '+atkGroup.color+'18)';
+      applyGroupStyleToCard(div, atkGroup);
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
@@ -5759,6 +5834,89 @@ input[type=checkbox]:active{transform:scale(0.88);}
     return null;
   }
 
+  function applyGroupStyleToCard(div, group){
+    if (!group) return;
+    if (group.bgColor){
+      div.style.background = group.bgColor;
+    } else if (group.color){
+      div.style.background = 'linear-gradient(180deg, '+group.color+'33, '+group.color+'18)';
+    }
+    if (group.borderColor) div.style.borderColor = group.borderColor;
+    if (group.textColor) div.style.setProperty('--group-text-color', group.textColor);
+  }
+
+  function openGroupThemeEditor(group, onDone){
+    var editor = document.getElementById('groupThemeEditor');
+    var backdrop = document.getElementById('groupThemeBackdrop');
+    var nameInput = document.getElementById('groupThemeNameInput');
+    var preview = document.getElementById('groupThemePreview');
+
+    if (!group.bgColor) group.bgColor = '#e8f5e0';
+    if (!group.borderColor) group.borderColor = group.color || '#8bc34a';
+    if (!group.textColor) group.textColor = '#3a2f22';
+
+    nameInput.value = group.name || '';
+
+    function updatePreview(){
+      preview.style.background = group.bgColor;
+      preview.style.borderColor = group.borderColor;
+      preview.style.color = group.textColor;
+      var bgSwatch = document.getElementById('gtBgSwatch');
+      var bgHex = document.getElementById('gtBgHex');
+      var borderSwatch = document.getElementById('gtBorderSwatch');
+      var borderHex = document.getElementById('gtBorderHex');
+      var textSwatch = document.getElementById('gtTextSwatch');
+      var textHex = document.getElementById('gtTextHex');
+      bgSwatch.style.background = group.bgColor; bgHex.value = group.bgColor;
+      borderSwatch.style.background = group.borderColor; borderHex.value = group.borderColor;
+      textSwatch.style.background = group.textColor; textHex.value = group.textColor;
+    }
+    updatePreview();
+
+    nameInput.oninput = function(){ group.name = nameInput.value; saveState(); };
+
+    function bindColorField(swatchId, hexId, prop){
+      var swatch = document.getElementById(swatchId);
+      var hexEl = document.getElementById(hexId);
+      swatch.onclick = function(){
+        openColorPicker('grouptheme_'+prop, group[prop], function(hex){
+          group[prop] = hex;
+          saveState();
+          updatePreview();
+        });
+      };
+      hexEl.oninput = function(){
+        var v = hexEl.value.trim();
+        if (v && v[0] !== '#') v = '#' + v;
+        if (/^#[0-9a-fA-F]{6}$/.test(v)){
+          group[prop] = v;
+          saveState();
+          updatePreview();
+        }
+      };
+    }
+    bindColorField('gtBgSwatch','gtBgHex','bgColor');
+    bindColorField('gtBorderSwatch','gtBorderHex','borderColor');
+    bindColorField('gtTextSwatch','gtTextHex','textColor');
+
+    function closeEditorUIOnly(){
+      editor.style.display = 'none';
+      backdrop.style.display = 'none';
+    }
+    function closeEditor(){
+      closeEditorUIOnly();
+      appCloseModal();
+      if (uiSettings.groupsEnabled){ renderAttacks(); renderItems(); }
+      if (typeof onDone === 'function') onDone();
+    }
+    document.getElementById('groupThemeCloseBtn').onclick = closeEditor;
+    document.getElementById('groupThemeDoneBtn').onclick = closeEditor;
+    backdrop.onclick = closeEditor;
+
+    editor.style.display = 'block';
+    backdrop.style.display = 'block';
+    appOpenModal(closeEditorUIOnly);
+  }
 
   function openGroupPicker(target, onSelect){
     var popup = document.getElementById('groupPickerPopup');
@@ -5787,7 +5945,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'group-picker-item';
-      btn.innerHTML = '<span class="group-picker-dot" style="background:'+escAttr(g.color||'#ccc')+';"></span><span>'+escAttr(g.name||'')+'</span>';
+      btn.innerHTML = '<span class="group-picker-dot" style="background:'+escAttr(g.borderColor||g.color||'#ccc')+';"></span><span>'+escAttr(g.name||'')+'</span>';
       btn.addEventListener('click', function(){ onSelect(g.id); closePopup(); });
       var editBtn = document.createElement('button');
       editBtn.type = 'button';
@@ -5795,18 +5953,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
       editBtn.textContent = '✎';
       editBtn.addEventListener('click', function(e){
         e.stopPropagation();
-        showTextPrompt('Изменить группу', [
-          {id:'name', label:'Название группы', value: g.name || ''}
-        ], function(values){
-          g.name = values.name || g.name;
-          saveState();
-          closePopup();
-          openColorPicker('group_'+g.id, g.color || '#8bc34a', function(hex){
-            g.color = hex;
-            saveState();
-            if (uiSettings.groupsEnabled){ renderAttacks(); renderItems(); }
-          });
-        });
+        closePopup();
+        openGroupThemeEditor(g);
       });
       var delBtn = document.createElement('button');
       delBtn.type = 'button';
@@ -5840,22 +5988,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     var addBtn = document.getElementById('groupPickerAddBtn');
     addBtn.onclick = function(){
-      showTextPrompt('Новая группа', [
-        {id:'name', label:'Название группы', placeholder:'Ядовитое'}
-      ], function(values){
-        var id = 'grp' + Date.now() + Math.floor(Math.random()*1000);
-        var g = {id:id, name: values.name || 'Новая группа', color:'#8bc34a'};
-        if (!Array.isArray(state.groups)) state.groups = [];
-        state.groups.push(g);
-        onSelect(g.id);
-        saveState();
-        closePopup();
-        openColorPicker('group_'+g.id, g.color, function(hex){
-          g.color = hex;
-          saveState();
-          if (uiSettings.groupsEnabled){ renderAttacks(); renderItems(); }
-        });
-      });
+      var id = 'grp' + Date.now() + Math.floor(Math.random()*1000);
+      var g = {id:id, name:'Новая группа', bgColor:'#e8f5e0', borderColor:'#8bc34a', textColor:'#3a2f22'};
+      if (!Array.isArray(state.groups)) state.groups = [];
+      state.groups.push(g);
+      onSelect(g.id);
+      saveState();
+      closePopup();
+      openGroupThemeEditor(g);
     };
   }
 
@@ -5899,7 +6039,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
         ? '<div class="rich-notes dyn-notes" contenteditable="true" data-k="notes" data-placeholder="'+t('field.notes')+'">'+sanitizeRichHtml(item.notes)+'</div>'
         : '<textarea class="dyn-notes" data-k="notes" rows="1">'+escAttr(stripHtmlToText(item.notes))+'</textarea>';
       var itemGroup = uiSettings.groupsEnabled ? getGroupById(item.groupId) : null;
-      if (itemGroup) div.style.background = 'linear-gradient(180deg, '+itemGroup.color+'33, '+itemGroup.color+'18)';
+      applyGroupStyleToCard(div, itemGroup);
       div.innerHTML =
         '<div class="dyn-drag-handle" title="Удерживайте, чтобы переместить"><span></span><span></span><span></span></div>' +
         '<div class="dyn-item-actions">' +
