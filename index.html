@@ -2804,6 +2804,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .equip-details-notes:empty{display:none;}
 .equip-details-actions .map-pin-edit-btn{margin-top:0;}
 
+.group-picker-backdrop{
+  position:fixed;inset:0;
+  z-index:199;
+  background:rgba(0,0,0,0.5);
+}
 .group-picker-popup{
   position:fixed;
   left:50%;top:50%;
@@ -2814,11 +2819,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-radius:var(--radius-s);
   box-shadow:0 10px 30px rgba(0,0,0,0.5);
   padding:10px;
+  padding-top:34px;
   width:88%;
   max-width:260px;
   max-height:70vh;
   overflow-y:auto;
 }
+#groupPickerCloseBtn{position:absolute;top:8px;right:8px;}
 .group-picker-list{display:flex;flex-direction:column;gap:2px;}
 .group-picker-item{
   display:flex;align-items:center;gap:8px;
@@ -4128,7 +4135,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   </div>
 </div>
 
+<div class="group-picker-backdrop" id="groupPickerBackdrop" style="display:none;"></div>
 <div class="group-picker-popup" id="groupPickerPopup" style="display:none;">
+  <button class="chat-reply-cancel" id="groupPickerCloseBtn" aria-label="Закрыть">✕</button>
   <div class="group-picker-title" id="groupPickerTitle">Группа предмета</div>
   <div class="group-picker-list" id="groupPickerList"></div>
   <button type="button" class="group-picker-additem" id="groupPickerAddBtn">+ Новая группа</button>
@@ -4677,7 +4686,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.21-1';
+  var APP_VERSION = '2026.09.21-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -5753,12 +5762,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   function openGroupPicker(target, onSelect){
     var popup = document.getElementById('groupPickerPopup');
+    var backdrop = document.getElementById('groupPickerBackdrop');
     var list = document.getElementById('groupPickerList');
     var titleEl = document.getElementById('groupPickerTitle');
     if (titleEl) titleEl.textContent = 'Группа: ' + (target.name || t('noname'));
     list.innerHTML = '';
 
-    function closePopup(){ popup.style.display = 'none'; appCloseModal(); }
+    function closePopupUIOnly(){
+      popup.style.display = 'none';
+      if (backdrop) backdrop.style.display = 'none';
+    }
+    function closePopup(){ closePopupUIOnly(); appCloseModal(); }
 
     var noneBtn = document.createElement('button');
     noneBtn.type = 'button';
@@ -5817,7 +5831,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
     });
 
     popup.style.display = 'block';
-    appOpenModal(function(){ popup.style.display = 'none'; });
+    if (backdrop) backdrop.style.display = 'block';
+    appOpenModal(closePopupUIOnly);
+
+    var closeBtn = document.getElementById('groupPickerCloseBtn');
+    closeBtn.onclick = closePopup;
+    if (backdrop) backdrop.onclick = closePopup;
 
     var addBtn = document.getElementById('groupPickerAddBtn');
     addBtn.onclick = function(){
