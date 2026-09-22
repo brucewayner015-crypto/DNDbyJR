@@ -13,8 +13,11 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;700&family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&family=Pirata+One&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Playfair+Display:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;700&family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&family=Pirata+One&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Playfair+Display:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"></noscript>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cinzel+Decorative:wght@700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@500;700&family=MedievalSharp&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&family=Pirata+One&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Playfair+Display:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
 
 
 /* ---------- CUSTOM EMBEDDED FONTS (self-hosted, work fully offline) ---------- */
@@ -1861,10 +1864,23 @@ input[type=checkbox]:active{transform:scale(0.88);}
   border-radius:8px;
   cursor:pointer;
   overflow:hidden;
-  transition:border-color .15s ease, background-color .15s ease;
+  transition:border-color .15s ease, background-color .15s ease, transform .22s cubic-bezier(.2,.7,.3,1), opacity .18s ease;
 }
 .equip-slot:active{transform:scale(0.98);}
-.equip-slot.dragging{opacity:0.8;box-shadow:0 8px 20px rgba(0,0,0,0.45);z-index:5;}
+.equip-slot.dragging{opacity:0.25;transition:opacity .12s ease;}
+.equip-slot.no-anim{transition:none !important;}
+.equip-slot-ghost{
+  position:fixed;
+  margin:0 !important;
+  z-index:60;
+  pointer-events:none;
+  box-shadow:0 14px 30px rgba(0,0,0,0.55), 0 4px 10px rgba(0,0,0,0.35);
+  border-color:var(--gold) !important;
+  transform:scale(1.06) rotate(-1.5deg);
+  transition:transform .12s ease;
+}
+.equip-resize-handle.active-resize ~ .equip-slot-visual,
+.equip-slot.resizing{transition:border-color .15s ease, background-color .15s ease;}
 .equip-slot-visual{
   flex:1;
   min-height:0;
@@ -3674,9 +3690,33 @@ input[type=checkbox]:active{transform:scale(0.88);}
   .grid4{grid-template-columns:repeat(4,1fr);}
 }
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  // Loaded dynamically (with a timeout) instead of blocking <script src> tags:
+  // some VPNs/proxies don't cleanly fail requests to gstatic.com, they just
+  // hang, which would otherwise stall the whole page's parsing indefinitely.
+  function loadScriptWithTimeout(src, timeoutMs){
+    return new Promise(function(resolve){
+      var done = false;
+      function finish(ok){ if (!done){ done = true; resolve(ok); } }
+      var script = document.createElement('script');
+      script.src = src;
+      script.onload = function(){ finish(true); };
+      script.onerror = function(){ finish(false); };
+      document.head.appendChild(script);
+      setTimeout(function(){ finish(false); }, timeoutMs);
+    });
+  }
+  window.firebaseLoadPromise = loadScriptWithTimeout('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js', 5000)
+    .then(function(ok){
+      if (!ok) return false;
+      return loadScriptWithTimeout('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js', 5000);
+    })
+    .then(function(ok){
+      if (!ok) return false;
+      return loadScriptWithTimeout('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js', 5000);
+    })
+    .catch(function(){ return false; });
+</script>
 </head>
 <body>
 <div class="app-shell">
@@ -4762,7 +4802,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.21-4';
+  var APP_VERSION = '2026.09.21-5';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4792,11 +4832,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
       items:[],
       groups:[],
       equipment:[
-        {icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
-        {icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
-        {icon:'🧤', iconUrl:'', label:'Перчатки', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
-        {icon:'👖', iconUrl:'', label:'Штаны', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
-        {icon:'🥾', iconUrl:'', label:'Обувь', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'}
+        {id:'eq1', icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {id:'eq2', icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {id:'eq3', icon:'🧤', iconUrl:'', label:'Перчатки', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {id:'eq4', icon:'👖', iconUrl:'', label:'Штаны', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
+        {id:'eq5', icon:'🥾', iconUrl:'', label:'Обувь', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'}
       ],
       spellAbility:'none',
       slots: slots,
@@ -4870,34 +4910,37 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   function initFirebase(){
-    if (typeof firebase === 'undefined'){
-      setAccountStatus('err', 'Нет сети — облако недоступно, но лист работает как обычно');
-      return;
-    }
-    try{
-      firebase.initializeApp(FIREBASE_CONFIG);
-      var auth = firebase.auth();
-      fbDb = firebase.firestore();
-      try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
-      setAccountStatus('pending', 'Подключение…');
-      auth.onAuthStateChanged(function(user){
-        if (user){
-          fbUser = user;
-          fbReady = true;
-          updateAccountUidUI();
-          setAccountStatus('ok', 'Подключено — лист синхронизируется');
-          syncToCloud();
-          initMentionNotifications();
-        }
-      });
-      auth.signInAnonymously().catch(function(err){
-        console.warn('Firebase anonymous sign-in failed', err);
+    setAccountStatus('pending', 'Подключение…');
+    var loadPromise = window.firebaseLoadPromise || Promise.resolve(typeof firebase !== 'undefined');
+    loadPromise.then(function(loaded){
+      if (!loaded || typeof firebase === 'undefined'){
+        setAccountStatus('err', 'Нет сети — облако недоступно, но лист работает как обычно');
+        return;
+      }
+      try{
+        firebase.initializeApp(FIREBASE_CONFIG);
+        var auth = firebase.auth();
+        fbDb = firebase.firestore();
+        try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
+        auth.onAuthStateChanged(function(user){
+          if (user){
+            fbUser = user;
+            fbReady = true;
+            updateAccountUidUI();
+            setAccountStatus('ok', 'Подключено — лист синхронизируется');
+            syncToCloud();
+            initMentionNotifications();
+          }
+        });
+        auth.signInAnonymously().catch(function(err){
+          console.warn('Firebase anonymous sign-in failed', err);
+          setAccountStatus('err', 'Не удалось подключиться к облаку');
+        });
+      }catch(e){
+        console.warn('Firebase init failed', e);
         setAccountStatus('err', 'Не удалось подключиться к облаку');
-      });
-    }catch(e){
-      console.warn('Firebase init failed', e);
-      setAccountStatus('err', 'Не удалось подключиться к облаку');
-    }
+      }
+    });
   }
 
   function flushSyncToCloud(){
@@ -4955,10 +4998,11 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (!Array.isArray(state.spells)) state.spells = [];
     if (!Array.isArray(state.equipment)) state.equipment = defaultState().equipment;
     if (!Array.isArray(state.groups)) state.groups = [];
-    state.equipment.forEach(function(slot){
+    state.equipment.forEach(function(slot, i){
       if (!slot.colSpan) slot.colSpan = 1;
       if (!slot.rowSpan) slot.rowSpan = 1;
       if (!slot.imageFit) slot.imageFit = 'cover';
+      if (!slot.id) slot.id = 'eq' + Date.now() + '_' + i + '_' + Math.floor(Math.random()*10000);
     });
     if (!Array.isArray(state.slots) || state.slots.length !== 9) state.slots = defaultState().slots;
     if (!state.combat.conditions) state.combat.conditions = [];
@@ -5542,6 +5586,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       el.style.gridColumn = 'span ' + (slot.colSpan || 1);
       el.style.gridRow = 'span ' + (slot.rowSpan || 1);
       el.dataset.idx = idx;
+      el.dataset.slotId = slot.id;
       var iconHtml = slot.iconUrl
         ? '<img class="equip-slot-icon-img" src="'+escAttr(slot.iconUrl)+'" style="object-fit:'+escAttr(slot.imageFit||'cover')+';">'
         : '<span class="equip-slot-icon">'+escAttr(slot.icon || '❔')+'</span>';
@@ -5587,16 +5632,60 @@ input[type=checkbox]:active{transform:scale(0.88);}
       return {x:e.clientX, y:e.clientY};
     }
 
+    /* Smoothly animates every .equip-slot from its rect *before* a DOM
+       change to wherever it ends up *after* it, using the FLIP technique
+       (First-Last-Invert-Play), matched by the slot's stable id rather than
+       its array index — indices shift on every reorder, ids don't. */
+    function flipRerender(applyChangeFn, skipSlotId){
+      var before = {};
+      grid.querySelectorAll('.equip-slot').forEach(function(el){
+        before[el.dataset.slotId] = el.getBoundingClientRect();
+      });
+      applyChangeFn();
+      grid.querySelectorAll('.equip-slot').forEach(function(el){
+        if (skipSlotId && el.dataset.slotId === skipSlotId) return;
+        var first = before[el.dataset.slotId];
+        if (!first) return;
+        var last = el.getBoundingClientRect();
+        var dx = first.left - last.left;
+        var dy = first.top - last.top;
+        if (!dx && !dy) return;
+        el.classList.add('no-anim');
+        el.style.transform = 'translate('+dx+'px,'+dy+'px)';
+        // eslint-disable-next-line no-unused-expressions
+        el.offsetHeight; // force reflow so the transform above actually applies before we animate away from it
+        el.classList.remove('no-anim');
+        el.style.transform = '';
+      });
+    }
+
     /* ---- move (reorder) ---- */
-    var moveEl = null, moveIdx = null;
+    var moveEl = null, moveIdx = null, moveSlotId = null, ghostEl = null, grabOffset = null, moved = false;
+
     function onMoveStart(e){
       var handle = e.target.closest('.equip-move-handle');
       if (!handle) return;
       moveEl = handle.closest('.equip-slot');
       if (!moveEl) return;
       e.preventDefault();
+      moved = false;
       moveIdx = Number(moveEl.dataset.idx);
+      moveSlotId = moveEl.dataset.slotId;
+
+      var rect = moveEl.getBoundingClientRect();
+      var pt = getPt(e);
+      grabOffset = {x: pt.x - rect.left, y: pt.y - rect.top};
+
+      ghostEl = moveEl.cloneNode(true);
+      ghostEl.classList.add('equip-slot-ghost');
+      ghostEl.style.left = rect.left + 'px';
+      ghostEl.style.top = rect.top + 'px';
+      ghostEl.style.width = rect.width + 'px';
+      ghostEl.style.height = rect.height + 'px';
+      document.body.appendChild(ghostEl);
+
       moveEl.classList.add('dragging');
+
       if (e.type === 'touchstart'){
         document.addEventListener('touchmove', onMoveMove, {passive:false});
         document.addEventListener('touchend', onMoveEnd);
@@ -5607,21 +5696,31 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }
     }
     function onMoveMove(e){
-      if (!moveEl) return;
+      if (!ghostEl) return;
       e.preventDefault();
+      moved = true;
       var pt = getPt(e);
+      ghostEl.style.left = (pt.x - grabOffset.x) + 'px';
+      ghostEl.style.top = (pt.y - grabOffset.y) + 'px';
+
+      var prevDisplay = ghostEl.style.display;
+      ghostEl.style.display = 'none';
       var under = document.elementFromPoint(pt.x, pt.y);
+      ghostEl.style.display = prevDisplay;
       var overSlot = under ? under.closest('.equip-slot') : null;
-      if (!overSlot || overSlot === moveEl) return;
+      if (!overSlot || overSlot.dataset.slotId === moveSlotId) return;
       var overIdx = Number(overSlot.dataset.idx);
       if (overIdx === moveIdx) return;
-      var arr = state.equipment;
-      var moved = arr.splice(moveIdx, 1)[0];
-      arr.splice(overIdx, 0, moved);
-      moveIdx = overIdx;
-      saveState();
-      renderEquipmentSlots();
-      moveEl = document.querySelector('.equip-slot[data-idx="'+moveIdx+'"]');
+
+      flipRerender(function(){
+        var arr = state.equipment;
+        var item = arr.splice(moveIdx, 1)[0];
+        arr.splice(overIdx, 0, item);
+        moveIdx = overIdx;
+        renderEquipmentSlots();
+      });
+
+      moveEl = grid.querySelector('.equip-slot[data-slot-id="'+moveSlotId+'"]');
       if (moveEl) moveEl.classList.add('dragging');
     }
     function onMoveEnd(){
@@ -5630,20 +5729,23 @@ input[type=checkbox]:active{transform:scale(0.88);}
       document.removeEventListener('touchcancel', onMoveEnd);
       document.removeEventListener('mousemove', onMoveMove);
       document.removeEventListener('mouseup', onMoveEnd);
+      if (ghostEl){ ghostEl.remove(); ghostEl = null; }
       if (moveEl) moveEl.classList.remove('dragging');
-      moveEl = null; moveIdx = null;
+      if (moved) saveState();
+      moveEl = null; moveIdx = null; moveSlotId = null; moved = false;
     }
     grid.addEventListener('touchstart', onMoveStart, {passive:false});
     grid.addEventListener('mousedown', onMoveStart);
 
     /* ---- resize ---- */
-    var resizeEl = null, resizeIdx = null, resizeStart = null, resizeStartSpan = null, colW = 0, rowH = 0;
+    var resizeEl = null, resizeIdx = null, resizeStart = null, resizeStartSpan = null, colW = 0, rowH = 0, resized = false;
     function onResizeStart(e){
       var handle = e.target.closest('.equip-resize-handle');
       if (!handle) return;
       resizeEl = handle.closest('.equip-slot');
       if (!resizeEl) return;
       e.preventDefault();
+      resized = false;
       resizeIdx = Number(resizeEl.dataset.idx);
       var slot = state.equipment[resizeIdx];
       resizeStartSpan = {col: slot.colSpan||1, row: slot.rowSpan||1};
@@ -5651,7 +5753,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var gridRect = grid.getBoundingClientRect();
       colW = gridRect.width / 4;
       rowH = 76; // matches grid-auto-rows + gap
-      resizeEl.classList.add('dragging');
+      resizeEl.classList.add('no-anim');
+      resizeEl.style.transform = 'scale(1.03)';
+      resizeEl.style.boxShadow = '0 6px 16px rgba(0,0,0,0.35)';
+      resizeEl.style.zIndex = '6';
       if (e.type === 'touchstart'){
         document.addEventListener('touchmove', onResizeMove, {passive:false});
         document.addEventListener('touchend', onResizeEnd);
@@ -5664,15 +5769,21 @@ input[type=checkbox]:active{transform:scale(0.88);}
     function onResizeMove(e){
       if (!resizeEl) return;
       e.preventDefault();
+      resized = true;
       var pt = getPt(e);
       var dCol = Math.round((pt.x - resizeStart.x) / colW);
       var dRow = Math.round((pt.y - resizeStart.y) / rowH);
       var newCol = Math.max(1, Math.min(4, resizeStartSpan.col + dCol));
       var newRow = Math.max(1, Math.min(3, resizeStartSpan.row + dRow));
-      resizeEl.style.gridColumn = 'span ' + newCol;
-      resizeEl.style.gridRow = 'span ' + newRow;
-      resizeEl._pendingCol = newCol;
-      resizeEl._pendingRow = newRow;
+      if (resizeEl._pendingCol !== newCol || resizeEl._pendingRow !== newRow){
+        var resizeSlotId = resizeEl.dataset.slotId;
+        flipRerender(function(){
+          resizeEl.style.gridColumn = 'span ' + newCol;
+          resizeEl.style.gridRow = 'span ' + newRow;
+        }, resizeSlotId);
+        resizeEl._pendingCol = newCol;
+        resizeEl._pendingRow = newRow;
+      }
     }
     function onResizeEnd(){
       document.removeEventListener('touchmove', onResizeMove);
@@ -5680,16 +5791,21 @@ input[type=checkbox]:active{transform:scale(0.88);}
       document.removeEventListener('touchcancel', onResizeEnd);
       document.removeEventListener('mousemove', onResizeMove);
       document.removeEventListener('mouseup', onResizeEnd);
-      if (resizeEl && resizeIdx !== null){
-        var slot = state.equipment[resizeIdx];
-        if (slot){
-          slot.colSpan = resizeEl._pendingCol || slot.colSpan || 1;
-          slot.rowSpan = resizeEl._pendingRow || slot.rowSpan || 1;
-          saveState();
+      if (resizeEl){
+        resizeEl.classList.remove('no-anim');
+        resizeEl.style.transform = '';
+        resizeEl.style.boxShadow = '';
+        resizeEl.style.zIndex = '';
+        if (resized && resizeIdx !== null){
+          var slot = state.equipment[resizeIdx];
+          if (slot){
+            slot.colSpan = resizeEl._pendingCol || slot.colSpan || 1;
+            slot.rowSpan = resizeEl._pendingRow || slot.rowSpan || 1;
+            saveState();
+          }
         }
-        resizeEl.classList.remove('dragging');
       }
-      resizeEl = null; resizeIdx = null;
+      resizeEl = null; resizeIdx = null; resized = false;
     }
     grid.addEventListener('touchstart', onResizeStart, {passive:false});
     grid.addEventListener('mousedown', onResizeStart);
@@ -6014,7 +6130,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (addBtn){
       addBtn.addEventListener('click', function(){
         if (!Array.isArray(state.equipment)) state.equipment = [];
-        state.equipment.push({icon:'❔', iconUrl:'', label:'Новый слот', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'});
+        state.equipment.push({id:'eq'+Date.now()+Math.floor(Math.random()*10000), icon:'❔', iconUrl:'', label:'Новый слот', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'});
         saveState();
         preserveScroll(renderEquipmentSlots);
         openEquipSlotEdit(state.equipment.length - 1);

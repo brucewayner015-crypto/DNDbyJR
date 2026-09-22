@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnd-sheet-cache-v131-1789992114';
+const CACHE_NAME = 'dnd-sheet-cache-v132-1790083192';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -38,11 +38,27 @@ self.addEventListener('activate', function(event){
 
 // Network-first strategy: always tries to fetch the latest version from the
 // hosted site first (so updates show up as soon as you're online), and only
-// falls back to the cached copy when there is no connection.
+// falls back to the cached copy when there is no connection. A timeout guards
+// against connections that hang instead of failing cleanly (some VPNs/proxies
+// do this), so a bad network never stalls the whole page load indefinitely.
+function fetchWithTimeout(request, ms){
+  return new Promise(function(resolve, reject){
+    var done = false;
+    var timer = setTimeout(function(){
+      if (!done){ done = true; reject(new Error('timeout')); }
+    }, ms);
+    fetch(request).then(function(res){
+      if (!done){ done = true; clearTimeout(timer); resolve(res); }
+    }, function(err){
+      if (!done){ done = true; clearTimeout(timer); reject(err); }
+    });
+  });
+}
+
 self.addEventListener('fetch', function(event){
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request).then(function(response){
+    fetchWithTimeout(event.request, 5000).then(function(response){
       var copy = response.clone();
       caches.open(CACHE_NAME).then(function(cache){
         cache.put(event.request, copy);
