@@ -1856,6 +1856,48 @@ input[type=checkbox]:active{transform:scale(0.88);}
 .currency-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
 
 .equip-slots-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:70px;gap:6px;}
+
+.soundpad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.soundpad-btn{
+  position:relative;
+  aspect-ratio:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  background:rgba(255,255,255,0.35);
+  border:1.5px dashed var(--parchment-shadow);
+  border-radius:var(--radius-s);
+  cursor:pointer;
+  padding:6px 4px;
+  text-align:center;
+  transition:border-color .15s ease, background-color .15s ease, transform .1s ease;
+}
+.soundpad-btn:active{transform:scale(0.94);}
+.soundpad-btn.filled{
+  border-style:solid;
+  border-color:var(--gold);
+  background:linear-gradient(180deg, rgba(224,181,99,0.25), rgba(224,181,99,0.1));
+}
+.soundpad-btn.playing{
+  border-color:var(--ok);
+  box-shadow:0 0 0 3px rgba(78,180,120,0.35);
+}
+.soundpad-btn-icon{font-size:26px;opacity:0.5;}
+.soundpad-btn.filled .soundpad-btn-icon{opacity:1;}
+.soundpad-btn-label{
+  font-size:11px;font-weight:700;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+}
+.soundpad-btn-empty-label{
+  font-family:var(--font-display);font-size:9px;letter-spacing:0.3px;text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.soundpad-del-btn{
+  position:absolute;top:4px;right:4px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--wax);color:#fff;border:none;
+  font-size:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:2;
+}
 .equip-slot{
   position:relative;
   display:flex;flex-direction:column;
@@ -3970,6 +4012,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
     </div>
   </section>
 
+  <section class="page" data-page="soundpad">
+    <div class="card">
+      <h2>🔊 <span>Звуки</span> <span class="h2-btn-group"><button class="h2-edit-btn" id="btnEditSoundpad" title="Управление звуками">✎</button></span></h2>
+      <div class="soundpad-grid" id="soundpadGrid"></div>
+      <button class="add-btn" id="addSoundBtn" style="display:none;">+ добавить звук</button>
+    </div>
+  </section>
+
   </div>
 
   <nav class="tabbar">
@@ -3980,6 +4030,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     <button class="tab-btn" data-target="inventory"><span class="ico" data-icon="inventory"></span><span data-i18n="tab.inventory">Вещи</span></button>
     <button class="tab-btn" data-target="spells"><span class="ico" data-icon="spells"></span><span data-i18n="tab.spells">Магия</span></button>
     <button class="tab-btn" data-target="traits"><span class="ico" data-icon="traits"></span><span data-i18n="tab.traits">Черты</span></button>
+    <button class="tab-btn" data-target="soundpad" id="soundpadTabBtn" style="display:none;"><span class="ico">🔊</span><span>Звуки</span></button>
   </nav>
 </div>
 
@@ -4657,6 +4708,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
           <input type="checkbox" id="groupsEnabledToggle"> Группы для атак и вещей
         </label>
         <div class="settings-hint" style="margin-top:6px;">Добавляет кнопку ✎ на карточки «Атаки» и «Снаряжение» — включаете её, тапаете по предмету и назначаете/создаёте группу с цветом прямо там.</div>
+
+        <div class="settings-divider"></div>
+
+        <label class="inline-check">
+          <input type="checkbox" id="soundpadEnabledToggle"> Саундпад
+        </label>
+        <div class="settings-hint" style="margin-top:6px;">Добавляет отдельную вкладку «Звуки» с кнопками — тап играет загруженный вами звук. Свои звуки и иконки добавляются через ✎ на самой вкладке.</div>
       </div>
     </div>
 
@@ -4802,7 +4860,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.21-5';
+  var APP_VERSION = '2026.09.23-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -4831,6 +4889,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       currency:{cp:0,sp:0,ep:0,gp:0,pp:0},
       items:[],
       groups:[],
+      soundpad:[],
       equipment:[
         {id:'eq1', icon:'⛑', iconUrl:'', label:'Шлем', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
         {id:'eq2', icon:'🥋', iconUrl:'', label:'Нагрудник', itemName:'', itemNotes:'', colSpan:1, rowSpan:1, imageFit:'cover'},
@@ -4998,6 +5057,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     if (!Array.isArray(state.spells)) state.spells = [];
     if (!Array.isArray(state.equipment)) state.equipment = defaultState().equipment;
     if (!Array.isArray(state.groups)) state.groups = [];
+    if (!Array.isArray(state.soundpad)) state.soundpad = [];
     state.equipment.forEach(function(slot, i){
       if (!slot.colSpan) slot.colSpan = 1;
       if (!slot.rowSpan) slot.rowSpan = 1;
@@ -5668,6 +5728,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       moveEl = handle.closest('.equip-slot');
       if (!moveEl) return;
       e.preventDefault();
+      e.stopPropagation();
       moved = false;
       moveIdx = Number(moveEl.dataset.idx);
       moveSlotId = moveEl.dataset.slotId;
@@ -5745,6 +5806,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
       resizeEl = handle.closest('.equip-slot');
       if (!resizeEl) return;
       e.preventDefault();
+      e.stopPropagation();
       resized = false;
       resizeIdx = Number(resizeEl.dataset.idx);
       var slot = state.equipment[resizeIdx];
@@ -6114,6 +6176,136 @@ input[type=checkbox]:active{transform:scale(0.88);}
       closePopup();
       openGroupThemeEditor(g);
     };
+  }
+
+  /* ---------------- SOUNDPAD (developer feature) ---------------- */
+  var soundpadEditMode = false;
+  var soundpadAudioEl = null;
+  var soundpadPlayingIdx = null;
+
+  function getSoundpadAudioEl(){
+    if (!soundpadAudioEl){
+      soundpadAudioEl = new Audio();
+      soundpadAudioEl.addEventListener('ended', function(){
+        soundpadPlayingIdx = null;
+        renderSoundpadGrid();
+      });
+    }
+    return soundpadAudioEl;
+  }
+
+  function renderSoundpadGrid(){
+    var grid = document.getElementById('soundpadGrid');
+    if (!grid) return;
+    if (!Array.isArray(state.soundpad)) state.soundpad = [];
+    grid.innerHTML = '';
+    state.soundpad.forEach(function(snd, idx){
+      var filled = !!snd.url;
+      var el = document.createElement('div');
+      el.className = 'soundpad-btn' + (filled ? ' filled' : '') + (soundpadPlayingIdx === idx ? ' playing' : '');
+      el.innerHTML =
+        '<span class="soundpad-btn-icon">'+escAttr(snd.icon||'🔊')+'</span>' +
+        (filled ? '<span class="soundpad-btn-label">'+escAttr(snd.name||'Без названия')+'</span>' : '<span class="soundpad-btn-empty-label">'+escAttr(snd.name||'Новый звук')+'</span>') +
+        (soundpadEditMode ? '<button type="button" class="soundpad-del-btn" data-idx="'+idx+'" aria-label="Удалить">✕</button>' : '');
+      el.addEventListener('click', function(e){
+        if (e.target.closest('.soundpad-del-btn')) return;
+        if (soundpadEditMode) openSoundEdit(idx);
+        else if (filled) playSound(idx);
+        else openSoundEdit(idx);
+      });
+      grid.appendChild(el);
+    });
+    grid.querySelectorAll('.soundpad-del-btn').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var idx = Number(btn.dataset.idx);
+        var snd = state.soundpad[idx];
+        showConfirm('Удалить звук «'+(snd && snd.name || '')+'»?', function(){
+          state.soundpad.splice(idx,1);
+          saveState();
+          renderSoundpadGrid();
+        });
+      });
+    });
+  }
+
+  function playSound(idx){
+    var snd = state.soundpad[idx];
+    if (!snd || !snd.url) return;
+    var audio = getSoundpadAudioEl();
+    if (soundpadPlayingIdx === idx){
+      audio.pause();
+      audio.currentTime = 0;
+      soundpadPlayingIdx = null;
+      renderSoundpadGrid();
+      return;
+    }
+    audio.src = snd.url;
+    audio.currentTime = 0;
+    audio.play().catch(function(err){ console.warn('Не удалось воспроизвести звук', err); });
+    soundpadPlayingIdx = idx;
+    renderSoundpadGrid();
+  }
+
+  function openSoundEdit(idx){
+    var snd = state.soundpad[idx];
+    showTextPrompt(snd.url ? 'Изменить звук' : 'Новый звук', [
+      {id:'name', label:'Название', placeholder:'Гром', value: snd.name || ''},
+      {id:'icon', label:'Эмодзи-иконка', placeholder:'⚡', value: snd.icon || ''},
+      {id:'url', type:'audio', label:'Аудиофайл', value: snd.url || ''}
+    ], function(values){
+      snd.name = values.name || snd.name || '';
+      snd.icon = values.icon || snd.icon || '🔊';
+      snd.url = values.url || '';
+      saveState();
+      renderSoundpadGrid();
+    });
+  }
+
+  function applySoundpadEnabled(){
+    var tabBtn = document.getElementById('soundpadTabBtn');
+    if (tabBtn) tabBtn.style.display = uiSettings.soundpadEnabled ? '' : 'none';
+    updateTabbarLayout();
+    if (uiSettings.soundpadEnabled){
+      renderSoundpadGrid();
+    } else {
+      var activeBtn = document.querySelector('.tab-btn.active');
+      if (activeBtn && activeBtn.dataset.target === 'soundpad') activateTab('profile');
+    }
+  }
+
+  function bindSoundpadEnabledToggle(){
+    var toggle = document.getElementById('soundpadEnabledToggle');
+    if (!toggle) return;
+    toggle.checked = !!uiSettings.soundpadEnabled;
+    toggle.addEventListener('change', function(){
+      uiSettings.soundpadEnabled = toggle.checked;
+      saveUiSettings();
+      applySoundpadEnabled();
+    });
+  }
+
+  function bindSoundpadEditToggle(){
+    var btn = document.getElementById('btnEditSoundpad');
+    var addBtn = document.getElementById('addSoundBtn');
+    if (btn){
+      btn.addEventListener('click', function(){
+        soundpadEditMode = !soundpadEditMode;
+        btn.classList.toggle('active', soundpadEditMode);
+        btn.textContent = soundpadEditMode ? '✓' : '✎';
+        if (addBtn) addBtn.style.display = soundpadEditMode ? '' : 'none';
+        renderSoundpadGrid();
+      });
+    }
+    if (addBtn){
+      addBtn.addEventListener('click', function(){
+        if (!Array.isArray(state.soundpad)) state.soundpad = [];
+        state.soundpad.push({name:'', icon:'🔊', url:''});
+        saveState();
+        renderSoundpadGrid();
+        openSoundEdit(state.soundpad.length - 1);
+      });
+    }
   }
 
   function bindEquipSlotsEditToggle(){
@@ -7909,7 +8101,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
                                         function(err){
                                           console.warn('chat listener error', err);
                                           var wrap = document.getElementById('chatMessages');
-                                          if (wrap) wrap.innerHTML = '<div class="chat-empty">Ошибка загрузки сообщений:<br>'+escAttr(err.message||err)+'</div>';
+                                          if (!wrap) return;
+                                          var msg = err && err.message || String(err);
+                                          var urlMatch = msg.match(/https:\/\/console\.firebase\.google\.com\S+/);
+                                          if (urlMatch){
+                                            wrap.innerHTML = '<div class="chat-empty">База данных ещё не настроена для этого запроса.<br>Отправьте эту ссылку разработчику приложения — она создаёт недостающий индекс в Firestore:<br><a href="'+escAttr(urlMatch[0])+'" target="_blank" rel="noopener" style="color:var(--gold-bright);word-break:break-all;">'+escAttr(urlMatch[0])+'</a></div>';
+                                          } else {
+                                            wrap.innerHTML = '<div class="chat-empty">Ошибка загрузки сообщений:<br>'+escAttr(msg)+'</div>';
+                                          }
                                         });
 
     chatCloseListUIOnly();
@@ -10442,7 +10641,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
   }
 
   /* ---------------- UI SCALE (SETTINGS) ---------------- */
-  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false, dragHandleLeft: false, equipmentEnabled: false};
+  var uiSettings = {scale: 1, fontScale: 1, theme: 'classic', style: 'classic', fontSet: 'classic', fontApplyAll: false, customColors: null, iconSet: 'classic', btnShape: 'circle', mergeProfileSkills: false, compactAttacks: false, twoColSkills: false, compactItems: false, chatMuted: false, compactNotes: false, richTextEnabled: false, dragHandleLeft: false, equipmentEnabled: false, groupsEnabled: false, soundpadEnabled: false};
 
   function loadUiSettings(){
     try{
@@ -10464,6 +10663,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         if (loaded && typeof loaded.twoColSkills === 'boolean') uiSettings.twoColSkills = loaded.twoColSkills;
         if (loaded && typeof loaded.dragHandleLeft === 'boolean') uiSettings.dragHandleLeft = loaded.dragHandleLeft;
         if (loaded && typeof loaded.equipmentEnabled === 'boolean') uiSettings.equipmentEnabled = loaded.equipmentEnabled;
+        if (loaded && typeof loaded.groupsEnabled === 'boolean') uiSettings.groupsEnabled = loaded.groupsEnabled;
+        if (loaded && typeof loaded.soundpadEnabled === 'boolean') uiSettings.soundpadEnabled = loaded.soundpadEnabled;
         if (loaded && typeof loaded.fontSet === 'string') uiSettings.fontSet = loaded.fontSet;
         if (loaded && typeof loaded.fontApplyAll === 'boolean') uiSettings.fontApplyAll = loaded.fontApplyAll;
         if (loaded && loaded.customColors && typeof loaded.customColors === 'object') uiSettings.customColors = loaded.customColors;
@@ -10677,6 +10878,55 @@ input[type=checkbox]:active{transform:scale(0.88);}
         return;
       }
 
+      if (f.type === 'audio'){
+        imageValues[f.id] = f.value || '';
+        var aPreview = document.createElement('div');
+        aPreview.className = 'text-prompt-image-preview text-prompt-audio-preview';
+        function updateAudioPreview(){
+          aPreview.innerHTML = imageValues[f.id] ? '🎵' : '<span class="text-prompt-image-placeholder">нет звука</span>';
+        }
+        updateAudioPreview();
+        var aFileInput = document.createElement('input');
+        aFileInput.type = 'file';
+        aFileInput.accept = 'audio/*';
+        aFileInput.style.display = 'none';
+        var aUploadBtn = document.createElement('button');
+        aUploadBtn.type = 'button';
+        aUploadBtn.className = 'text-prompt-image-btn';
+        aUploadBtn.textContent = '🎵 Загрузить';
+        aUploadBtn.addEventListener('click', function(){ aFileInput.click(); });
+        var aClearBtn = document.createElement('button');
+        aClearBtn.type = 'button';
+        aClearBtn.className = 'text-prompt-image-btn';
+        aClearBtn.textContent = '✕ Убрать';
+        aClearBtn.addEventListener('click', function(){
+          imageValues[f.id] = '';
+          updateAudioPreview();
+        });
+        aFileInput.addEventListener('change', function(){
+          var file = aFileInput.files[0];
+          aFileInput.value = '';
+          if (!file) return;
+          aPreview.innerHTML = '⏳';
+          chatUploadMedia(file, file.name).then(function(url){
+            imageValues[f.id] = url;
+            updateAudioPreview();
+          }).catch(function(err){
+            alert('Не удалось загрузить: ' + (err && err.message ? err.message : err));
+            updateAudioPreview();
+          });
+        });
+        var aBtnRow = document.createElement('div');
+        aBtnRow.className = 'text-prompt-image-btns';
+        aBtnRow.appendChild(aUploadBtn);
+        aBtnRow.appendChild(aClearBtn);
+        wrap.appendChild(aPreview);
+        wrap.appendChild(aBtnRow);
+        wrap.appendChild(aFileInput);
+        fieldsWrap.appendChild(wrap);
+        return;
+      }
+
       if (f.type === 'choice'){
         imageValues[f.id] = f.value || (f.options && f.options[0] && f.options[0].value) || '';
         var choiceRow = document.createElement('div');
@@ -10722,7 +10972,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
     function onOk(){
       var values = {};
       fields.forEach(function(f){
-        values[f.id] = (f.type === 'image' || f.type === 'choice') ? imageValues[f.id] : inputs[f.id].value.trim();
+        values[f.id] = (f.type === 'image' || f.type === 'audio' || f.type === 'choice') ? imageValues[f.id] : inputs[f.id].value.trim();
       });
       cleanup();
       onSubmit(values);
@@ -10836,7 +11086,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var TAB_ORDER_FULL = ['profile','skills','combat','inventory','spells','traits'];
   var TAB_ORDER_MERGED = ['profile','combat','inventory','spells','traits'];
   function getTabOrder(){
-    return uiSettings.mergeProfileSkills ? TAB_ORDER_MERGED : TAB_ORDER_FULL;
+    var base = (uiSettings.mergeProfileSkills ? TAB_ORDER_MERGED : TAB_ORDER_FULL).slice();
+    if (uiSettings.soundpadEnabled) base.push('soundpad');
+    return base;
   }
   var currentTabIndex = 0;
 
@@ -11183,6 +11435,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
   applyEquipmentEnabled();
   bindEquipmentEnabledToggle();
   bindEquipSlotsEditToggle();
+  bindSoundpadEnabledToggle();
+  bindSoundpadEditToggle();
+  applySoundpadEnabled();
   bindGroupsEnabledToggle();
   bindGroupsEditModeToggles();
   applyGroupsEnabled();
