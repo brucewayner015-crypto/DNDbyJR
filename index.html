@@ -2714,8 +2714,18 @@ input[type=checkbox]:active{transform:scale(0.88);}
   font-family:var(--font-body);font-weight:400;font-size:10px;color:var(--parchment);opacity:0.6;text-transform:none;letter-spacing:0;
 }
 .gallery-section-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px 6px;
 }
+.gallery-tile{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.gallery-cell-caption{
+  font-size:8.5px;line-height:1.25;
+  color:var(--parchment);opacity:0.75;
+  text-align:center;
+  overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  min-width:0;
+}
+.gallery-cell-caption b{opacity:1;font-weight:700;}
 .chat-gallery-cell{
   aspect-ratio:1;
   min-width:0;min-height:0;
@@ -4924,7 +4934,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.27-2';
+  var APP_VERSION = '2026.09.27-3';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -7845,6 +7855,17 @@ input[type=checkbox]:active{transform:scale(0.88);}
     chatCloseGalleryUIOnly();
     appCloseModal();
   }
+  function fmtGalleryDate(ts){
+    if (!ts) return '';
+    var date = ts.toDate ? ts.toDate() : new Date(ts);
+    if (isNaN(date.getTime())) return '';
+    var now = new Date();
+    var sameYear = date.getFullYear() === now.getFullYear();
+    var datePart = date.toLocaleDateString('ru-RU', sameYear ? {day:'numeric',month:'short'} : {day:'numeric',month:'short',year:'numeric'});
+    var timePart = date.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+    return datePart + ', ' + timePart;
+  }
+
   function openFullMediaLibrary(){
     if (!fbDb){ alert('Нет подключения к облаку.'); return; }
     var screen = document.getElementById('chatGalleryScreen');
@@ -7858,28 +7879,28 @@ input[type=checkbox]:active{transform:scale(0.88);}
       if (titleEl) titleEl.textContent = '🖼 Медиа';
     });
 
-    var media = []; // {url, type: 'image'|'video'|'audio', label}
+    var media = []; // {url, type: 'image'|'video'|'audio', label, author, when}
 
     var tasks = [];
 
-    tasks.push(fbDb.collection('chat_messages').orderBy('createdAt','desc').limit(300).get().then(function(snap){
+    tasks.push(fbDb.collection('chat_messages').orderBy('createdAt','desc').limit(3000).get().then(function(snap){
       snap.forEach(function(doc){
         var d = doc.data();
-        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) media.push({url:d.mediaUrl, type:d.mediaType, label:'Общий чат'});
+        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) media.push({url:d.mediaUrl, type:d.mediaType, label:'Общий чат', author:d.senderName||'?', when:fmtGalleryDate(d.createdAt)});
       });
     }).catch(function(){}));
 
-    tasks.push(fbDb.collection('dm_messages').where('participants','array-contains',getMyId()).limit(300).get().then(function(snap){
+    tasks.push(fbDb.collection('dm_messages').where('participants','array-contains',getMyId()).orderBy('createdAt','desc').limit(3000).get().then(function(snap){
       snap.forEach(function(doc){
         var d = doc.data();
-        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) media.push({url:d.mediaUrl, type:d.mediaType, label:'Личный чат'});
+        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) media.push({url:d.mediaUrl, type:d.mediaType, label:'Личные чаты', author:d.senderName||'?', when:fmtGalleryDate(d.createdAt)});
       });
     }).catch(function(){}));
 
     tasks.push(fbDb.collection('maps').get().then(function(snap){
       snap.forEach(function(doc){
         var d = doc.data();
-        if (d.imageUrl) media.push({url:d.imageUrl, type:'image', label:'Карта: '+(d.name||'без названия')});
+        if (d.imageUrl) media.push({url:d.imageUrl, type:'image', label:'Карта: '+(d.name||'без названия'), author:d.createdBy||'?', when:fmtGalleryDate(d.createdAt)});
       });
     }).catch(function(){}));
 
@@ -7887,13 +7908,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
       snap.forEach(function(doc){
         var d = doc.data();
         var charName = d.characterName || 'Без имени';
-        if (d.avatarUrl) media.push({url:d.avatarUrl, type:'image', label:'Аватар: '+charName});
+        var updWhen = fmtGalleryDate(d.updatedAt);
+        if (d.avatarUrl) media.push({url:d.avatarUrl, type:'image', label:'Аватар: '+charName, author:charName, when:updWhen});
         var st = d.state || {};
         (st.equipment||[]).forEach(function(slot){
-          if (slot.iconUrl) media.push({url:slot.iconUrl, type:'image', label:'Экипировка ('+charName+'): '+(slot.label||'')});
+          if (slot.iconUrl) media.push({url:slot.iconUrl, type:'image', label:'Экипировка ('+charName+'): '+(slot.label||''), author:charName, when:updWhen});
         });
         (st.soundpad||[]).forEach(function(snd){
-          if (snd.url) media.push({url:snd.url, type:'audio', label:'Звук ('+charName+'): '+(snd.name||'')});
+          if (snd.url) media.push({url:snd.url, type:'audio', label:'Звук ('+charName+'): '+(snd.name||''), author:charName, when:updWhen});
         });
       });
     }).catch(function(){}));
@@ -7928,6 +7950,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
         section.innerHTML = '<div class="gallery-section-title">'+escAttr(cat)+' <span class="gallery-section-count">'+list.length+'</span></div><div class="gallery-section-grid"></div>';
         var sectionGrid = section.querySelector('.gallery-section-grid');
         list.forEach(function(d){
+          var tile = document.createElement('div');
+          tile.className = 'gallery-tile';
           var cell = document.createElement('div');
           cell.className = 'chat-gallery-cell' + (d.type === 'video' ? ' is-video' : '') + (d.type === 'audio' ? ' is-audio' : '');
           cell.title = d.label;
@@ -7944,7 +7968,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
             cell.innerHTML = '<img src="'+escAttr(d.url)+'" loading="lazy">';
             cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type, visualList, visualList.indexOf(d)); });
           }
-          sectionGrid.appendChild(cell);
+          tile.appendChild(cell);
+          var caption = document.createElement('div');
+          caption.className = 'gallery-cell-caption';
+          caption.innerHTML = '<b>'+escAttr(d.author||'?')+'</b>' + (d.when ? '<br>'+escAttr(d.when) : '');
+          tile.appendChild(caption);
+          sectionGrid.appendChild(tile);
         });
         grid.appendChild(section);
       });
@@ -7960,25 +7989,32 @@ input[type=checkbox]:active{transform:scale(0.88);}
     screen.style.display = 'flex';
     appOpenModal(chatCloseGalleryUIOnly);
     var col = chatCollectionFor(chatCurrentThread);
-    var query = fbDb.collection(col).orderBy('createdAt','desc').limit(300);
-    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('participants','array-contains',getMyId()).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(300);
+    var query = fbDb.collection(col).orderBy('createdAt','desc').limit(3000);
+    if (chatCurrentThread.type === 'dm') query = fbDb.collection(col).where('participants','array-contains',getMyId()).where('threadId','==',chatCurrentThread.threadId).orderBy('createdAt','desc').limit(3000);
     query.get().then(function(snap){
       var items = [];
       snap.forEach(function(doc){
         var d = doc.data();
-        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) items.push({url:d.mediaUrl, type:d.mediaType});
+        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) items.push({url:d.mediaUrl, type:d.mediaType, author:d.senderName||'?', when:fmtGalleryDate(d.createdAt)});
       });
       if (!items.length){ grid.innerHTML = '<div class="chat-gallery-empty">Медиа пока нет</div>'; return; }
       grid.innerHTML = '<div class="gallery-section"><div class="gallery-section-grid" id="chatGalleryFlatGrid"></div></div>';
       var sectionGrid = document.getElementById('chatGalleryFlatGrid');
       items.forEach(function(d, idx){
+        var tile = document.createElement('div');
+        tile.className = 'gallery-tile';
         var cell = document.createElement('div');
         cell.className = 'chat-gallery-cell' + (d.type === 'video' ? ' is-video' : '');
         cell.innerHTML = d.type === 'video'
           ? '<video src="'+escAttr(d.url)+'" preload="metadata"></video>'
           : '<img src="'+escAttr(d.url)+'" loading="lazy">';
         cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type, items, idx); });
-        sectionGrid.appendChild(cell);
+        tile.appendChild(cell);
+        var caption = document.createElement('div');
+        caption.className = 'gallery-cell-caption';
+        caption.innerHTML = '<b>'+escAttr(d.author)+'</b>' + (d.when ? '<br>'+escAttr(d.when) : '');
+        tile.appendChild(caption);
+        sectionGrid.appendChild(tile);
       });
     }).catch(function(err){
       console.warn('gallery load failed', err);
