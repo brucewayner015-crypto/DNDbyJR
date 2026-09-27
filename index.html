@@ -2701,29 +2701,57 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 .chat-gallery-grid{
   flex:1;min-height:0;overflow-y:auto;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:3px;
-  padding:3px;
+  padding:10px;
+}
+.gallery-section{margin-bottom:18px;}
+.gallery-section-title{
+  font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;
+  color:var(--gold-bright);margin-bottom:8px;padding-bottom:5px;
+  border-bottom:1px solid rgba(224,181,99,0.3);
+  display:flex;align-items:center;gap:6px;
+}
+.gallery-section-count{
+  font-family:var(--font-body);font-weight:400;font-size:10px;color:var(--parchment);opacity:0.6;text-transform:none;letter-spacing:0;
+}
+.gallery-section-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
 }
 .chat-gallery-cell{
   aspect-ratio:1;
+  min-width:0;min-height:0;
   overflow:hidden;
   background:rgba(0,0,0,0.3);
+  border:1px solid rgba(224,181,99,0.2);
+  border-radius:10px;
   position:relative;
   cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.3);
+  transition:transform .12s ease;
 }
+.chat-gallery-cell:active{transform:scale(0.95);}
 .chat-gallery-cell img, .chat-gallery-cell video{width:100%;height:100%;object-fit:cover;display:block;}
 .chat-gallery-cell.is-video::after{
   content:"▶";
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  color:#fff;font-size:22px;text-shadow:0 0 6px rgba(0,0,0,0.8);
+  color:#fff;font-size:20px;text-shadow:0 0 6px rgba(0,0,0,0.8);
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(0,0,0,0.35);
+  display:flex;align-items:center;justify-content:center;
 }
 .chat-gallery-cell.is-audio{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   background:linear-gradient(180deg, var(--chrome-1), var(--chrome-2));
-  padding:8px;
+  padding:6px;
+  min-width:0;min-height:0;
 }
-.gallery-audio-icon{font-size:26px;}
-.gallery-audio-label{font-size:9.5px;color:var(--parchment);text-align:center;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.gallery-audio-icon{font-size:22px;flex-shrink:0;}
+.gallery-audio-label{
+  font-size:9px;color:var(--parchment);text-align:center;
+  overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  max-height:2.4em;line-height:1.2;
+  width:100%;
+}
 .chat-gallery-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--parchment);opacity:0.5;font-style:italic;}
 
 /* ---------- MAP (campaign/world map viewer with pins) ---------- */
@@ -3208,6 +3236,26 @@ input[type=checkbox]:active{transform:scale(0.88);}
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;z-index:1;
 }
+.img-lightbox-counter{
+  position:absolute;top:22px;left:50%;transform:translateX(-50%);
+  color:#fff;font-size:13px;font-family:var(--font-display);letter-spacing:0.5px;
+  background:rgba(0,0,0,0.45);
+  padding:5px 14px;border-radius:20px;
+  z-index:1;
+}
+.img-lightbox-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.25);
+  color:#fff;font-size:26px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:1;
+  padding:0 0 3px;
+}
+.img-lightbox-nav.prev{left:12px;}
+.img-lightbox-nav.next{right:12px;}
+.img-lightbox-nav:active{background:rgba(0,0,0,0.6);}
+.img-lightbox-imgwrap.lb-sliding{transition:transform .26s cubic-bezier(.22,.8,.3,1), opacity .26s ease;}
 
 
 /* ---------- GEAR EASTER EGG (twist gesture) ---------- */
@@ -4343,10 +4391,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
 <div class="img-lightbox" id="imgLightbox">
   <button class="img-lightbox-close" id="imgLightboxClose" aria-label="Закрыть">✕</button>
+  <div class="img-lightbox-counter" id="imgLightboxCounter" style="display:none;"></div>
   <div class="img-lightbox-imgwrap" id="imgLightboxImgWrap" style="display:none;">
     <img id="imgLightboxImg" src="" alt="" draggable="false">
   </div>
   <video id="imgLightboxVideo" controls autoplay style="display:none;"></video>
+  <button class="img-lightbox-nav prev" id="imgLightboxPrev" aria-label="Предыдущее" style="display:none;">‹</button>
+  <button class="img-lightbox-nav next" id="imgLightboxNext" aria-label="Следующее" style="display:none;">›</button>
 </div>
 
 <div class="modal-overlay" id="tetrisOverlay">
@@ -4873,7 +4924,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.27-1';
+  var APP_VERSION = '2026.09.27-2';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -7578,6 +7629,35 @@ input[type=checkbox]:active{transform:scale(0.88);}
   var lbActivePointers = {};
   var lbPanStart = null, lbPinchStart = null;
   var lbLastTap = 0;
+  var lbList = null;
+  var lbIndex = 0;
+
+  function lbShowAt(index, direction){
+    if (!lbList || !lbList.length) return;
+    lbIndex = Math.max(0, Math.min(lbList.length - 1, index));
+    var item = lbList[lbIndex];
+    var wrap = document.getElementById('imgLightboxImgWrap');
+    var img = document.getElementById('imgLightboxImg');
+    var vid = document.getElementById('imgLightboxVideo');
+    lbResetTransform();
+    if (item.type === 'video'){
+      wrap.style.display = 'none'; img.src = '';
+      vid.style.display = 'block'; vid.src = item.url; vid.play().catch(function(){});
+    } else {
+      vid.style.display = 'none'; vid.pause(); vid.src = '';
+      wrap.style.display = 'flex'; img.src = item.url;
+    }
+    var counter = document.getElementById('imgLightboxCounter');
+    var prevBtn = document.getElementById('imgLightboxPrev');
+    var nextBtn = document.getElementById('imgLightboxNext');
+    var showNav = lbList.length > 1;
+    counter.style.display = showNav ? 'block' : 'none';
+    if (showNav) counter.textContent = (lbIndex+1) + ' / ' + lbList.length;
+    prevBtn.style.display = showNav ? 'flex' : 'none';
+    nextBtn.style.display = showNav ? 'flex' : 'none';
+    prevBtn.style.visibility = lbIndex > 0 ? 'visible' : 'hidden';
+    nextBtn.style.visibility = lbIndex < lbList.length - 1 ? 'visible' : 'hidden';
+  }
 
   function lbApplyTransform(){
     document.getElementById('imgLightboxImg').style.transform = 'translate('+lbTx+'px,'+lbTy+'px) scale('+lbScale+')';
@@ -7587,19 +7667,10 @@ input[type=checkbox]:active{transform:scale(0.88);}
     lbApplyTransform();
   }
 
-  function openLightboxMedia(src, type){
+  function openLightboxMedia(src, type, list, index){
+    lbList = (list && list.length) ? list : [{url:src, type:type}];
     var box = document.getElementById('imgLightbox');
-    var wrap = document.getElementById('imgLightboxImgWrap');
-    var img = document.getElementById('imgLightboxImg');
-    var vid = document.getElementById('imgLightboxVideo');
-    lbResetTransform();
-    if (type === 'video'){
-      wrap.style.display = 'none'; img.src = '';
-      vid.style.display = 'block'; vid.src = src;
-    } else {
-      vid.style.display = 'none'; vid.pause(); vid.src = '';
-      wrap.style.display = 'flex'; img.src = src;
-    }
+    lbShowAt(list ? (index||0) : 0);
     box.style.display = 'flex';
     void box.offsetWidth;
     box.classList.add('show');
@@ -7616,6 +7687,9 @@ input[type=checkbox]:active{transform:scale(0.88);}
         document.getElementById('imgLightboxImg').src = '';
         vid.src = '';
         lbResetTransform();
+        lbList = null;
+        lbIndex = 0;
+        document.getElementById('imgLightboxImgWrap').style.opacity = '';
       }
     }, 200);
   }
@@ -7631,18 +7705,21 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
     var wrap = document.getElementById('imgLightboxImgWrap');
     var tapStart = null;
+    var lbSwipeStart = null;
 
     wrap.addEventListener('pointerdown', function(e){
       lbActivePointers[e.pointerId] = {x:e.clientX, y:e.clientY};
       var ids = Object.keys(lbActivePointers);
       if (ids.length === 1){
         if (lbScale > 1.02) lbPanStart = { x:e.clientX, y:e.clientY, tx:lbTx, ty:lbTy };
+        else lbSwipeStart = { x:e.clientX, y:e.clientY };
         tapStart = { x:e.clientX, y:e.clientY, t:Date.now() };
       } else if (ids.length === 2){
         var p1 = lbActivePointers[ids[0]], p2 = lbActivePointers[ids[1]];
         var dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
         lbPinchStart = { dist:dist, scale:lbScale, midX:(p1.x+p2.x)/2, midY:(p1.y+p2.y)/2, tx:lbTx, ty:lbTy };
         lbPanStart = null;
+        lbSwipeStart = null;
         tapStart = null;
       }
       wrap.setPointerCapture(e.pointerId);
@@ -7655,6 +7732,14 @@ input[type=checkbox]:active{transform:scale(0.88);}
         lbTx = lbPanStart.tx + (e.clientX - lbPanStart.x);
         lbTy = lbPanStart.ty + (e.clientY - lbPanStart.y);
         lbApplyTransform();
+      } else if (ids.length === 1 && lbSwipeStart && lbList && lbList.length > 1){
+        var dx = e.clientX - lbSwipeStart.x;
+        var dy = e.clientY - lbSwipeStart.y;
+        if (Math.abs(dx) > Math.abs(dy)){
+          var atEdge = (dx > 0 && lbIndex === 0) || (dx < 0 && lbIndex === lbList.length - 1);
+          wrap.style.transition = 'none';
+          wrap.style.transform = 'translateX(' + (atEdge ? dx * 0.3 : dx) + 'px)';
+        }
       } else if (ids.length === 2 && lbPinchStart){
         var p1 = lbActivePointers[ids[0]], p2 = lbActivePointers[ids[1]];
         var dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
@@ -7667,6 +7752,43 @@ input[type=checkbox]:active{transform:scale(0.88);}
         lbApplyTransform();
       }
     });
+    function lbFinishSwipe(dx){
+      var vpWidth = wrap.clientWidth || window.innerWidth;
+      var threshold = vpWidth * 0.22;
+      wrap.classList.add('lb-sliding');
+      if (dx <= -threshold && lbIndex < lbList.length - 1){
+        wrap.style.transform = 'translateX(-' + vpWidth + 'px)';
+        wrap.style.opacity = '0';
+        setTimeout(function(){
+          wrap.classList.remove('lb-sliding');
+          wrap.style.transition = 'none';
+          wrap.style.transform = 'translateX(' + vpWidth + 'px)';
+          lbShowAt(lbIndex + 1);
+          void wrap.offsetWidth;
+          wrap.classList.add('lb-sliding');
+          wrap.style.transform = 'translateX(0)';
+          wrap.style.opacity = '1';
+          setTimeout(function(){ wrap.classList.remove('lb-sliding'); }, 280);
+        }, 260);
+      } else if (dx >= threshold && lbIndex > 0){
+        wrap.style.transform = 'translateX(' + vpWidth + 'px)';
+        wrap.style.opacity = '0';
+        setTimeout(function(){
+          wrap.classList.remove('lb-sliding');
+          wrap.style.transition = 'none';
+          wrap.style.transform = 'translateX(-' + vpWidth + 'px)';
+          lbShowAt(lbIndex - 1);
+          void wrap.offsetWidth;
+          wrap.classList.add('lb-sliding');
+          wrap.style.transform = 'translateX(0)';
+          wrap.style.opacity = '1';
+          setTimeout(function(){ wrap.classList.remove('lb-sliding'); }, 280);
+        }, 260);
+      } else {
+        wrap.style.transform = 'translateX(0)';
+        setTimeout(function(){ wrap.classList.remove('lb-sliding'); }, 260);
+      }
+    }
     function lbPointerEnd(e){
       delete lbActivePointers[e.pointerId];
       var ids = Object.keys(lbActivePointers);
@@ -7676,6 +7798,16 @@ input[type=checkbox]:active{transform:scale(0.88);}
         lbPanStart = { x: lbActivePointers[id].x, y: lbActivePointers[id].y, tx: lbTx, ty: lbTy };
       } else if (ids.length === 0){
         lbPanStart = null;
+        if (lbSwipeStart){
+          var dx = e.clientX - lbSwipeStart.x;
+          var dy = e.clientY - lbSwipeStart.y;
+          lbSwipeStart = null;
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8){
+            lbFinishSwipe(dx);
+            tapStart = null;
+            return;
+          }
+        }
         if (tapStart && Math.hypot(e.clientX-tapStart.x, e.clientY-tapStart.y) < 10 && Date.now()-tapStart.t < 300){
           var now = Date.now();
           if (now - lbLastTap < 350){
@@ -7690,7 +7822,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
       }
     }
     wrap.addEventListener('pointerup', lbPointerEnd);
-    wrap.addEventListener('pointercancel', lbPointerEnd);
+    wrap.addEventListener('pointercancel', function(e){
+      if (lbSwipeStart){ wrap.style.transition=''; wrap.style.transform=''; lbSwipeStart = null; }
+      lbPointerEnd(e);
+    });
+
+    document.getElementById('imgLightboxPrev').addEventListener('click', function(e){
+      e.stopPropagation();
+      if (lbIndex > 0) lbFinishSwipe(999);
+    });
+    document.getElementById('imgLightboxNext').addEventListener('click', function(e){
+      e.stopPropagation();
+      if (lbList && lbIndex < lbList.length - 1) lbFinishSwipe(-999);
+    });
   }
 
   /* ---- media gallery ---- */
@@ -7757,24 +7901,52 @@ input[type=checkbox]:active{transform:scale(0.88);}
     Promise.all(tasks).then(function(){
       if (!media.length){ grid.innerHTML = '<div class="chat-gallery-empty">Медиа пока нет</div>'; return; }
       grid.innerHTML = '';
+
+      function categoryOf(label){
+        if (label.indexOf('Общий чат') === 0) return 'Общий чат';
+        if (label.indexOf('Личный чат') === 0) return 'Личные чаты';
+        if (label.indexOf('Карта:') === 0) return 'Карты';
+        if (label.indexOf('Аватар:') === 0) return 'Аватары';
+        if (label.indexOf('Экипировка') === 0) return 'Экипировка';
+        if (label.indexOf('Звук') === 0) return 'Звуки';
+        return 'Прочее';
+      }
+      var order = ['Общий чат','Личные чаты','Карты','Аватары','Экипировка','Звуки','Прочее'];
+      var groups = {};
       media.forEach(function(d){
-        var cell = document.createElement('div');
-        cell.className = 'chat-gallery-cell' + (d.type === 'video' ? ' is-video' : '') + (d.type === 'audio' ? ' is-audio' : '');
-        cell.title = d.label;
-        if (d.type === 'video'){
-          cell.innerHTML = '<video src="'+escAttr(d.url)+'" preload="metadata"></video>';
-          cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type); });
-        } else if (d.type === 'audio'){
-          cell.innerHTML = '<span class="gallery-audio-icon">🎵</span><span class="gallery-audio-label">'+escAttr(d.label)+'</span>';
-          cell.addEventListener('click', function(){
-            var a = new Audio(d.url);
-            a.play().catch(function(err){ showItemToast('⚠ Не удалось воспроизвести: '+(err&&err.message||err)); });
-          });
-        } else {
-          cell.innerHTML = '<img src="'+escAttr(d.url)+'" loading="lazy">';
-          cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type); });
-        }
-        grid.appendChild(cell);
+        var cat = categoryOf(d.label||'');
+        (groups[cat] = groups[cat] || []).push(d);
+      });
+
+      var visualList = media.filter(function(d){ return d.type === 'image' || d.type === 'video'; });
+
+      order.forEach(function(cat){
+        var list = groups[cat];
+        if (!list || !list.length) return;
+        var section = document.createElement('div');
+        section.className = 'gallery-section';
+        section.innerHTML = '<div class="gallery-section-title">'+escAttr(cat)+' <span class="gallery-section-count">'+list.length+'</span></div><div class="gallery-section-grid"></div>';
+        var sectionGrid = section.querySelector('.gallery-section-grid');
+        list.forEach(function(d){
+          var cell = document.createElement('div');
+          cell.className = 'chat-gallery-cell' + (d.type === 'video' ? ' is-video' : '') + (d.type === 'audio' ? ' is-audio' : '');
+          cell.title = d.label;
+          if (d.type === 'video'){
+            cell.innerHTML = '<video src="'+escAttr(d.url)+'" preload="metadata"></video>';
+            cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type, visualList, visualList.indexOf(d)); });
+          } else if (d.type === 'audio'){
+            cell.innerHTML = '<span class="gallery-audio-icon">🎵</span><span class="gallery-audio-label">'+escAttr(d.label)+'</span>';
+            cell.addEventListener('click', function(){
+              var a = new Audio(d.url);
+              a.play().catch(function(err){ showItemToast('⚠ Не удалось воспроизвести: '+(err&&err.message||err)); });
+            });
+          } else {
+            cell.innerHTML = '<img src="'+escAttr(d.url)+'" loading="lazy">';
+            cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type, visualList, visualList.indexOf(d)); });
+          }
+          sectionGrid.appendChild(cell);
+        });
+        grid.appendChild(section);
       });
     }).catch(function(err){
       grid.innerHTML = '<div class="chat-gallery-empty">Ошибка: '+escAttr(err.message||err)+'</div>';
@@ -7794,18 +7966,19 @@ input[type=checkbox]:active{transform:scale(0.88);}
       var items = [];
       snap.forEach(function(doc){
         var d = doc.data();
-        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) items.push(d);
+        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) items.push({url:d.mediaUrl, type:d.mediaType});
       });
       if (!items.length){ grid.innerHTML = '<div class="chat-gallery-empty">Медиа пока нет</div>'; return; }
-      grid.innerHTML = '';
-      items.forEach(function(d){
+      grid.innerHTML = '<div class="gallery-section"><div class="gallery-section-grid" id="chatGalleryFlatGrid"></div></div>';
+      var sectionGrid = document.getElementById('chatGalleryFlatGrid');
+      items.forEach(function(d, idx){
         var cell = document.createElement('div');
-        cell.className = 'chat-gallery-cell' + (d.mediaType === 'video' ? ' is-video' : '');
-        cell.innerHTML = d.mediaType === 'video'
-          ? '<video src="'+escAttr(d.mediaUrl)+'" preload="metadata"></video>'
-          : '<img src="'+escAttr(d.mediaUrl)+'" loading="lazy">';
-        cell.addEventListener('click', function(){ openLightboxMedia(d.mediaUrl, d.mediaType); });
-        grid.appendChild(cell);
+        cell.className = 'chat-gallery-cell' + (d.type === 'video' ? ' is-video' : '');
+        cell.innerHTML = d.type === 'video'
+          ? '<video src="'+escAttr(d.url)+'" preload="metadata"></video>'
+          : '<img src="'+escAttr(d.url)+'" loading="lazy">';
+        cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type, items, idx); });
+        sectionGrid.appendChild(cell);
       });
     }).catch(function(err){
       console.warn('gallery load failed', err);
