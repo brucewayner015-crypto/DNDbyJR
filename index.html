@@ -2717,6 +2717,13 @@ input[type=checkbox]:active{transform:scale(0.88);}
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   color:#fff;font-size:22px;text-shadow:0 0 6px rgba(0,0,0,0.8);
 }
+.chat-gallery-cell.is-audio{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  background:linear-gradient(180deg, var(--chrome-1), var(--chrome-2));
+  padding:8px;
+}
+.gallery-audio-icon{font-size:26px;}
+.gallery-audio-label{font-size:9.5px;color:var(--parchment);text-align:center;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .chat-gallery-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--parchment);opacity:0.5;font-style:italic;}
 
 /* ---------- MAP (campaign/world map viewer with pins) ---------- */
@@ -4669,6 +4676,12 @@ input[type=checkbox]:active{transform:scale(0.88);}
         </div>
         <div class="settings-hint" data-i18n="settings.exportImportHint">Экспорт сохраняет персонажа в файл .json — держите копию на всякий случай. Импорт загружает персонажа из такого файла.</div>
         <button class="update-btn" id="btnReset" style="border-color:var(--wax);color:var(--wax);" data-i18n="btn.newSheet">✕ Новый лист</button>
+
+        <div class="settings-divider"></div>
+
+        <p class="modal-text" style="margin-bottom:6px;">Медиатека</p>
+        <div class="settings-hint" style="margin-bottom:8px;">Собирает все фото/видео/звуки из чата, карт и персонажей в одном месте — быстрее, чем листать Cloudinary.</div>
+        <button class="update-btn" id="btnOpenMediaLibrary">🖼 Открыть медиатеку</button>
       </div>
 
       <div class="settings-pane" data-pane="support">
@@ -4860,7 +4873,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 
   var ABIL_SHORT = {str:'СИЛ',dex:'ЛОВ',con:'ТЕЛ',int:'ИНТ',wis:'МУД',cha:'ХАР'};
 
-  var APP_VERSION = '2026.09.23-3';
+  var APP_VERSION = '2026.09.27-1';
   var STORAGE_KEY = 'dnd5e_ru_character_v1';
   var SETTINGS_KEY = 'dnd5e_ru_settings_v1';
 
@@ -7688,6 +7701,86 @@ input[type=checkbox]:active{transform:scale(0.88);}
     chatCloseGalleryUIOnly();
     appCloseModal();
   }
+  function openFullMediaLibrary(){
+    if (!fbDb){ alert('Нет подключения к облаку.'); return; }
+    var screen = document.getElementById('chatGalleryScreen');
+    var grid = document.getElementById('chatGalleryGrid');
+    var titleEl = screen.querySelector('.chat-header-name');
+    if (titleEl) titleEl.textContent = '🖼 Медиатека';
+    grid.innerHTML = '<div class="chat-gallery-empty">Загрузка…</div>';
+    screen.style.display = 'flex';
+    appOpenModal(function(){
+      screen.style.display = 'none';
+      if (titleEl) titleEl.textContent = '🖼 Медиа';
+    });
+
+    var media = []; // {url, type: 'image'|'video'|'audio', label}
+
+    var tasks = [];
+
+    tasks.push(fbDb.collection('chat_messages').orderBy('createdAt','desc').limit(300).get().then(function(snap){
+      snap.forEach(function(doc){
+        var d = doc.data();
+        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) media.push({url:d.mediaUrl, type:d.mediaType, label:'Общий чат'});
+      });
+    }).catch(function(){}));
+
+    tasks.push(fbDb.collection('dm_messages').where('participants','array-contains',getMyId()).limit(300).get().then(function(snap){
+      snap.forEach(function(doc){
+        var d = doc.data();
+        if (d.mediaUrl && (d.mediaType === 'image' || d.mediaType === 'video')) media.push({url:d.mediaUrl, type:d.mediaType, label:'Личный чат'});
+      });
+    }).catch(function(){}));
+
+    tasks.push(fbDb.collection('maps').get().then(function(snap){
+      snap.forEach(function(doc){
+        var d = doc.data();
+        if (d.imageUrl) media.push({url:d.imageUrl, type:'image', label:'Карта: '+(d.name||'без названия')});
+      });
+    }).catch(function(){}));
+
+    tasks.push(fbDb.collection('characters').get().then(function(snap){
+      snap.forEach(function(doc){
+        var d = doc.data();
+        var charName = d.characterName || 'Без имени';
+        if (d.avatarUrl) media.push({url:d.avatarUrl, type:'image', label:'Аватар: '+charName});
+        var st = d.state || {};
+        (st.equipment||[]).forEach(function(slot){
+          if (slot.iconUrl) media.push({url:slot.iconUrl, type:'image', label:'Экипировка ('+charName+'): '+(slot.label||'')});
+        });
+        (st.soundpad||[]).forEach(function(snd){
+          if (snd.url) media.push({url:snd.url, type:'audio', label:'Звук ('+charName+'): '+(snd.name||'')});
+        });
+      });
+    }).catch(function(){}));
+
+    Promise.all(tasks).then(function(){
+      if (!media.length){ grid.innerHTML = '<div class="chat-gallery-empty">Медиа пока нет</div>'; return; }
+      grid.innerHTML = '';
+      media.forEach(function(d){
+        var cell = document.createElement('div');
+        cell.className = 'chat-gallery-cell' + (d.type === 'video' ? ' is-video' : '') + (d.type === 'audio' ? ' is-audio' : '');
+        cell.title = d.label;
+        if (d.type === 'video'){
+          cell.innerHTML = '<video src="'+escAttr(d.url)+'" preload="metadata"></video>';
+          cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type); });
+        } else if (d.type === 'audio'){
+          cell.innerHTML = '<span class="gallery-audio-icon">🎵</span><span class="gallery-audio-label">'+escAttr(d.label)+'</span>';
+          cell.addEventListener('click', function(){
+            var a = new Audio(d.url);
+            a.play().catch(function(err){ showItemToast('⚠ Не удалось воспроизвести: '+(err&&err.message||err)); });
+          });
+        } else {
+          cell.innerHTML = '<img src="'+escAttr(d.url)+'" loading="lazy">';
+          cell.addEventListener('click', function(){ openLightboxMedia(d.url, d.type); });
+        }
+        grid.appendChild(cell);
+      });
+    }).catch(function(err){
+      grid.innerHTML = '<div class="chat-gallery-empty">Ошибка: '+escAttr(err.message||err)+'</div>';
+    });
+  }
+
   function chatOpenGallery(){
     var screen = document.getElementById('chatGalleryScreen');
     var grid = document.getElementById('chatGalleryGrid');
@@ -11343,6 +11436,8 @@ input[type=checkbox]:active{transform:scale(0.88);}
     reader.readAsText(file);
     e.target.value = '';
   });
+
+  document.getElementById('btnOpenMediaLibrary').addEventListener('click', openFullMediaLibrary);
 
   document.getElementById('btnReset').addEventListener('click', function(){
     showConfirm(t('confirm.newSheet'), function(){
