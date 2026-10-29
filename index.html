@@ -4542,6 +4542,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .tr-acts{margin-left:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;}
 .tr-add{min-height:26px;padding:3px 8px;}
 .au-sheet .inline-check{font-family:var(--font-body);text-transform:none;letter-spacing:0;font-size:calc(14px * var(--ui-font-scale));color:var(--ink);}
+.sv-alt{display:inline-flex;align-items:center;gap:3px;opacity:.55;font-size:calc(11px * var(--ui-font-scale));margin-left:4px;}
 
 </style>
 <script>
@@ -13171,9 +13172,30 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       }
       st.groups.push(g);
     });
+    /* «Дикий атакующий» on every damage roll: roll everything twice, the better roll counts */
+    if (opts.best2 && st.groups.some(function(g){ return g.term.kind === 'dice'; })) st.alt = rollTermsState(terms, Object.assign({}, opts, {best2:false}));
     return st;
   }
+  function savageAll(){ return !!(state.turn && state.turn.savage === 'all'); }
+  /* each dice group (weapon, tattoo, smite…) keeps its own better roll */
+  function stateBest(st, crit){
+    if (!st.alt) return {main:st, other:null};
+    var main = {groups:[]}, other = {groups:[]};
+    st.groups.forEach(function(g, i){
+      var a = st.alt.groups[i];
+      if (!a || g.term.kind !== 'dice'){ main.groups.push(g); return; }
+      var tg = stateRawTotal({groups:[g]}, crit).total, ta = stateRawTotal({groups:[a]}, crit).total;
+      if (ta > tg){ main.groups.push(a); other.groups.push(g); } else { main.groups.push(g); other.groups.push(a); }
+    });
+    return {main:main, other:other};
+  }
   function stateTotal(st, crit){
+    var b = stateBest(st, crit);
+    var r = stateRawTotal(b.main, crit);
+    if (b.other) r.savage = {kept:r.total, dropped:stateRawTotal(b.other, crit).total};
+    return r;
+  }
+  function stateRawTotal(st, crit){
     var total = 0, byType = {}, order = [];
     st.groups.forEach(function(g){
       var tm = g.term, v = 0;
@@ -13190,16 +13212,22 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     return {total:total, byType:byType, order:order};
   }
   function stateDiceHtml(st, crit, small){
+    var b = stateBest(st, crit);
+    if (b.other) return stateDiceHtmlRaw(b.main, crit, small) + '<span class="sv-alt" title="Дикий атакующий: второй бросок, не взят">↻ ' + stateDiceHtmlRaw(b.other, crit, true, true) + '</span>';
+    return stateDiceHtmlRaw(st, crit, small);
+  }
+  function stateDiceHtmlRaw(st, crit, small, dropAll){
     var html = '';
     st.groups.forEach(function(g){
       var tm = g.term;
       if (tm.kind === 'dice'){
         var list = crit ? g.rolls.concat(g.critRolls) : g.rolls;
         list.forEach(function(r){
+          if (dropAll){ html += dieHtml(r.s, r.v, 'drop sm'); return; }
           if (r.rerolled !== undefined) html += dieHtml(r.s, r.rerolled, 'drop' + (small ? ' sm' : ''));
           html += dieHtml(r.s, (tm.sign < 0 ? '−' : '') + r.v, small ? 'sm' : '');
         });
-      } else {
+      } else if (!dropAll){
         html += '<span class="dice-mod">' + (tm.sign < 0 ? '−' : '+') + fmtNum(tm.v) + '</span>';
       }
     });
@@ -13430,7 +13458,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       crit: natural >= critMin, fumble: natural === 1, notes:notes
     };
     if (ctx.dmg && ctx.dmg.terms && ctx.dmg.terms.length){
-      res.dmgState = rollTermsState(ctx.dmg.terms, {gwf:!!ctx.dmg.gwf, critExtra:ctx.dmg.critExtra || 0});
+      res.dmgState = rollTermsState(ctx.dmg.terms, {gwf:!!ctx.dmg.gwf, critExtra:ctx.dmg.critExtra || 0, best2:savageAll()});
       var dt = stateTotal(res.dmgState, res.crit);
       res.dmgTotal = Math.max(0, dt.total);
       res.dmgTypes = dt;
@@ -14727,6 +14755,14 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       '<button type="button" data-tt="mode" data-m="dis"' + (tt.adv === 'dis' ? ' class="on"' : '') + '>Помеха</button></div>';
     var note = turnCondNote();
     if (note) html += '<div class="turn-cond-note">' + hEsc(note) + '</div>';
+    if (tt.savage === true || tt.savage === 'all' || tt.savage === false || savageDetected()){
+      var sm = tt.savage === 'all' ? 'all' : tt.savage === false ? 'off' : 'once';
+      html += '<div class="field" style="margin-top:8px;"><label class="field-label">Дикий атакующий</label><div class="seg" role="group" aria-label="Дикий атакующий">' +
+        '<button type="button" data-tt="sav" data-v="off"' + (sm === 'off' ? ' class="on"' : '') + '>Выкл</button>' +
+        '<button type="button" data-tt="sav" data-v="once"' + (sm === 'once' ? ' class="on"' : '') + '>Кнопкой, раз в ход</button>' +
+        '<button type="button" data-tt="sav" data-v="all"' + (sm === 'all' ? ' class="on"' : '') + '>Все кубы, сам</button></div>' +
+        (sm === 'all' ? '<div class="au-hint">Каждый бросок урона кидается дважды и берётся больший — оружие, тату, кара, доп. кубы. Отброшенный бросок показан бледным после ↻.</div>' : '') + '</div>';
+    }
     html += '<div class="turn-slots">';
     tt.slots.forEach(function(id, i){
       html += '<div class="turn-slot"><span class="turn-slot-n">' + (i + 1) + '</span><select data-tt="slot" data-i="' + i + '" aria-label="Атака ' + (i + 1) + '">' +
@@ -14789,10 +14825,10 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       var hd = rollTermsState(c.hitDice, {critable:false});
       rows.push({i:i, atkId:id, name:atk.name || 'Атака', c:c, d:d, hd:hd,
         hitTotal: d.kept + c.hit + stateTotal(hd, false).total, nat:d.kept, manualStatus:null,
-        dmg: rollTermsState(c.terms, {gwf:c.gwf, critExtra:c.critExtra})});
+        dmg: rollTermsState(c.terms, {gwf:c.gwf, critExtra:c.critExtra, best2:savageAll()})});
     });
     var ot = turnOnceTerms();
-    turnRes = {kind:'auto', mode:mode, rows:rows, once: ot.length ? {terms:ot, st:rollTermsState(ot, {})} : null};
+    turnRes = {kind:'auto', mode:mode, rows:rows, once: ot.length ? {terms:ot, st:rollTermsState(ot, {best2:savageAll()})} : null};
     renderTurnResults();
     playSound('ui', 'roll');
     var sum = turnSummary();
@@ -14933,8 +14969,11 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   var SAVAGE_RE = /дикий атакующий|дикого атакующего|savage attacker/i;
   function savageAvail(){
     var tt = ensureTurn();
-    if (tt.savage === false) return false;
+    if (tt.savage === false || tt.savage === 'all') return false;
     if (tt.savage === true) return true;
+    return savageDetected();
+  }
+  function savageDetected(){
     var tr = state.traits || {};
     var txt = (tr.featuresSections || []).map(function(x){ return (x && (x.title || '') + ' ' + (x.content || '')) || ''; }).join(' ');
     if (SAVAGE_RE.test(txt)) return true;
@@ -15021,7 +15060,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
             if (typeof renderSlots === 'function') renderSlots();
             var terms = [{kind:'dice', n:smiteDice(o.L, undead), s:8, sign:1, type:'излучение', src:'Кара'}];
             if (!row.extras) row.extras = [];
-            row.extras.push({label:'кара ' + o.L + ' круга', terms:terms, st:rollTermsState(terms, {}), refund:function(){
+            row.extras.push({label:'кара ' + o.L + ' круга', terms:terms, st:rollTermsState(terms, {best2:savageAll()}), refund:function(){
               if (o.kind === 'pact') casting().pactUsed = Math.max(0, toInt(casting().pactUsed, 0) - 1);
               else state.slots[o.L - 1].cur = Math.max(0, toInt(state.slots[o.L - 1].cur, 0) - 1);
               saveState(); if (typeof renderSlots === 'function') renderSlots();
@@ -15036,7 +15075,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           var p = parseRoll(inp.value);
           if (!p.terms.length || p.bad.length){ showActionToast('Не понял: ' + inp.value + '. Пример: 1к8 излучение'); return; }
           if (!row.extras) row.extras = [];
-          row.extras.push({label:termsText(p.terms, true), terms:p.terms, st:rollTermsState(p.terms, {})});
+          row.extras.push({label:termsText(p.terms, true), terms:p.terms, st:rollTermsState(p.terms, {best2:savageAll()})});
           api.close();
           renderTurnResults();
           playSound('ui', 'roll');
@@ -15102,6 +15141,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           turnRes = null; saveState(); turnRender(); return;
         }
         if (a === 'mode'){ tt.adv = b.getAttribute('data-m'); saveState(); turnRender(); return; }
+        if (a === 'sav'){ var sv = b.getAttribute('data-v'); tt.savage = sv === 'all' ? 'all' : sv === 'off' ? false : true; turnRes = null; saveState(); turnRender(); return; }
         if (a === 'sneak'){ tt.once = Math.ceil(rogueLevel() / 2) + 'к6'; saveState(); turnRender(); return; }
         if (a === 'roll'){ turnRollAll(); return; }
         if (a === 'manual'){ turnStartManual(); return; }
@@ -15156,7 +15196,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         saveState();
         if (turnRes){
           var ot = turnOnceTerms();
-          turnRes.once = ot.length ? {terms:ot, st: turnRes.kind === 'auto' ? rollTermsState(ot, {}) : null} : null;
+          turnRes.once = ot.length ? {terms:ot, st: turnRes.kind === 'auto' ? rollTermsState(ot, {best2:savageAll()}) : null} : null;
         }
         return;
       }
