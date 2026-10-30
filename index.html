@@ -4548,24 +4548,25 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 @media (min-width: 568px){
   html[data-f-wide="1"] .app-shell{max-width:none;}
   html[data-f-wide="1"] .page{padding:20px 22px 30px;}
-  html[data-f-wide="1"] .page.active > *{break-inside:avoid;-webkit-column-break-inside:avoid;}
   html[data-f-wide="1"] .page.active > .card{margin-top:0;}
   html[data-f-wide="1"] .spine > *{max-width:1100px;margin-left:auto;margin-right:auto;}
   html[data-f-wide="1"] .tabbar{--tb-pad:max(4px, calc((100% - 900px) / 2));padding-left:var(--tb-pad);padding-right:var(--tb-pad);}
   html[data-f-wide="1"] .fab-dice{right:14px;}
 }
 @media (min-width: 680px){
-  html[data-f-wide="1"] .page.active{column-count:2;column-gap:16px;}
+  /* grid with measured row spans (masonry) — no CSS columns: tablets mis-hit taps inside multi-column layout */
+  html[data-f-wide="1"] .page.active{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));column-gap:16px;grid-auto-rows:4px;align-items:start;}
+  html[data-f-wide="1"] .page.active > *{align-self:start;min-width:0;}
   html[data-f-wide="1"] .app-shell[data-merge-ps="1"] .medallions, html[data-f-wide="1"] .medallions{grid-template-columns:repeat(3,1fr);gap:10px;}
 }
 @media (min-width: 1080px){
-  html[data-f-wide="1"] .page.active{column-count:3;}
+  html[data-f-wide="1"] .page.active{grid-template-columns:repeat(3, minmax(0, 1fr));}
 }
 @media (min-width: 1480px){
-  html[data-f-wide="1"] .page.active{column-count:4;}
+  html[data-f-wide="1"] .page.active{grid-template-columns:repeat(4, minmax(0, 1fr));}
 }
 @media (min-width: 1900px){
-  html[data-f-wide="1"] .page.active{column-count:5;}
+  html[data-f-wide="1"] .page.active{grid-template-columns:repeat(5, minmax(0, 1fr));}
 }
 @media (min-width: 568px) and (hover: hover){
   html[data-f-wide="1"] .pages-viewport::-webkit-scrollbar{width:10px;}
@@ -12919,6 +12920,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       if (autoOn(f.id)) root.setAttribute('data-f-' + f.id, '1');
       else root.removeAttribute('data-f-' + f.id);
     });
+    if (wideRO) setTimeout(wideRefresh, 0);
     if (autoOn('dice') && autoOpt('fab') !== false) root.setAttribute('data-fab', '1');
     else root.removeAttribute('data-fab');
     var fab = document.getElementById('fabDice');
@@ -16972,6 +16974,29 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       concRender();
     }catch(e){ console.warn('autoRenderAll', e); }
   }
+  /* ---------------- wide layout: masonry spans for the card grid ---------------- */
+  var WIDE_ROW = 4, wideRO = null;
+  function wideActive(){ return autoOn('wide') && window.matchMedia && window.matchMedia('(min-width: 680px)').matches; }
+  function wideSpan(el){
+    if (!wideActive()){ if (el.style.gridRowEnd) el.style.gridRowEnd = ''; return; }
+    if (!el.offsetParent) return;
+    var mb = parseFloat(getComputedStyle(el).marginBottom) || 0;
+    var pg = el.parentNode, k = (pg && pg.offsetWidth) ? (pg.getBoundingClientRect().width / pg.offsetWidth) || 1 : 1;
+    var span = 'span ' + Math.max(1, Math.ceil((el.getBoundingClientRect().height / k + mb) / WIDE_ROW));
+    if (el.style.gridRowEnd !== span) el.style.gridRowEnd = span;
+  }
+  function wideRefresh(){ document.querySelectorAll('.pages-viewport > .page > *').forEach(wideSpan); }
+  function wideInit(){
+    if (typeof ResizeObserver === 'undefined') return;
+    wideRO = new ResizeObserver(function(entries){ entries.forEach(function(en){ wideSpan(en.target); }); });
+    var pages = document.querySelectorAll('.pages-viewport > .page');
+    pages.forEach(function(pg){
+      Array.prototype.forEach.call(pg.children, function(el){ wideRO.observe(el); });
+      new MutationObserver(function(muts){ muts.forEach(function(m){ Array.prototype.forEach.call(m.addedNodes, function(n){ if (n.nodeType === 1){ wideRO.observe(n); wideSpan(n); } }); }); }).observe(pg, {childList:true});
+    });
+    window.addEventListener('resize', wideRefresh);
+    wideRefresh();
+  }
   function autoInit(){
     if (!uiSettings.auto || typeof uiSettings.auto !== 'object') uiSettings.auto = autoDefaults();
     buildModTargets();
@@ -16981,6 +17006,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     bindRollToast();
     bindTapRolls();
     bindModsCard();
+    try{ wideInit(); }catch(e){}
     bindTurnCard();
     bindResourcesCard();
     bindSlotPips();
