@@ -3849,6 +3849,7 @@ input[type=checkbox]:active{transform:scale(0.88);}
 /* ---- feature visibility: html[data-f-<id>="1"] turns a feature on ---- */
 html:not([data-f-attacks="1"]) .af-attacks,
 html:not([data-f-turn="1"]) .af-turn,
+html:not([data-f-summary="1"]) .af-summary,
 html:not([data-f-mods="1"]) .af-mods,
 html:not([data-f-dice="1"]) .af-dice,
 html:not([data-f-taproll="1"]) .af-taproll,
@@ -4572,6 +4573,21 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   html[data-f-wide="1"] .pages-viewport::-webkit-scrollbar{width:10px;}
 }
 
+/* ---------- all my bonuses ---------- */
+.bs-sec{margin-top:12px;}
+.bs-sec:first-child{margin-top:2px;}
+.bs-title{font-family:var(--font-display);font-size:calc(12px * var(--ui-font-scale));letter-spacing:.5px;color:var(--ink-soft);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.bs-list{display:flex;flex-direction:column;gap:5px;}
+.bs-item{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;padding:7px 10px;border-radius:var(--radius-s);background:rgba(255,255,255,.35);border:1px solid var(--parchment-shadow);}
+.bs-v{font-family:var(--font-mono);font-weight:700;color:var(--ink);white-space:nowrap;}
+.bs-t{color:var(--ink);font-size:calc(13.5px * var(--ui-font-scale));}
+.bs-src{flex-basis:100%;color:var(--ink-soft);font-size:calc(11.5px * var(--ui-font-scale));}
+.bs-item.good .bs-v{color:var(--ok);}
+.bs-item.bad .bs-v{color:var(--danger);}
+.bs-item.temp{border-style:dashed;}
+.bs-item.off{opacity:.55;}
+.bs-empty{color:var(--ink-soft);font-style:italic;}
+
 </style>
 <script>
   // Loaded dynamically (with a timeout) instead of blocking <script src> tags:
@@ -4781,6 +4797,11 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           <div class="cond-hints af-cond" id="condHints"></div>
         </div>
       </div>
+    </div>
+
+    <div class="card af-summary" id="cardSummary">
+      <h2><span>📜 Все мои бонусы</span></h2>
+      <div id="summaryWrap"></div>
     </div>
 
     <div class="card af-turn" id="cardTurn">
@@ -12869,6 +12890,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   var AUTO_FEATURES = [
     {id:'attacks', group:'Бой', icon:'⚔', title:'Умные атаки', def:true,
       desc:'Попадание и урон считаются сами: характеристика, мастерство, бонус предмета, доп. урон и баффы. Есть список оружия и заговоров.'},
+    {id:'summary', group:'Бой', icon:'📜', title:'Все мои бонусы', def:true,
+      desc:'Карточка-сводка на вкладке «Бой»: бонусы к атакам и урону с расшифровкой, КБ, спасброски, проверки, преимущества и помехи, сопротивления, иммунитеты, особые свойства — из модификаторов, эффектов, доспеха и состояний.'},
     {id:'turn', group:'Бой', icon:'🎯', title:'Мой ход', def:true,
       desc:'Все атаки за ход одной кнопкой: к20 с преимуществом или помехой, криты, КБ цели, урон «раз в ход», кара к попаданию и общий итог. Можно вписывать свои кубы.'},
     {id:'mods', group:'Бой', icon:'✚', title:'Модификаторы и баффы', def:true,
@@ -16945,6 +16968,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       syncAttackLegacyFields();
       turnRefreshSummaries();
       turnNoteRefresh();
+      summaryRender();
       concRender();
       if (applyAutoSlots()) slotsRender();
       if (!resEditMode && document.getElementById('resWrap')) renderResources();
@@ -16973,6 +16997,119 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       renderAutoPane();
       concRender();
     }catch(e){ console.warn('autoRenderAll', e); }
+  }
+
+  /* =====================================================================
+     «Все мои бонусы» — one card that gathers everything that changes rolls
+     ===================================================================== */
+  function bsEsc(x){ return hEsc(x == null ? '' : String(x)); }
+  function bsItem(v, text, src, cls){
+    return '<div class="bs-item' + (cls ? ' ' + cls : '') + '"><span class="bs-v">' + bsEsc(v) + '</span><span class="bs-t">' + bsEsc(text) + '</span>' + (src ? '<span class="bs-src">' + bsEsc(src) + '</span>' : '') + '</div>';
+  }
+  function bsSec(icon, title, items){
+    if (!items.length) return '';
+    return '<div class="bs-sec"><div class="bs-title">' + icon + ' ' + bsEsc(title) + '</div><div class="bs-list">' + items.join('') + '</div></div>';
+  }
+  function bsPartsText(parts){
+    return parts.map(function(p){ var v = typeof p.v === 'number' ? fmtMod(p.v) : String(p.v); return p.label + ' ' + v; }).join(' · ');
+  }
+  function bsModLines(targets){
+    var out = [];
+    activeModLines().forEach(function(l){
+      if (targets.indexOf(l.t) < 0) return;
+      var tg = MOD_TARGET_BY_ID[l.t];
+      var txt = termsText(l.p.terms, true);
+      if (!/^[+\-−]/.test(txt)) txt = '+' + txt;
+      out.push(bsItem(txt, tg ? tg.short : l.t, l.name + (l.toggle ? ' · включено сейчас' : ''), l.toggle ? 'temp' : ''));
+    });
+    return out;
+  }
+  function bsLinkedFx(){
+    var ids = {};
+    (state.mods || []).forEach(function(m){ (m && Array.isArray(m.fx) ? m.fx : []).forEach(function(id){ ids[id] = true; }); });
+    return ids;
+  }
+  function bsFx(kinds, skipLinked){
+    var linked = skipLinked ? bsLinkedFx() : {};
+    var merged = [], idx = {};
+    (state.effects || []).forEach(function(e){
+      if (!e || kinds.indexOf(e.kind) < 0) return;
+      if (e.cond ? e.active !== true : e.active === false) return;
+      if (linked[e.id]) return;
+      var key = String(e.text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!key) return;
+      if (idx[key] === undefined){ idx[key] = merged.length; merged.push({e:e, src:[]}); }
+      if (e.source && merged[idx[key]].src.indexOf(e.source) < 0) merged[idx[key]].src.push(e.source + (e.cond ? ' · включено сейчас' : ''));
+    });
+    return merged;
+  }
+  function summaryRender(){
+    var wrap = document.getElementById('summaryWrap');
+    if (!wrap) return;
+    if (!autoOn('summary')){ wrap.innerHTML = ''; return; }
+    var html = '';
+    // attacks: every attack with its own breakdown
+    var atk = [];
+    (state.attacks || []).forEach(function(a){
+      if (!a || !a.auto || !autoOn('attacks')) return;
+      var c = atkCompute(a);
+      atk.push(bsItem(bonusText(c.hit, c.hitDice), (a.name || 'Атака') + ' — попадание', bsPartsText(c.hitParts)));
+      if (c.terms.length) atk.push(bsItem(c.dmgText, (a.name || 'Атака') + ' — урон', bsPartsText(c.dmgParts) + ' · в среднем ' + fmtNum(Math.round(c.avg * 10) / 10)));
+    });
+    var ca = condContext('atk');
+    ca.adv.forEach(function(n){ atk.push(bsItem('преим.', 'к броскам атаки', n, 'good')); });
+    ca.dis.forEach(function(n){ atk.push(bsItem('помеха', 'к броскам атаки', n, 'bad')); });
+    html += bsSec('⚔', 'Атаки', atk);
+    html += bsSec('✚', 'Бонусы к атакам и урону', bsModLines(['atk', 'atk_m', 'atk_r', 'atk_s', 'dmg', 'dmg_m', 'dmg_r', 'dmg_s']));
+    // armour class
+    var acItems = [];
+    if (autoOn('ac')){
+      var ac = acCompute();
+      acItems.push(bsItem(String(ac.total), 'Класс брони', ac.parts.map(function(p, i){ return p.label + ' ' + (i === 0 ? p.v : fmtMod(p.v)); }).join(' · ')));
+      if (ac.stealthDis) acItems.push(bsItem('помеха', 'к Скрытности', 'Доспех: ' + ac.armorName, 'bad'));
+    } else acItems = bsModLines(['ac']);
+    html += bsSec('🛡', 'Класс брони', acItems);
+    // saves
+    var sv = bsModLines(['save', 'save_str', 'save_dex', 'save_con', 'save_int', 'save_wis', 'save_cha']);
+    ABILITIES.forEach(function(a){
+      var cs = condContext('save', a.id);
+      cs.fail.forEach(function(n){ sv.push(bsItem('провал', 'спасбросок: ' + t('ability.' + a.id), n, 'bad')); });
+      cs.dis.forEach(function(n){ sv.push(bsItem('помеха', 'спасбросок: ' + t('ability.' + a.id), n, 'bad')); });
+    });
+    html += bsSec('🎯', 'Спасброски', sv);
+    // checks & skills
+    var ck = bsModLines(['check', 'init', 'pp'].concat(SKILLS.map(function(s){ return 'skill_' + s.id; })));
+    var cc = condContext('check');
+    cc.dis.forEach(function(n){ ck.push(bsItem('помеха', 'к проверкам характеристик', n, 'bad')); });
+    if (autoOn('skillsx')){
+      var o = state.skillsX || {};
+      if (o.jack) ck.push(bsItem('+' + Math.floor(profBonus() / 2), 'к проверкам без владения', 'Мастер на все руки'));
+      if (o.athlete) ck.push(bsItem('+' + Math.ceil(profBonus() / 2), 'к проверкам СИЛ, ЛОВ, ТЕЛ без владения', 'Выдающийся атлет'));
+    }
+    html += bsSec('🧭', 'Проверки и навыки', ck);
+    // advantages / disadvantages written in effects, notes of active modifiers
+    var adv = bsFx(['adv']).map(function(m){ return bsItem('преим.', m.e.text, m.src.join(' · '), 'good'); });
+    var dis = bsFx(['dis']).map(function(m){ return bsItem('помеха', m.e.text, m.src.join(' · '), 'bad'); });
+    html += bsSec('🎲', 'Преимущества', adv);
+    html += bsSec('⚠️', 'Помехи', dis);
+    // damage defences
+    var imm = bsFx(['immune']), immSet = {};
+    imm.forEach(function(m){ immSet[String(m.e.text).toLowerCase().trim()] = true; });
+    html += bsSec('🛡', 'Иммунитеты', imm.map(function(m){ return bsItem('иммун.', m.e.text, m.src.join(' · '), 'good'); }));
+    html += bsSec('🪨', 'Сопротивления', bsFx(['resist']).map(function(m){ var over = immSet[String(m.e.text).toLowerCase().trim()]; return bsItem('½', m.e.text, (over ? 'перекрыто иммунитетом · ' : '') + m.src.join(' · '), over ? 'off' : 'good'); }));
+    html += bsSec('💔', 'Уязвимости', bsFx(['vuln']).map(function(m){ return bsItem('×2', m.e.text, m.src.join(' · '), 'bad'); }));
+    // other numbers and properties written in effects (not already counted by a modifier)
+    var acRe = /(^|[^а-яё])(кд|кб)([^а-яё]|$)|класс\S* (доспех|брон)/i;
+    html += bsSec('➕', 'Другие бонусы', bsFx(['bonus'], true).filter(function(m){ return !(autoOn('ac') && acRe.test(m.e.text)); }).map(function(m){ return bsItem('', m.e.text, m.src.join(' · ')); }));
+    var other = bsFx(['other']).map(function(m){ return bsItem('', m.e.text, m.src.join(' · ')); });
+    (state.mods || []).forEach(function(m){ if (m && m.on && m.toggle && m.note && !(Array.isArray(m.fx) && m.fx.length)) other.push(bsItem('', m.note, m.name + ' · включено сейчас', 'temp')); });
+    html += bsSec('✨', 'Особое', other);
+    // conditions
+    var conds = activeConditions().map(function(c){ return bsItem('', t('cond.' + c), COND_RULES[c].hint, 'bad'); });
+    var ex = exhaustionLevel();
+    if (ex > 0) conds.push(bsItem(String(ex), 'Истощение', rules2024() ? '−' + (2 * ex) + ' ко всем броскам к20' : EXH_2014.slice(1, ex + 1).join('; '), 'bad'));
+    html += bsSec('🩹', 'Состояния', conds);
+    wrap.innerHTML = html || '<div class="bs-empty">Пока ничего. Бонусы появятся здесь из модификаторов, эффектов, доспеха и состояний.</div>';
   }
   /* ---------------- wide layout: masonry spans for the card grid ---------------- */
   var WIDE_ROW = 4, wideRO = null;
@@ -17080,7 +17217,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       });
     });
 
-    ['cardHealth', 'cardTurn', 'cardAttacks', 'cardMods', 'cardRes', 'cardWallet', 'cardItems', 'cardSpellcasting', 'cardSlots', 'cardSpellList'].forEach(function(id){
+    ['cardHealth', 'cardSummary', 'cardTurn', 'cardAttacks', 'cardMods', 'cardRes', 'cardWallet', 'cardItems', 'cardSpellcasting', 'cardSlots', 'cardSpellList'].forEach(function(id){
       bindCollapsibleCard(id, 'dnd5e_card_collapsed_' + id);
     });
     if (state && state.meta && (state.meta.name || state.attacks.length)) setTimeout(function(){ makeBackup('при запуске'); }, 1500);
