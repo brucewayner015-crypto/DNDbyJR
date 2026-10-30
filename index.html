@@ -4544,6 +4544,30 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .au-sheet .inline-check{font-family:var(--font-body);text-transform:none;letter-spacing:0;font-size:calc(14px * var(--ui-font-scale));color:var(--ink);}
 .sv-alt{display:inline-flex;align-items:center;gap:3px;opacity:.55;font-size:calc(11px * var(--ui-font-scale));margin-left:4px;}
 
+/* ===================== wide screens: tablet & PC ===================== */
+@media (min-width: 760px){
+  html[data-f-wide="1"] .app-shell{max-width:min(1640px, 100%);}
+  html[data-f-wide="1"] .page{padding:20px 22px 30px;}
+  html[data-f-wide="1"] .page.active{column-count:2;column-gap:18px;}
+  html[data-f-wide="1"] .page.active > *{break-inside:avoid;-webkit-column-break-inside:avoid;}
+  html[data-f-wide="1"] .page.active > .card{margin-top:0;}
+  html[data-f-wide="1"] .app-shell[data-merge-ps="1"] .medallions, html[data-f-wide="1"] .medallions{grid-template-columns:repeat(3,1fr);gap:10px;}
+  html[data-f-wide="1"] .spine > *{max-width:980px;margin-left:auto;margin-right:auto;}
+  html[data-f-wide="1"] .tabbar{--tb-pad:max(4px, calc((100% - 820px) / 2));padding-left:var(--tb-pad);padding-right:var(--tb-pad);}
+}
+@media (min-width: 1180px){
+  html[data-f-wide="1"] .page.active{column-count:3;}
+}
+@media (min-width: 1580px){
+  html[data-f-wide="1"] .page.active{column-count:4;}
+}
+@media (min-width: 760px) and (hover: hover){
+  html[data-f-wide="1"] .pages-viewport::-webkit-scrollbar{width:10px;}
+}
+@media (min-width: 760px){
+  html[data-f-wide="1"] .fab-dice{right:max(14px, calc(50vw - 820px + 14px));}
+}
+
 </style>
 <script>
   // Loaded dynamically (with a timeout) instead of blocking <script src> tags:
@@ -12555,8 +12579,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     var indicator = document.getElementById('tabIndicator');
     var order = getTabOrder();
     if (indicator){
-      indicator.style.width = (100 / order.length) + '%';
-      indicator.style.left = (index * (100 / order.length)) + '%';
+      indicator.style.width = 'calc((100% - 2 * var(--tb-pad, 0px)) / ' + order.length + ')';
+      indicator.style.left = 'calc(var(--tb-pad, 0px) + (100% - 2 * var(--tb-pad, 0px)) * ' + index + ' / ' + order.length + ')';
     }
   }
 
@@ -12871,6 +12895,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       desc:'Вес у предметов, общий груз и грузоподъёмность от Силы. Вариант правила с перегрузом — по желанию.'},
     {id:'wallet', group:'Вещи', icon:'💰', title:'Кошелёк+', def:true,
       desc:'Итог в золоте и операции строкой: «−15 зм», «+3 пм 20 см». Если монет нужного номинала не хватает, приложение разменяет.'},
+    {id:'wide', group:'Прочее', icon:'🖥', title:'Планшет и компьютер', def:true,
+      desc:'На широком экране карточки раскладываются в 2–4 колонки, шапка и меню не растягиваются. На телефоне ничего не меняется.'},
     {id:'backup', group:'Прочее', icon:'💾', title:'Резервные копии', def:true,
       desc:'Снимок персонажа на этом устройстве раз в 10 минут и перед новым листом или импортом. Хранятся последние 12.'}
   ];
