@@ -3866,6 +3866,7 @@ html:not([data-f-skillsx="1"]) .af-skillsx,
 html:not([data-f-cond="1"]) .af-cond,
 html:not([data-f-weight="1"]) .af-weight,
 html:not([data-f-wallet="1"]) .af-wallet,
+html:not([data-f-spells="1"]) .af-spells,
 html:not([data-f-backup="1"]) .af-backup{display:none !important;}
 html[data-f-hp="1"] .af-hp-off,
 html[data-f-ac="1"] .af-ac-off,
@@ -4644,6 +4645,74 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .basi-row .au-icon-btn{width:30px;height:30px;}
 .basi-row .au-icon-btn:disabled{opacity:.35;}
 
+/* ---- spells: reference, sheet rows, roll sheet, builder picker ---- */
+.sp-add-row{display:flex;gap:8px;}
+.sp-add-row .add-btn{flex:1 1 0;min-width:0;}
+.sp-info{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 10px;margin-top:6px;font-size:calc(11.5px * var(--ui-font-scale));line-height:1.45;color:var(--ink-soft);}
+.sp-info .sp-meta{min-width:0;}
+.sp-info .sp-badge{vertical-align:1px;margin-right:2px;}
+.sp-badge{display:inline-block;padding:1px 6px;border-radius:6px;border:1px solid var(--parchment-shadow);font-family:var(--font-mono);font-size:calc(10px * var(--ui-font-scale));font-weight:700;line-height:1.4;color:var(--ink-soft);white-space:nowrap;}
+.sp-badge.c{border-color:var(--gold);color:var(--ink);background:rgba(224,181,99,.18);}
+.sp-badge.src{font-family:var(--font-body);font-weight:600;}
+.sp-acts{display:inline-flex;gap:6px;}
+.sp-acts button{min-width:36px;height:32px;padding:0 9px;border-radius:999px;border:1px solid var(--gold);background:rgba(255,255,255,.4);color:var(--ink);font-size:14px;line-height:1;cursor:pointer;}
+.sp-acts button:active{background:rgba(224,181,99,.3);}
+.sp-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;}
+.sp-chips:empty{display:none;}
+.sp-chip{min-width:36px;min-height:32px;padding:4px 10px;border-radius:999px;border:1px solid var(--parchment-shadow);background:rgba(255,255,255,.35);color:var(--ink);font-family:var(--font-mono);font-size:calc(12px * var(--ui-font-scale));cursor:pointer;}
+.sp-chip.on{background:var(--wax);border-color:var(--wax);color:var(--parchment);}
+.sp-filt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:10px;}
+.sp-filt select{flex:1 1 160px;min-width:0;}
+.sp-count{margin-bottom:6px;}
+.sp-list{display:flex;flex-direction:column;gap:6px;}
+.sp-opt{display:flex;align-items:center;gap:8px;padding:9px 8px 9px 12px;border-radius:var(--radius-s);border:1px solid var(--parchment-shadow);background:rgba(255,255,255,.4);color:var(--ink);cursor:pointer;text-align:left;}
+.sp-opt:focus-visible{outline:2px solid var(--gold);outline-offset:1px;}
+.sp-opt.on{border-color:var(--gold);background:rgba(224,181,99,.22);box-shadow:inset 0 0 0 1px var(--gold);}
+.sp-opt.dis{opacity:.55;cursor:default;}
+.sp-opt.locked{cursor:default;border-style:dashed;background:transparent;}
+.sp-opt-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.sp-opt-n{font-family:var(--font-display);font-weight:600;font-size:calc(13.5px * var(--ui-font-scale));line-height:1.25;}
+.sp-opt-m{font-size:calc(11.5px * var(--ui-font-scale));color:var(--ink-soft);line-height:1.35;}
+.sp-opt-add,.sp-opt-i{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);background:transparent;color:var(--ink);font-size:15px;line-height:1;cursor:pointer;}
+.sp-opt-add{font-size:20px;font-weight:700;color:var(--au-accent, var(--gold-bright));}
+.sp-opt-ok{flex:none;width:36px;text-align:center;color:var(--emerald);font-weight:700;}
+.sp-tabs{margin-bottom:8px;flex-wrap:wrap;}
+.sp-tabs button{flex:1 1 auto;min-height:36px;}
+.sp-tabs button small{font-family:var(--font-mono);opacity:.85;}
+.sp-pick-info{margin-bottom:8px;}
+.sp-pick-btns{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));margin:10px -16px 0;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:var(--parchment);border-top:1px solid var(--parchment-shadow);}
+.sp-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.sp-en{font-style:italic;color:var(--ink-soft);font-size:calc(12.5px * var(--ui-font-scale));}
+.sp-sub{color:var(--ink);font-size:calc(13px * var(--ui-font-scale));margin-top:2px;}
+.sp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:10px 0;padding:10px 0;border-top:1px solid var(--parchment-shadow);border-bottom:1px solid var(--parchment-shadow);}
+.sp-facts span{display:block;font-size:calc(10.5px * var(--ui-font-scale));color:var(--ink-soft);letter-spacing:.3px;}
+.sp-facts b{font-weight:600;font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
+.sp-mech{font-size:calc(12.5px * var(--ui-font-scale));line-height:1.5;padding:8px 10px;border-left:3px solid var(--gold);background:rgba(224,181,99,.12);border-radius:0 var(--radius-s) var(--radius-s) 0;margin-bottom:10px;color:var(--ink);}
+.sp-desc{font-size:calc(14px * var(--ui-font-scale));line-height:1.5;margin:0 0 10px;color:var(--ink);}
+.sp-cls{font-size:calc(12px * var(--ui-font-scale));color:var(--ink-soft);margin-bottom:4px;line-height:1.4;}
+.sp-roll-top{margin-bottom:8px;font-size:calc(12.5px * var(--ui-font-scale));color:var(--ink-soft);}
+.sp-line{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(44,32,17,.14);font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
+.sp-line b{font-family:var(--font-mono);font-size:calc(14px * var(--ui-font-scale));text-align:right;white-space:nowrap;}
+.sp-line i{color:var(--ink-soft);}
+.sp-sum b{font-size:calc(18px * var(--ui-font-scale));}
+.sp-atk-opts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0;}
+.sp-atk-opts .seg{flex:1 1 220px;}
+.sp-ac{display:flex;align-items:center;gap:6px;font-size:calc(12px * var(--ui-font-scale));color:var(--ink-soft);}
+.sp-ac input{width:58px;text-align:center;}
+.sp-shot{padding:2px 0;border-bottom:1px dashed rgba(44,32,17,.14);}
+.sp-shot.miss{opacity:.55;}
+.sp-res-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:4px 10px;padding:6px 0;}
+.sp-res-l{font-size:calc(12px * var(--ui-font-scale));color:var(--ink-soft);min-width:58px;}
+.sp-res-t{font-family:var(--font-display);font-size:calc(22px * var(--ui-font-scale));line-height:1;color:var(--ink);text-align:right;}
+.sp-res-type{grid-column:2 / 4;font-size:calc(11.5px * var(--ui-font-scale));color:var(--ink-soft);text-align:right;}
+.sp-tag{grid-column:2 / 4;justify-self:end;font-size:calc(11px * var(--ui-font-scale));font-weight:700;padding:1px 8px;border-radius:999px;}
+.sp-tag.good{background:var(--emerald);color:#fff;}
+.sp-tag.bad{background:var(--wax);color:var(--parchment);}
+.sp-act-row{display:flex;justify-content:flex-end;margin:-2px 0 6px;}
+.bsp-row .bf-lvl{border-style:dashed;}
+.sp-sheet .au-btn svg{width:20px;height:20px;flex:none;}
+.sp-sheet .au-btns .au-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+
 </style>
 <script>
   // Loaded dynamically (with a timeout) instead of blocking <script src> tags:
@@ -4959,7 +5028,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     <div class="card" id="cardSpellList">
       <h2><span data-i18n="card.spellList">Список заклинаний</span> <span class="spell-count af-slots" id="spellCount"></span></h2>
       <div class="dyn-list" id="spellsWrap"></div>
-      <button class="add-btn" id="addSpell" data-i18n="btn.addSpell">+ добавить заклинание</button>
+      <div class="sp-add-row"><button class="add-btn" id="addSpell" data-i18n="btn.addSpell">+ добавить заклинание</button><button class="add-btn af-spells" id="spBrowse" type="button">📖 Справочник</button></div>
     </div>
   </section>
 
@@ -7800,6 +7869,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       });
     });
     if (typeof spellCountRefresh === 'function') spellCountRefresh();
+    if (typeof spDecorate === 'function') spDecorate();
   }
 
   function escAttr(v){
@@ -14528,7 +14598,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
      AUTOMATION SUITE — core: feature registry, utils, formulas, dice,
      sheets, toasts, roll toast, dice panel
      ===================================================================== */
-  var AUTO_VERSION = '2026.10.31';
+  var AUTO_VERSION = '2026.11.01';
   var AUTO_FEATURES = [
     {id:'attacks', group:'Бой', icon:'⚔', title:'Умные атаки', def:true,
       desc:'Попадание и урон считаются сами: характеристика, мастерство, бонус предмета, доп. урон и баффы. Есть список оружия и заговоров.'},
@@ -14552,6 +14622,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       desc:'Ярость, ки, вдохновение барда, всплеск действий… Максимум по формуле (УР, БМ, ХАР), восстановление на отдыхе.'},
     {id:'slots', group:'Магия', icon:'✨', title:'Ячейки и заклинания', def:true,
       desc:'Ячейки по типу заклинателя и уровню, отметки кружками. Кнопка «Наложить» тратит ячейку и включает концентрацию.'},
+    {id:'spells', group:'Магия', icon:'📖', title:'Справочник заклинаний', def:true,
+      desc:'Все официальные заклинания 2014: поиск по-русски и по-английски, описания, время, дистанция, компоненты. Броски урона и лечения с ростом заговоров и повышением круга, баффы при наложении, выбор заклинаний в конструкторе.'},
     {id:'ac', group:'Персонаж', icon:'🛡', title:'Авто-КБ', def:true,
       desc:'КБ из доспеха, Ловкости, щита и бонусов. Тап по КБ в шапке открывает расчёт. Пока доспех не выбран, берётся ваш КБ.'},
     {id:'builder', group:'Персонаж', icon:'🧬', title:'Конструктор персонажа', def:true,
@@ -17237,6 +17309,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 
   /* ---------------- concentration ---------------- */
   function concRender(){
+    if (typeof spConcChanged === 'function') spConcChanged();
     var el = document.getElementById('concBanner');
     if (!el) return;
     var on = autoOn('conc') && !!state.concentration;
@@ -17764,11 +17837,14 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   }
   function castSpell(sp){
     var lvl = Number(sp.level);
+    if (sp.arc && typeof spCastArcanum === 'function'){ spCastArcanum(sp); return; }
     if (!(lvl >= 1)){
+      var rolled = typeof spAfterCast === 'function' && spAfterCast(sp, 0);
       if (sp.conc && autoOn('conc')) concSet(sp.name || 'заклинание');
-      else showActionToast((lvl === 0 ? 'Заговор' : 'Воззвание') + ' — ячейка не нужна');
+      else if (!rolled) showActionToast((lvl === 0 ? 'Заговор' : 'Воззвание') + ' — ячейка не нужна');
       return;
     }
+    var ritual = typeof spIsRitual === 'function' && spIsRitual(sp);
     var opts = [];
     for (var L = lvl; L <= 9; L++){
       var s = state.slots[L - 1];
@@ -17780,11 +17856,12 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       var pa = pi.count - toInt(casting().pactUsed, 0);
       if (pa > 0) opts.push({L:pi.level, avail:pa, kind:'pact'});
     }
+    if (ritual) opts.push({L:lvl, avail:0, kind:'ritual'});
     if (!opts.length){ showActionToast('Нет свободных ячеек ' + lvl + ' круга и выше — нужен отдых'); return; }
     if (opts.length === 1){ spendSlotFor(sp, opts[0]); return; }
     openSheet({title:'Наложить: ' + (sp.name || 'заклинание'), icon:'✨', build:function(body, api){
       body.innerHTML = '<div class="au-sheet-section-title">Какой ячейкой?</div><div class="cast-choice">' +
-        opts.map(function(o, i){ return '<button type="button" data-ci="' + i + '">' + (o.kind === 'pact' ? 'Договор, ' : '') + o.L + ' круг<small>свободно ' + o.avail + '</small></button>'; }).join('') + '</div>' +
+        opts.map(function(o, i){ return o.kind === 'ritual' ? '<button type="button" data-ci="' + i + '">Ритуалом<small>+10 минут, без ячейки</small></button>' : '<button type="button" data-ci="' + i + '">' + (o.kind === 'pact' ? 'Договор, ' : '') + o.L + ' круг<small>свободно ' + o.avail + '</small></button>'; }).join('') + '</div>' +
         (opts.some(function(o){ return o.L > lvl; }) ? '<div class="au-hint">Ячейка выше круга заклинания усиливает многие заклинания — см. «На больших кругах».</div>' : '') +
         (sp.conc && autoOn('conc') ? '<div class="au-hint">Заклинание с концентрацией — плашка появится сама.</div>' : '');
       body.addEventListener('click', function(e){
@@ -17796,6 +17873,12 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     }});
   }
   function spendSlotFor(sp, o){
+    if (o.kind === 'ritual'){
+      if (sp.conc && autoOn('conc')) concSet(sp.name || 'заклинание');
+      showActionToast('✨ ' + (sp.name || 'Заклинание') + ' — ритуалом, ячейка не тратится');
+      if (typeof spAfterCast === 'function') spAfterCast(sp, o.L);
+      return;
+    }
     var snap = JSON.stringify({slots:state.slots, pact:casting().pactUsed, conc:state.concentration || ''});
     if (o.kind === 'pact') casting().pactUsed = toInt(casting().pactUsed, 0) + 1;
     else state.slots[o.L - 1].cur = toInt(state.slots[o.L - 1].cur, 0) + 1;
@@ -17813,6 +17896,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       state.slots = o2.slots; casting().pactUsed = o2.pact; state.concentration = o2.conc;
       saveState(); renderSlots(); concRender();
     });
+    if (typeof spAfterCast === 'function') spAfterCast(sp, o.L);
   }
 
   /* ---------------- armour class ---------------- */
@@ -18566,6 +18650,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   function maybeShowWhatsNew(){
     if (autoOpt('seen') === AUTO_VERSION) return;
     var items = [
+      ['📖', 'Справочник заклинаний', 'все 524 официальных заклинания 2014 года: поиск, описания, броски урона и лечения по кругу ячейки. «Магия» → «📖 Справочник»; в конструкторе — выбор заговоров, известных и подготовленных.'],
       ['🧬', 'Конструктор персонажа', 'класс, подкласс, уровни и мультикласс по правилам 2014 из всех официальных книг. «Черты» → «Классы и умения», или «Новый уровень» в профиле.'],
       ['📜', 'Старая версия', 'ваш прежний лист без автоматизации: ⚙ → «Авто» → «Старая версия».'],
       ['🎯', 'Мой ход', 'на вкладке «Бой»: все атаки за ход одной кнопкой, криты, итог урона. К любому попаданию — «⚡ +урон»: божественная кара или свои кубы.'],
@@ -18823,6 +18908,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     bindTapRolls();
     bindModsCard();
     bindBuildCard();
+    if (typeof bindSpellsInit === 'function') bindSpellsInit();
     try{ wideInit(); }catch(e){}
     bindTurnCard();
     bindResourcesCard();
@@ -19013,6 +19099,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       if (fx.exp){ var ek = f.uid + ':exp'; slots.push({key:ek, kind:'exp', cls:f.cls, t:f.n + ': компетентность', need:fx.exp, have:bArr(b.ch[ek]).length, f:f}); }
     });
     Object.keys(pools).forEach(function(k){ slots.push(pools[k]); });
+    if (typeof bSpellSlots === 'function') bSpellSlots().forEach(function(s){ slots.push(s); });
     // class skills: first class at 1st level, later classes — multiclass grant
     b.classes.forEach(function(ce, ci){
       var c = bClassDef(ce.id);
@@ -19254,6 +19341,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         if (c.type !== 'none'){ c.type = 'none'; c.level = ''; c.extraPact = false; c.pactLevel = ''; changed = true; }
         b.castSet = false;
       }
+      // spells chosen in the builder → rows on the «Магия» tab
+      if (typeof bSpellSync === 'function' && bSpellSync()) changed = true;
       // «Мой ход»: sneak attack and savage attacker
       var tt = ensureTurn();
       if (g.sneak){
@@ -19336,6 +19425,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         else {
           var c = bClassDef(f.cls), ce = bClassEntry(f.cls), sd = bSubDef(ce);
           html += '<div class="bgrp">' + hEsc(c.n) + ' ' + ce.level + (sd ? ' · ' + hEsc(sd.n) + srcTag(sd.src) : '') + '</div>';
+          if (typeof bSpellCardRow === 'function') html += bSpellCardRow(f.cls);
         }
       }
       if (f.key === 'subclass') return;
@@ -19392,6 +19482,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       else if (a === 'levelup') openLevelUpB();
       else if (a === 'pending') openPendingList();
       else if (a === 'pick') bOpenSlot(x.getAttribute('data-key'));
+      else if (a === 'spells') openSpellPick(x.getAttribute('data-cls'));
       else if (a === 'repl'){
         var b = bNorm(), k = x.getAttribute('data-cls') + ':repl:' + x.getAttribute('data-rk');
         if (b.ch[k]) delete b.ch[k]; else b.ch[k] = true;
@@ -19410,6 +19501,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     if (sl.kind === 'sub') openSubPick(sl, then);
     else if (sl.kind === 'asi') openAsiPick(sl, then);
     else if (sl.kind === 'skills' || sl.kind === 'exp') openSkillPick(sl, then);
+    else if (sl.kind === 'spells') openSpellPick(sl.cls, then);
     else openOptPick(sl, then);
   }
   function openPendingList(){
@@ -19920,6 +20012,1177 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       }).join('') + '</div>';
       body.addEventListener('click', function(e){ var x = e.target.closest('[data-nc]'); if (!x) return; api.close(); done(x.getAttribute('data-nc')); });
     }});
+  }
+
+  /* =====================================================================
+     ЗАКЛИНАНИЯ — справочник (dnd-spells.js грузится по требованию),
+     связь строк листа со справочником, броски урона и лечения,
+     баффы при наложении, выбор заклинаний в конструкторе
+     ===================================================================== */
+  var SP_SCHOOL = {A:'ограждение', C:'вызов', D:'прорицание', E:'очарование', V:'воплощение', I:'иллюзия', N:'некромантия', T:'преобразование'};
+  var SP_SCHOOL_ID = {abjuration:'A', conjuration:'C', divination:'D', enchantment:'E', evocation:'V', illusion:'I', necromancy:'N', transmutation:'T'};
+  var SP_CLS = {a:'Изобретатель', b:'Бард', c:'Жрец', d:'Друид', p:'Паладин', r:'Следопыт', s:'Чародей', k:'Колдун', w:'Волшебник'};
+  var SP_ORDER = ['b', 'c', 'd', 'p', 'r', 's', 'k', 'w', 'a'];
+  var SP_CODE = {artificer:'a', bard:'b', cleric:'c', druid:'d', paladin:'p', ranger:'r', sorcerer:'s', warlock:'k', wizard:'w'};
+  var SP_SRC = {PHB:'Книга игрока', XGE:'Руководство Занатара обо всём', TCE:'Котёл Таши со всякой всячиной', FTD:'Сокровищница драконов Физбана',
+    SCC:'Стриксхейвен: учебная программа хаоса', EGW:'Путеводитель по Уайлдмаунту', AI:'Acquisitions Incorporated', IDRotF:'Долина Ледяного Ветра: Иней Девы',
+    LLK:'Затерянная лаборатория Квалиша', BMT:'Книга многих вещей', SJA:'Spelljammer: приключения в космосе', PAitM:'Planescape: приключения в Мультивселенной',
+    GGR:'Путеводитель гильдмастера по Равнике'};
+  var SP_ABG = {str:'Силы', dex:'Ловкости', con:'Телосложения', int:'Интеллекта', wis:'Мудрости', cha:'Харизмы'};
+  var SP_MAXL = {
+    full:[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,9,9],
+    half:[0,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5],
+    artificer:[1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5],
+    third:[0,0,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3,4,4],
+    pact:[1,1,2,2,3,3,4,4,5,5,5,5,5,5,5,5,5,5,5,5]
+  };
+
+  /* ---------------- справочник: загрузка и поиск ---------------- */
+  var SPDB = null, spDbCbs = [], spDbBusy = false;
+  function spNorm(s){
+    return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/<[^>]*>/g, ' ')
+      .replace(/[«»"'’`.,!?:;()\[\]\/\\*_–—-]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function spDbIndex(raw){
+    var db = {list:[], byId:{}, byName:{}};
+    var cols = raw.cols;
+    raw.list.forEach(function(r){
+      var o = {};
+      cols.forEach(function(c, i){ o[c] = r[i]; });
+      o.m = o.m || {};
+      o.conc = String(o.f || '').indexOf('c') >= 0;
+      o.rit = String(o.f || '').indexOf('r') >= 0;
+      var names = [o.ru, o.en].concat(o.alias ? String(o.alias).split(' / ') : []);
+      o.key = spNorm(names.join(' '));
+      db.list.push(o);
+      db.byId[o.id] = o;
+      names.forEach(function(n){ var k = spNorm(n); if (k && !db.byName[k]) db.byName[k] = o; });
+    });
+    SPDB = db;
+  }
+  function spDbLoad(cb){
+    if (SPDB){ if (cb) cb(SPDB); return true; }
+    if (cb) spDbCbs.push(cb);
+    if (window.DND5_SPELLS){ spDbIndex(window.DND5_SPELLS); spDbFlush(); return true; }
+    if (spDbBusy) return false;
+    spDbBusy = true;
+    var el = document.createElement('script');
+    el.src = 'dnd-spells.js';
+    el.async = true;
+    el.onload = function(){
+      spDbBusy = false;
+      if (window.DND5_SPELLS){ spDbIndex(window.DND5_SPELLS); spDbFlush(); }
+    };
+    el.onerror = function(){
+      spDbBusy = false; spDbCbs = [];
+      showActionToast('Справочник заклинаний не загрузился — при первом открытии нужен интернет');
+    };
+    document.head.appendChild(el);
+    return false;
+  }
+  function spDbFlush(){
+    var l = spDbCbs; spDbCbs = [];
+    try{ spOnDbReady(); }catch(e){ console.warn('spells', e); }
+    l.forEach(function(f){ try{ f(SPDB); }catch(e){ console.warn('spells', e); } });
+  }
+  function spOnDbReady(){
+    if (typeof bOn === 'function' && bOn() && bSync()){ try{ refreshSimpleFields(); }catch(e){} }
+    if (typeof renderSpells === 'function') preserveScroll(renderSpells); else spDecorate();
+    if (typeof bCardRender === 'function') bCardRender();
+  }
+  /* sheet row → spell: by sid, by name, or by «Название [English]» */
+  function spFind(sp){
+    if (!SPDB || !sp) return null;
+    if (sp.sid && SPDB.byId[sp.sid]) return SPDB.byId[sp.sid];
+    var nm = String(sp.name || '');
+    var k = spNorm(nm);
+    if (!k) return null;
+    if (SPDB.byName[k]) return SPDB.byName[k];
+    var m = /[\[(]([^\])]+)[\])]/.exec(nm);
+    if (m){
+      var k2 = spNorm(m[1]); if (SPDB.byName[k2]) return SPDB.byName[k2];
+      var k3 = spNorm(nm.replace(m[0], '')); if (SPDB.byName[k3]) return SPDB.byName[k3];
+    }
+    return null;
+  }
+  function spIn(s, code, tce){ return s.cls.indexOf(code) >= 0 || (!!tce && String(s.tce || '').indexOf(code) >= 0); }
+
+  /* ---------------- тексты ---------------- */
+  function spTimeText(s){ return ({A:'1 действие', B:'1 бонусное действие', R:'1 реакция'})[s.time] || s.time; }
+  function spTimeShort(s){ return ({A:'действие', B:'бонусное', R:'реакция'})[s.time] || s.time; }
+  function spLvlText(lvl){ return lvl ? lvl + ' круг' : 'заговор'; }
+  function spCompText(s){ return String(s.comp || '').split('').join(', ') + (s.mat ? ' — ' + s.mat : ''); }
+  function spDurText(s){ return (s.conc ? 'концентрация, ' : '') + s.dur; }
+  function spRowMeta(s){
+    return [spLvlText(s.lvl) + ', ' + SP_SCHOOL[s.sch], spTimeShort(s), s.range, s.dur].join(' · ');
+  }
+  function spClassText(s){
+    var a = SP_ORDER.filter(function(c){ return s.cls.indexOf(c) >= 0; }).map(function(c){ return SP_CLS[c]; });
+    var t = SP_ORDER.filter(function(c){ return String(s.tce || '').indexOf(c) >= 0; }).map(function(c){ return SP_CLS[c]; });
+    var txt = a.length ? a.join(', ') : (s.id === 'encode_thoughts' ? 'по предыстории «Агент Димира»' : '—');
+    if (t.length) txt += '; по «Котлу Таши» ещё ' + t.join(', ');
+    return txt;
+  }
+  function spLbl(v){ return v ? String(v).replace(/^\[|\]$/g, '') : ''; }
+
+  /* ---------------- механика: выражения урона ---------------- */
+  /* «4к6[огонь]+4к6[излучение]» → [{body:'4к6', type:'огонь'}, …] */
+  function spParts(expr){
+    var out = [], buf = '', s = String(expr || ''), i;
+    for (i = 0; i < s.length; i++){
+      var ch = s.charAt(i);
+      if (ch === '['){
+        var j = s.indexOf(']', i);
+        if (j < 0) j = s.length;
+        out.push({body:buf, type:s.slice(i + 1, j)});
+        buf = '';
+        i = j;
+        if (s.charAt(i + 1) === '+') i++;
+        continue;
+      }
+      buf += ch;
+    }
+    if (buf.replace(/\s+/g, '')) out.push({body:buf, type:''});
+    return out;
+  }
+  function spBodyTerms(body){
+    var out = [];
+    String(body || '').replace(/\s+/g, '').split('+').forEach(function(t){
+      if (!t) return;
+      var m = /^(\d*)[кd](\d+)$/.exec(t);
+      if (m){ out.push({n:m[1] === '' ? 1 : parseInt(m[1], 10), s:parseInt(m[2], 10)}); return; }
+      if (t === 'М' || t === 'M'){ out.push({mod:1}); return; }
+      if (/^\d+$/.test(t)) out.push({v:parseInt(t, 10)});
+    });
+    return out;
+  }
+  /* opts: {mult — кратность костей заговора, mod — модификатор, add:[{expr, times, type}] — повышение круга} */
+  function spExprBuild(dExpr, opts){
+    opts = opts || {};
+    var parts = spParts(dExpr).map(function(p){ return {type:p.type, terms:spBodyTerms(p.body)}; });
+    if (!parts.length) return '';
+    if (opts.mult && opts.mult > 1) parts.forEach(function(p){ p.terms.forEach(function(t){ if (t.n) t.n *= opts.mult; }); });
+    (opts.add || []).forEach(function(a){
+      if (!a.times) return;
+      var target = parts[0];
+      if (a.type) parts.forEach(function(p){ if (p.type === a.type) target = p; });
+      spParts(a.expr).forEach(function(x){
+        spBodyTerms(x.body).forEach(function(t){
+          var c = {n:t.n, s:t.s, v:t.v, mod:t.mod};
+          if (c.n) c.n *= a.times;
+          if (c.v) c.v *= a.times;
+          var same = null;
+          target.terms.forEach(function(tt){
+            if (c.n && tt.n && tt.s === c.s) same = tt;
+            else if (c.v && tt.v !== undefined && !same) same = tt;
+          });
+          if (same && c.n) same.n += c.n;
+          else if (same && c.v) same.v += c.v;
+          else target.terms.push(c);
+        });
+      });
+    });
+    var mod = toInt(opts.mod, 0);
+    return parts.map(function(p){
+      var s = '';
+      p.terms.forEach(function(t, i){
+        var v = t.n ? t.n + 'к' + t.s : t.mod ? String(mod) : String(t.v);
+        if (i && v.charAt(0) !== '-') s += '+';
+        s += v;
+      });
+      return s + (p.type ? ' ' + p.type : '');
+    }).join(' + ').replace(/\+-/g, '-');
+  }
+  function spFirstType(expr){ var p = spParts(expr); return p.length ? p[0].type : ''; }
+  function spPretty(expr){
+    var p = parseRoll(expr);
+    if (p.bad.length || !p.terms.length) return expr;
+    return termsText(p.terms, true);
+  }
+  function spDealsType(s, type){
+    var m = s.m || {};
+    return [m.d, m.d2, m.t].some(function(x){ return x && String(x).indexOf(type) >= 0; });
+  }
+  function spHasRoll(s){
+    var m = s && s.m || {};
+    return !!(m.d || m.dl || m.d2 || m.hl || m.th || m.thx || m.hp || m.hpmax || m.x);
+  }
+  function spCantripTier(){ return 1 + (charLevel() >= 5 ? 1 : 0) + (charLevel() >= 11 ? 1 : 0) + (charLevel() >= 17 ? 1 : 0); }
+
+  /* характеристика заклинателя для строки листа */
+  function spAbilityFor(entry){
+    if (entry && entry.cls && typeof bClassDef === 'function' && bClassDef(entry.cls)){
+      var ce = bClassEntry(entry.cls), c = bClassDef(entry.cls), sd = ce && ce.id ? bSubDef(ce) : null;
+      var cast = (sd && sd.cast) || c.cast;
+      if (cast && cast.ab) return cast.ab;
+    }
+    var sa = state.spellAbility;
+    if (sa && sa !== 'none') return sa;
+    if (typeof bOn === 'function' && bOn()){ var bc = bCasting(); if (bc.ab) return bc.ab; }
+    return null;
+  }
+  function spCtx(entry, s){
+    var ab = spAbilityFor(entry);
+    var pb = profBonus(), mod = ab ? abMod(ab) : 0;
+    var am = modSum(['atk', 'atk_s']);
+    return {entry:entry, ab:ab, mod:mod, atk: ab ? pb + mod + am.flat : null, atkDice: am.dice, atkParts: am.parts,
+      dc: ab ? 8 + pb + mod + modSum(['dc']).flat : null, tier: spCantripTier()};
+  }
+  /* бонусы умений: Мучительный взрыв, Мощное колдовство, Усиленное воплощение, Стихийное родство, Последователь жизни */
+  function spFeatBonus(s, L, entry){
+    var out = {dmg:[], heal:0, healNote:''};
+    if (!(typeof bOn === 'function' && bOn())) return out;
+    var b = bRaw(), fs = bFeatures(), m = s.m || {};
+    function has(cls, key, sub){ return fs.some(function(f){ return f.cls === cls && f.key === key && (!sub || f.sub === sub); }); }
+    var ecls = entry && entry.cls;
+    function from(code, id){ return ecls ? ecls === id : spIn(s, code, true); }
+    var dmgSpell = !!(m.d || m.dl);
+    if (s.id === 'eldritch_blast' && bArr(b.ch['warlock:invocations']).indexOf('agonizing') >= 0) out.dmg.push({flat:abMod('cha'), type:'силовое поле', label:'Мучительный взрыв', per:true});
+    if (!s.lvl && dmgSpell && has('cleric', 'potent') && from('c', 'cleric')) out.dmg.push({flat:abMod('wis'), label:'Мощное колдовство'});
+    if (s.sch === 'V' && dmgSpell && has('wizard', 'empowered', 'evocation') && from('w', 'wizard')) out.dmg.push({flat:abMod('int'), label:'Усиленное воплощение'});
+    if (dmgSpell && has('sorcerer', 'affinity', 'draconic')){
+      var dr = bOpt('dragon', bArr(b.ch['sorcerer:dragon'])[0]);
+      if (dr && dr.dmg && spDealsType(s, dr.dmg)) out.dmg.push({flat:abMod('cha'), type:dr.dmg, label:'Стихийное родство'});
+    }
+    if (s.lvl && m.hl && has('cleric', 'disciple', 'life')){ out.heal = 2 + L; out.healNote = 'Последователь жизни'; }
+    return out;
+  }
+  /* что заклинание даёт на круге L: строки урона, лечения, временных хитов… */
+  function spCalc(s, L, ctx){
+    ctx = ctx || spCtx(null, s);
+    var m = s.m || {}, out = {rows:[], n:1, atk:null, save:null, notes:[], critMin:20, L:0};
+    var base = s.lvl;
+    L = base ? clampN(toInt(L, base) || base, base, 9) : 0;
+    out.L = L;
+    var steps = base ? L - base : 0;
+    var tier = ctx.tier || 1;
+    var mult = m.c ? tier : 1;
+    var fb = ctx.feat || {dmg:[], heal:0};
+    function upN(us){ return Math.floor(steps / Math.max(1, toInt(us, 1))); }
+    function row(kind, label, expr, extra){
+      if (!expr) return null;
+      var r = Object.assign({kind:kind, label:label, expr:expr, text:spPretty(expr)}, extra || {});
+      out.rows.push(r);
+      return r;
+    }
+    if (m.a && !m.wa) out.atk = {melee:m.a === 'm', bonus:ctx.atk, dice:ctx.atkDice || [], parts:ctx.atkParts || []};
+    if (m.s) out.save = {ab:m.s, dc:ctx.dc, half:!!m.h};
+    if (m.n === 'eb') out.n = tier;
+    else if (m.n) out.n = toInt(m.n, 1) + steps * toInt(m.nu || 0, 0);
+    var d = m.d;
+    if (m.dl){ var dl = String(m.dl).split(','); d = dl[Math.min(dl.length - 1, steps)] + '[' + (m.t || '') + ']'; }
+    if (d && !m.x){
+      var e = spExprBuild(d, {mult:mult, mod:ctx.mod, add: m.u ? [{expr:String(m.u), times:upN(m.us)}] : []});
+      fb.dmg.forEach(function(x){ if (x.flat) e += (x.flat < 0 ? ' - ' : ' + ') + Math.abs(x.flat) + ' ' + (x.type || spFirstType(d)); });
+      row('dmg', out.n > 1 ? 'урон каждого' : 'урон', e, {note:spLbl(m.l), feats:fb.dmg.map(function(x){ return x.label; })});
+    }
+    if (m.x === 'toll' || m.x === 'chaos' || m.x === 'vamp' || m.x === 'enerv' || m.x === 'life_transfer' || m.x === 'bod'){
+      var e2 = spExprBuild(d, {mult:mult, mod:ctx.mod, add: m.u ? [{expr:String(m.u), times:upN(m.us)}] : []});
+      fb.dmg.forEach(function(x){ if (x.flat) e2 += (x.flat < 0 ? ' - ' : ' + ') + Math.abs(x.flat) + ' ' + (x.type || spFirstType(d)); });
+      row('dmg', m.x === 'toll' ? 'урон, если цель цела' : 'урон', e2, {feats:fb.dmg.map(function(x){ return x.label; })});
+    }
+    if (m.x === 'toll') row('dmg', 'урон, если цель ранена', spExprBuild('1к12[некротический]', {mult:tier}), {alt:true});
+    if (m.x === 'bb'){
+      if (tier > 1) row('dmg', 'доп. урон при попадании оружием', spExprBuild('1к8[звук]', {mult:tier - 1}));
+      row('dmg', 'если цель сдвинется', spExprBuild('1к8[звук]', {mult:tier}), {alt:true});
+    }
+    if (m.x === 'gfb'){
+      if (tier > 1) row('dmg', 'доп. урон при попадании оружием', spExprBuild('1к8[огонь]', {mult:tier - 1}));
+      row('dmg', 'второму существу', tier > 1 ? spExprBuild('1к8+М[огонь]', {mult:tier - 1, mod:ctx.mod}) : String(Math.max(0, ctx.mod)) + ' огонь', {alt:true});
+    }
+    if (m.d2) row('dmg', spLbl(m.l2) || 'ещё урон', spExprBuild(m.d2, {mult:mult, mod:ctx.mod, add: m.u2 ? [{expr:String(m.u2), times:upN(m.us)}] : []}), {second:true});
+    if (m.hl){
+      var he = spExprBuild(m.hl + '[]', {mod:ctx.mod, add: m.hu ? [{expr:String(m.hu), times:steps}] : []});
+      if (fb.heal) he += '+' + fb.heal;
+      row('heal', 'лечение', he, {note:spLbl(m.l), feats: fb.heal ? [fb.healNote] : []});
+    }
+    if (m.th) row('temp', 'временные хиты', spExprBuild(m.th + '[]', {mod:ctx.mod, add: m.thu ? [{expr:String(m.thu), times:steps}] : []}), {note:spLbl(m.l)});
+    if (m.thx) row('temp', 'временные хиты в начале каждого хода цели', String(Math.max(0, ctx.mod)), {fixed:true});
+    if (m.hp) row('pool', 'хиты существ, которых заденет', spExprBuild(m.hp + '[]', {add: m.hpu ? [{expr:String(m.hpu), times:steps}] : []}));
+    if (m.hpmax) row('hpmax', 'к максимуму и текущим хитам', spExprBuild(m.hpmax + '[]', {add: m.hpmaxu ? [{expr:String(m.hpmaxu), times:steps}] : []}));
+    if (m.x === 'pwh') row('heal', 'лечение', 'все хиты', {fixed:true});
+    if (m.x === 'vamp' || m.x === 'enerv') out.notes.push('Вы восстанавливаете половину нанесённого некротического урона.');
+    if (m.x === 'life_transfer') out.notes.push('Выбранное существо восстанавливает вдвое больше хитов, чем урона получили вы.');
+    if (m.x === 'chaos') out.notes.push('Вид урона — по к8: 1 кислота, 2 холод, 3 огонь, 4 силовое поле, 5 электричество, 6 яд, 7 психическая энергия, 8 звук. Если на двух к8 выпали одинаковые числа — снаряд перескакивает на новую цель.');
+    if (m.x === 'bod'){ out.critMin = 18; out.notes.push('Крит на 18–20: +8к12 силовым полем.'); }
+    if (m.x === 'bb' || m.x === 'gfb' || m.wa) out.notes.push('Бросок атаки — оружием (карточка «Атаки» или «Мой ход»); здесь — урон заклинания.');
+    return out;
+  }
+  function spUpText(s){
+    var m = s.m || {}, out = [];
+    if (!s.lvl){
+      if (m.n === 'eb') out.push('лучей: 2 на 5 уровне, 3 на 11, 4 на 17');
+      else if (m.c || m.x === 'bb' || m.x === 'gfb' || m.x === 'toll') out.push('урон растёт на 5, 11 и 17 уровне персонажа');
+      return out.join('; ');
+    }
+    if (s.lvl >= 9) return '';
+    var per = (toInt(m.us, 1) > 1 ? 'за каждые ' + m.us + ' круга' : 'за каждый круг') + ' выше ' + s.lvl;
+    function show(x){ return spPretty(spExprBuild(String(x) + (/\[/.test(String(x)) ? '' : '[]'))); }
+    if (m.u) out.push('урон +' + show(m.u) + ' ' + per);
+    if (m.u2) out.push((spLbl(m.l2) || 'второй урон') + ' +' + show(m.u2) + ' ' + per);
+    if (m.nu) out.push('+' + m.nu + ' ' + (s.id === 'magic_missile' ? 'дротик' : s.id === 'scorching_ray' ? 'луч' : 'снаряд') + ' ' + per);
+    if (m.hu) out.push('лечение +' + show(m.hu) + ' ' + per);
+    if (m.thu) out.push('временные хиты +' + m.thu + ' ' + per);
+    if (m.hpu) out.push('+' + show(m.hpu) + ' к сумме хитов ' + per);
+    if (m.hpmaxu) out.push('+' + m.hpmaxu + ' хитов ' + per);
+    if (m.dl) out.push('урон по кругу ячейки: ' + String(m.dl).split(',').map(function(x, i){ return (s.lvl + i) + ' — ' + x; }).filter(function(x, i, a){ return i === 0 || a[i].split(' — ')[1] !== a[i - 1].split(' — ')[1]; }).join(', '));
+    return out.join('; ');
+  }
+
+  /* ---------------- броски ---------------- */
+  function spRollExpr(expr, crit, isDmg, extraTerms){
+    var p = parseRoll(expr);
+    var terms = p.terms.concat(extraTerms || []);
+    var st = rollTermsState(terms, {critable:!!isDmg, best2: !!isDmg && savageAll()});
+    var tot = stateTotal(st, !!crit);
+    return {st:st, total:Math.max(0, tot.total), types:tot, crit:!!crit};
+  }
+  function spAtkModTerms(){
+    var dm = modSum(['dmg', 'dmg_s']);
+    return dm.terms.map(function(tm){ return Object.assign({}, tm); });
+  }
+  function spLogRoll(s, L, txt, total){
+    var title = s.ru + (s.lvl ? ' (' + L + ' кр.)' : '');
+    try{ rollLogPush({title:title, detail:txt, total:total}); }catch(e){}
+    try{ shareRollToChat(title, txt, total); }catch(e){}
+  }
+  function spDiceRowHtml(label, r, extra){
+    return '<div class="sp-res-row"><span class="sp-res-l">' + hEsc(label) + '</span><div class="dice-line">' + stateDiceHtml(r.st, r.crit, true) + '</div>' +
+      '<b class="sp-res-t">' + r.total + '</b>' + (extra || '') + '</div>';
+  }
+
+  /* лист броска: атака/спасбросок, урон по кругу, лечение, временные хиты */
+  function openSpellRoll(entry, s, L, opts){
+    opts = opts || {};
+    var lvl = s.lvl ? clampN(toInt(L, s.lvl) || s.lvl, s.lvl, 9) : 0;
+    var mode = 'normal', acTxt = '';
+    var res = null;
+    openSheet({title:s.ru, icon:'✨', cls:'sp-sheet', build:function(body, api){
+      function calc(){
+        var ctx = spCtx(entry, s);
+        ctx.feat = spFeatBonus(s, lvl, entry);
+        return spCalc(s, lvl, ctx);
+      }
+      function roll(){
+        var c = calc();
+        var r = {c:c, shots:[], rows:[], log:[]};
+        var dmgRows = c.rows.filter(function(x){ return x.kind === 'dmg' && !x.fixed; });
+        var first = dmgRows[0] && !dmgRows[0].alt ? dmgRows[0] : null;
+        if (c.atk){
+          var cm = condContext('atk');
+          var md = combineModes((mode === 'adv' ? 1 : 0) + cm.adv.length, (mode === 'dis' ? 1 : 0) + cm.dis.length);
+          for (var i = 0; i < (c.n || 1); i++){
+            var d = rollD20(md, {lucky:luckyOn()});
+            var ex = rollTermsState(c.atk.dice || [], {critable:false});
+            var tot = d.kept + (c.atk.bonus || 0) + stateTotal(ex, false).total + (cm.flat || 0);
+            var crit = d.kept >= (c.critMin || 20), fum = d.kept === 1;
+            var shot = {d:d, ex:ex, total:tot, crit:crit, fumble:fum, dmg:null};
+            if (first){
+              var bonus = spAtkModTerms();
+              if (s.id === 'blade_of_disaster' && crit) bonus = bonus.concat(parseRoll('8к12 силовое поле').terms);
+              shot.dmg = spRollExpr(first.expr, crit && s.id !== 'blade_of_disaster', true, bonus);
+            }
+            r.shots.push(shot);
+          }
+        } else if (first && (c.n || 1) > 1){
+          r.multi = spRollExpr(first.expr, false, true);
+        }
+        c.rows.forEach(function(x){
+          if (x === first && (c.atk || r.multi)) return;
+          if (x.fixed){ r.rows.push({x:x}); return; }
+          r.rows.push({x:x, roll:spRollExpr(x.expr, false, x.kind === 'dmg')});
+        });
+        res = r;
+        // журнал бросков
+        var parts = [], main = 0;
+        if (r.shots.length){
+          var ac = toInt(acTxt, NaN), hits = 0, sum = 0;
+          r.shots.forEach(function(sh){
+            var hit = !sh.fumble && (sh.crit || isNaN(ac) || sh.total >= ac);
+            if (hit){ hits++; if (sh.dmg) sum += sh.dmg.total; }
+          });
+          parts.push((r.shots.length > 1 ? r.shots.length + ' атак, ' : 'атака ') + r.shots.map(function(sh){ return sh.total; }).join('/'));
+          if (first) parts.push('урон ' + sum);
+          main = sum;
+        }
+        if (r.multi){ parts.push((c.n) + '×' + r.multi.total + ' = ' + (c.n * r.multi.total)); main = c.n * r.multi.total; }
+        r.rows.forEach(function(it){ if (it.roll){ parts.push(it.x.label + ' ' + it.roll.total); if (!main) main = it.roll.total; } });
+        if (c.save && c.save.dc) parts.push('Сл ' + c.save.dc + ' ' + abShort(c.save.ab));
+        spLogRoll(s, lvl, parts.join(' · '), main);
+        playSound('ui', 'roll');
+        draw();
+      }
+      function draw(){
+        var c = res ? res.c : calc();
+        var h = '<div class="sp-roll-top"><span class="sp-roll-lvl">' + hEsc(spLvlText(s.lvl)) + (s.lvl && lvl > s.lvl ? ' → ячейка ' + lvl + ' круга' : '') +
+          (!s.lvl ? ' · уровень персонажа ' + charLevel() : '') + '</span></div>';
+        if (s.lvl && s.lvl < 9){
+          h += '<div class="sp-chips" role="group" aria-label="Круг ячейки">';
+          for (var Lx = s.lvl; Lx <= 9; Lx++) h += '<button type="button" class="sp-chip' + (Lx === lvl ? ' on' : '') + '" data-srl="' + Lx + '">' + Lx + '</button>';
+          h += '</div>';
+        }
+        if (c.atk){
+          h += '<div class="sp-line"><span>Атака заклинанием' + (c.atk.melee ? ' (рукопашная)' : '') + (c.n > 1 ? ', ' + c.n + ' ' + (s.id === 'eldritch_blast' || s.id === 'scorching_ray' ? (c.n < 5 ? 'луча' : 'лучей') : (c.n < 5 ? 'атаки' : 'атак')) : '') + '</span><b>' + (c.atk.bonus === null ? '—' : hEsc(bonusText(c.atk.bonus, c.atk.dice))) + '</b></div>';
+          h += '<div class="sp-atk-opts"><div class="seg" role="group" aria-label="Режим броска">' +
+            '<button type="button" data-srm="normal"' + (mode === 'normal' ? ' class="on"' : '') + '>Обычно</button>' +
+            '<button type="button" data-srm="adv"' + (mode === 'adv' ? ' class="on good"' : '') + '>Преим.</button>' +
+            '<button type="button" data-srm="dis"' + (mode === 'dis' ? ' class="on"' : '') + '>Помеха</button></div>' +
+            '<label class="sp-ac"><span>КБ цели</span><input type="text" inputmode="numeric" data-srac="1" value="' + hEsc(acTxt) + '" placeholder="?"></label></div>';
+        }
+        if (c.save) h += '<div class="sp-line"><span>Спасбросок ' + SP_ABG[c.save.ab] + (c.save.half ? ', при успехе — половина урона' : '') + '</span><b>' + (c.save.dc ? 'Сл ' + c.save.dc : 'Сл —') + '</b></div>';
+        if (!c.atk && !c.save && !c.rows.length) h += '<div class="au-muted">Бросать нечего — эффект описан ниже.</div>';
+        if (!res){
+          c.rows.forEach(function(x){ h += '<div class="sp-line"><span>' + hEsc(x.label) + (x.note ? ' <i>(' + hEsc(x.note) + ')</i>' : '') + '</span><b>' + hEsc(x.fixed ? x.expr : x.text) + '</b></div>'; });
+        } else {
+          var ac = toInt(acTxt, NaN);
+          res.shots.forEach(function(sh, i){
+            var hit = !sh.fumble && (sh.crit || isNaN(ac) || sh.total >= ac);
+            var tag = sh.fumble ? '<span class="sp-tag bad">промах</span>' : sh.crit ? '<span class="sp-tag good">крит!</span>' : (!isNaN(ac) ? (hit ? '<span class="sp-tag good">попадание</span>' : '<span class="sp-tag bad">мимо</span>') : '');
+            h += '<div class="sp-shot' + (hit ? '' : ' miss') + '"><div class="sp-res-row"><span class="sp-res-l">' + (res.shots.length > 1 ? (s.id === 'eldritch_blast' || s.id === 'scorching_ray' ? 'луч ' : 'атака ') + (i + 1) : 'атака') + '</span>' +
+              '<div class="dice-line">' + d20Html(sh.d, res.c.critMin || 20, false) + (res.c.atk.bonus ? '<span class="dice-mod">' + (res.c.atk.bonus < 0 ? '−' : '+') + Math.abs(res.c.atk.bonus) + '</span>' : '') +
+              (sh.ex.groups.length ? stateDiceHtml(sh.ex, false, true) : '') + '</div><b class="sp-res-t">' + sh.total + '</b>' + tag + '</div>';
+            if (sh.dmg) h += spDiceRowHtml('урон' + (sh.crit ? ' ×2' : ''), sh.dmg, '<span class="sp-res-type">' + hEsc(sh.dmg.types.order.filter(function(k){ return k; }).join(', ')) + '</span>');
+            h += '</div>';
+          });
+          if (res.shots.length > 1){
+            var sum = 0; res.shots.forEach(function(sh){ var hit = !sh.fumble && (sh.crit || isNaN(ac) || sh.total >= ac); if (hit && sh.dmg) sum += sh.dmg.total; });
+            h += '<div class="sp-line sp-sum"><span>' + (isNaN(ac) ? 'Всего, если все попали' : 'Всего по попавшим') + '</span><b>' + sum + '</b></div>';
+          }
+          if (res.multi) h += spDiceRowHtml(c.n + ' × урон', res.multi, '<span class="sp-res-type">= ' + (c.n * res.multi.total) + '</span>');
+          res.rows.forEach(function(it){
+            var x = it.x;
+            if (!it.roll){ h += '<div class="sp-line"><span>' + hEsc(x.label) + '</span><b>' + hEsc(x.expr) + '</b></div>'; return; }
+            var extra = '';
+            if (x.kind === 'dmg' && c.save && c.save.half && !x.alt && !x.second) extra = '<span class="sp-res-type">успех: ' + Math.floor(it.roll.total / 2) + '</span>';
+            else if (x.kind === 'dmg') extra = '<span class="sp-res-type">' + hEsc(it.roll.types.order.filter(function(k){ return k; }).join(', ')) + '</span>';
+            h += spDiceRowHtml(x.label, it.roll, extra);
+            if (x.kind === 'heal') h += '<div class="sp-act-row"><button type="button" class="au-btn small" data-sra="heal" data-v="' + it.roll.total + '">❤ Себе +' + it.roll.total + '</button></div>';
+            if (x.kind === 'temp') h += '<div class="sp-act-row"><button type="button" class="au-btn small" data-sra="temp" data-v="' + it.roll.total + '">🛡 Взять себе ' + it.roll.total + ' врем. хитов</button></div>';
+            if (x.note) h += '<div class="au-muted">' + hEsc(x.note) + '</div>';
+            if (x.feats && x.feats.length) h += '<div class="au-muted">учтено: ' + hEsc(x.feats.join(', ')) + '</div>';
+          });
+          var f0 = c.rows.filter(function(x){ return x.kind === 'dmg' && x.feats && x.feats.length && !x.alt; })[0];
+          if (f0 && (res.shots.length || res.multi)) h += '<div class="au-muted">учтено: ' + hEsc(f0.feats.join(', ')) + '</div>';
+        }
+        var up = spUpText(s);
+        if (up) h += '<div class="au-hint">На больших кругах: ' + hEsc(up) + '.</div>';
+        c.notes.forEach(function(n){ h += '<div class="au-hint">' + hEsc(n) + '</div>'; });
+        if (savageAll() && c.rows.some(function(x){ return x.kind === 'dmg'; })) h += '<div class="au-hint">Дикий атакующий: каждый бросок урона — дважды, берётся больший.</div>';
+        h += '<div class="au-btns"><button type="button" class="au-btn ghost" data-sra="info">ℹ Описание</button><button type="button" class="au-btn" data-sra="roll">' + D20_SVG + (res ? ' Ещё раз' : ' Бросить') + '</button></div>';
+        body.innerHTML = h;
+      }
+      body.addEventListener('click', function(e){
+        var x = e.target.closest('[data-srl],[data-srm],[data-sra]');
+        if (!x) return;
+        if (x.hasAttribute('data-srl')){ lvl = toInt(x.getAttribute('data-srl'), lvl); if (res) roll(); else draw(); return; }
+        if (x.hasAttribute('data-srm')){ mode = x.getAttribute('data-srm'); if (res) roll(); else draw(); return; }
+        var a = x.getAttribute('data-sra');
+        if (a === 'roll') roll();
+        else if (a === 'info') openSpellInfo(s, entry);
+        else if (a === 'heal'){ hpHeal(toInt(x.getAttribute('data-v'), 0), s.ru); x.disabled = true; }
+        else if (a === 'temp'){ hpSetTemp(toInt(x.getAttribute('data-v'), 0)); x.disabled = true; }
+      });
+      body.addEventListener('input', function(e){
+        var inp = e.target.closest('[data-srac]');
+        if (!inp) return;
+        acTxt = inp.value;
+        if (res){
+          var pos = inp.selectionStart;
+          draw();
+          var n = body.querySelector('[data-srac]');
+          if (n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(er){} }
+        }
+      });
+      if (opts.autoroll && spHasRoll(s)) roll(); else draw();
+    }});
+  }
+
+  /* ---------------- карточка заклинания ---------------- */
+  function openSpellInfo(s, entry){
+    openSheet({title:s.ru, icon:'📖', cls:'sp-sheet', build:function(body, api){
+      function draw(){
+        var c = spCalc(s, s.lvl, (function(){ var x = spCtx(entry, s); x.feat = spFeatBonus(s, s.lvl, entry); return x; })());
+        var onSheet = (state.spells || []).some(function(x){ return spFind(x) === s; });
+        var h = '<div class="sp-head"><span class="sp-en">' + hEsc(s.en) + '</span>' + (s.src !== 'PHB' ? '<span class="bsrc" title="' + hEsc(SP_SRC[s.src] || s.src) + '">' + hEsc(s.src) + '</span>' : '') + '</div>' +
+          '<div class="sp-sub">' + hEsc(spLvlText(s.lvl)) + ', ' + hEsc(SP_SCHOOL[s.sch]) + (s.rit ? ' (ритуал)' : '') + '</div>' +
+          '<div class="sp-facts">' +
+            '<div><span>Время</span><b>' + hEsc(spTimeText(s)) + '</b></div>' +
+            '<div><span>Дистанция</span><b>' + hEsc(s.range) + '</b></div>' +
+            '<div><span>Компоненты</span><b>' + hEsc(spCompText(s)) + '</b></div>' +
+            '<div><span>Длительность</span><b>' + hEsc(spDurText(s)) + '</b></div>' +
+          '</div>';
+        var mech = [];
+        if (c.atk) mech.push((c.atk.melee ? 'Рукопашная' : 'Дальнобойная') + ' атака заклинанием' + (c.atk.bonus !== null ? ' ' + bonusText(c.atk.bonus, c.atk.dice) : '') + (c.n > 1 ? ', ×' + c.n : ''));
+        if (c.save) mech.push('Спасбросок ' + SP_ABG[c.save.ab] + (c.save.dc ? ', Сл ' + c.save.dc : '') + (c.save.half ? ', при успехе — половина' : ''));
+        if (!c.atk && c.n > 1) mech.push('Снарядов: ' + c.n);
+        c.rows.forEach(function(x){ mech.push(x.label.charAt(0).toUpperCase() + x.label.slice(1) + ': ' + (x.fixed ? x.expr : x.text) + (x.note ? ' (' + x.note + ')' : '')); });
+        var up = spUpText(s);
+        if (up) mech.push('На больших кругах: ' + up);
+        if (mech.length) h += '<div class="sp-mech">' + mech.map(hEsc).join('<br>') + '</div>';
+        h += '<p class="sp-desc">' + hEsc(s.d) + '</p>';
+        h += '<div class="sp-cls"><b>Классы:</b> ' + hEsc(spClassText(s)) + '</div>';
+        h += '<div class="sp-cls"><b>Источник:</b> ' + hEsc(SP_SRC[s.src] || s.src) + '</div>';
+        h += '<div class="legend">Описание — краткий пересказ своими словами; полный текст — в книге.</div>';
+        h += '<div class="au-btns">' + (spHasRoll(s) ? '<button type="button" class="au-btn ghost" data-spi="roll">🎲 Бросить</button>' : '') +
+          (entry ? '' : (onSheet ? '<button type="button" class="au-btn ghost" disabled>✓ Уже в листе</button>' : '<button type="button" class="au-btn" data-spi="add">+ В лист</button>')) + '</div>';
+        body.innerHTML = h;
+      }
+      body.addEventListener('click', function(e){
+        var x = e.target.closest('[data-spi]');
+        if (!x) return;
+        var a = x.getAttribute('data-spi');
+        if (a === 'roll') openSpellRoll(entry, s, s.lvl, {});
+        else if (a === 'add'){ spAddToSheet(s); draw(); }
+      });
+      draw();
+    }});
+  }
+  function spInsertByLevel(x){
+    if (!Array.isArray(state.spells)) state.spells = [];
+    var at = state.spells.length;
+    for (var i = state.spells.length - 1; i >= 0; i--){
+      if (Number(state.spells[i].level) <= Number(x.level)){ at = i + 1; break; }
+      at = i;
+    }
+    state.spells.splice(at, 0, x);
+    return at;
+  }
+  function spAddToSheet(s){
+    var x = {level:s.lvl, name:s.ru, prepared:!s.lvl, notes:'', conc:s.conc, sid:s.id};
+    spInsertByLevel(x);
+    saveState();
+    preserveScroll(renderSpells);
+    showActionToast('В листе: ' + s.ru, 'Убрать', function(){
+      var i = state.spells.indexOf(x);
+      if (i >= 0){ state.spells.splice(i, 1); saveState(); preserveScroll(renderSpells); }
+    });
+  }
+
+  /* ---------------- справочник: поиск и фильтры ---------------- */
+  var spBookState = {q:'', cls:'', lvl:'all', conc:false, rit:false};
+  function spMyCodes(){
+    var codes = [];
+    if (typeof bOn === 'function' && bOn()) bRaw().classes.forEach(function(ce){ var c = SP_CODE[ce.id]; if (c && codes.indexOf(c) < 0 && bSpellCfg(ce)) codes.push(c); });
+    return codes;
+  }
+  function openSpellBook(){
+    if (!SPDB){ spDbLoad(function(){ openSpellBook(); }); showActionToast('Загружаю справочник заклинаний…'); return; }
+    var st = spBookState;
+    if (!st.cls){ var my = spMyCodes(); st.cls = my.length === 1 ? my[0] : ''; }
+    openSheet({title:'Справочник заклинаний', icon:'📖', cls:'sp-sheet', build:function(body, api){
+      var h = '<input type="text" class="bsearch" data-sb="q" placeholder="Название по-русски или по-английски…" autocomplete="off" enterkeyhint="search" value="' + hEsc(st.q) + '">' +
+        '<div class="sp-filt"><select data-sb="cls" aria-label="Класс"><option value="">Все классы</option>' +
+        SP_ORDER.map(function(c){ return '<option value="' + c + '"' + (st.cls === c ? ' selected' : '') + '>' + SP_CLS[c] + '</option>'; }).join('') + '</select>' +
+        '<label class="inline-check"><input type="checkbox" data-sb="conc"' + (st.conc ? ' checked' : '') + '> концентрация</label>' +
+        '<label class="inline-check"><input type="checkbox" data-sb="rit"' + (st.rit ? ' checked' : '') + '> ритуал</label></div>' +
+        '<div class="sp-chips" data-sb="lvls"></div><div class="au-muted sp-count"></div><div class="sp-list" data-sb="list"></div>';
+      body.innerHTML = h;
+      function lvls(){
+        var w = body.querySelector('[data-sb="lvls"]');
+        var x = '<button type="button" class="sp-chip' + (st.lvl === 'all' ? ' on' : '') + '" data-sbl="all">все</button>';
+        for (var i = 0; i <= 9; i++) x += '<button type="button" class="sp-chip' + (String(st.lvl) === String(i) ? ' on' : '') + '" data-sbl="' + i + '">' + (i ? i : 'загов.') + '</button>';
+        w.innerHTML = x;
+      }
+      function list(){
+        var q = spNorm(st.q);
+        var rows = SPDB.list.filter(function(s){
+          if (q && s.key.indexOf(q) < 0) return false;
+          if (st.cls && !spIn(s, st.cls, true)) return false;
+          if (st.lvl !== 'all' && s.lvl !== toInt(st.lvl, -1)) return false;
+          if (st.conc && !s.conc) return false;
+          if (st.rit && !s.rit) return false;
+          return true;
+        });
+        body.querySelector('.sp-count').textContent = 'Найдено: ' + rows.length;
+        var have = {};
+        (state.spells || []).forEach(function(x){ var s = spFind(x); if (s) have[s.id] = 1; });
+        body.querySelector('[data-sb="list"]').innerHTML = rows.slice(0, 300).map(function(s){
+          return '<div class="sp-opt' + (have[s.id] ? ' on' : '') + '" data-sbi="' + s.id + '" role="button" tabindex="0"><span class="sp-opt-main"><span class="sp-opt-n">' + hEsc(s.ru) + (s.src !== 'PHB' ? ' <span class="bsrc">' + hEsc(s.src) + '</span>' : '') + '</span>' +
+            '<span class="sp-opt-m">' + hEsc(spRowMeta(s)) + (s.conc ? ' · К' : '') + (s.rit ? ' · Р' : '') + '</span></span>' +
+            (have[s.id] ? '<span class="sp-opt-ok" aria-label="уже в листе">✓</span>' : '<button type="button" class="sp-opt-add" data-sba="' + s.id + '" aria-label="Добавить в лист">+</button>') + '</div>';
+        }).join('') + (rows.length > 300 ? '<div class="au-muted">Показаны первые 300 — уточните поиск.</div>' : '') + (!rows.length ? '<div class="au-empty">Ничего не нашлось.</div>' : '');
+      }
+      body.addEventListener('input', function(e){
+        var t = e.target;
+        if (t.getAttribute('data-sb') === 'q'){ st.q = t.value; list(); }
+      });
+      body.addEventListener('change', function(e){
+        var t = e.target, k = t.getAttribute('data-sb');
+        if (k === 'cls'){ st.cls = t.value; list(); }
+        else if (k === 'conc' || k === 'rit'){ st[k] = t.checked; list(); }
+      });
+      body.addEventListener('click', function(e){
+        var l = e.target.closest('[data-sbl]');
+        if (l){ st.lvl = l.getAttribute('data-sbl'); lvls(); list(); return; }
+        var a = e.target.closest('[data-sba]');
+        if (a){ e.stopPropagation(); spAddToSheet(SPDB.byId[a.getAttribute('data-sba')]); list(); return; }
+        var r = e.target.closest('[data-sbi]');
+        if (r) openSpellInfo(SPDB.byId[r.getAttribute('data-sbi')], null);
+      });
+      lvls(); list();
+    }, onClose:function(){ setTimeout(function(){ preserveScroll(renderSpells); }, 0); }});
+  }
+
+  /* ---------------- строки на вкладке «Магия» ---------------- */
+  function spDecorate(){
+    var wrap = document.getElementById('spellsWrap');
+    if (!wrap || !autoOn('spells')) return;
+    if (!SPDB){
+      if ((state.spells || []).some(function(x){ return x && x.name; })) spDbLoad();
+      return;
+    }
+    var items = wrap.children;
+    (state.spells || []).forEach(function(sp, i){
+      var el = items[i];
+      if (!el || el.querySelector('.sp-info')) return;
+      var s = spFind(sp);
+      var grid = el.querySelector('.dyn-grid');
+      if (!grid) return;
+      var tags = '';
+      if (sp.bk && /^sp:/.test(sp.bk) && typeof bClassDef === 'function' && bClassDef(sp.cls)) tags += '<span class="sp-badge src">' + hEsc(bClassDef(sp.cls).n) + '</span>';
+      if (sp.auto) tags += '<span class="sp-badge src">всегда подготовлено</span>';
+      if (sp.arc) tags += '<span class="sp-badge src">арканум, раз в день</span>';
+      if (!s){
+        if (tags) grid.insertAdjacentHTML('afterend', '<div class="sp-info">' + tags + '</div>');
+        return;
+      }
+      var meta = [SP_SCHOOL[s.sch], spTimeShort(s), s.range, s.dur].join(' · ');
+      var html = '<div class="sp-info"><span class="sp-meta">' + hEsc(meta) + (s.conc ? ' <span class="sp-badge c" title="Концентрация">К</span>' : '') +
+        (s.rit ? ' <span class="sp-badge" title="Можно ритуалом">Р</span>' : '') + (tags ? ' ' + tags : '') + '</span>' +
+        '<span class="sp-acts"><button type="button" data-spa="info" title="Описание" aria-label="Описание">ℹ</button>' +
+        (spHasRoll(s) ? '<button type="button" data-spa="roll" title="Бросить урон или лечение" aria-label="Бросить">🎲</button>' : '') + '</span></div>';
+      grid.insertAdjacentHTML('afterend', html);
+    });
+  }
+  function bindSpellsList(){
+    var sw = document.getElementById('spellsWrap');
+    if (!sw || sw._spBound) return;
+    sw._spBound = true;
+    sw.addEventListener('click', function(e){
+      var b = e.target.closest('[data-spa]');
+      if (!b) return;
+      var item = b.closest('.dyn-item');
+      var idx = Array.prototype.indexOf.call(sw.children, item);
+      var sp = state.spells[idx], s = spFind(sp);
+      if (!s) return;
+      if (b.getAttribute('data-spa') === 'info') openSpellInfo(s, sp);
+      else openSpellRoll(sp, s, Number(sp.level) > s.lvl ? Number(sp.level) : s.lvl, {});
+    });
+    sw.addEventListener('change', function(e){
+      var inp = e.target;
+      var item = inp.closest && inp.closest('.dyn-item');
+      if (!item) return;
+      var idx = Array.prototype.indexOf.call(sw.children, item);
+      var sp = state.spells[idx];
+      if (!sp) return;
+      if (inp.getAttribute('data-k') === 'prepared') spPreparedToggled(sp);
+      if (inp.getAttribute('data-k') === 'name' && autoOn('spells')) spAutoLink(sp);
+    });
+    var btn = document.getElementById('spBrowse');
+    if (btn) btn.addEventListener('click', openSpellBook);
+  }
+  /* вписали название вручную — подставить круг и концентрацию из справочника */
+  function spAutoLink(sp){
+    if (sp.sid || sp.bk) return;
+    spDbLoad(function(){
+      var s = spFind(sp);
+      if (!s) return;
+      var snap = {level:sp.level, conc:sp.conc};
+      sp.sid = s.id;
+      sp.level = s.lvl;
+      sp.conc = s.conc;
+      saveState();
+      preserveScroll(renderSpells);
+      showActionToast('Из справочника: ' + spLvlText(s.lvl) + (s.conc ? ', концентрация' : ''), 'Отменить', function(){
+        delete sp.sid; sp.level = snap.level; sp.conc = snap.conc; saveState(); preserveScroll(renderSpells);
+      });
+    });
+  }
+
+  /* ---------------- наложение: баффы и автоброски ---------------- */
+  function spWpn(v){ return [['dmg_m', v], ['dmg_r', v]]; }
+  var SP_BUFF = {
+    bless: function(){ return {lines:[['atk', '+1к4'], ['save', '+1к4']], note:'Благословение: к броскам атаки и спасброскам.'}; },
+    shield: function(){ return {lines:[['ac', '+5']], note:'До начала вашего следующего хода — потом выключите.'}; },
+    shield_of_faith: function(){ return {lines:[['ac', '+2']]}; },
+    divine_favor: function(){ return {lines:spWpn('+1к4 излучение'), note:'Атаки оружием.'}; },
+    hex: function(){ return {lines:[['dmg', '+1к6 некротический']], note:'Только по проклятой цели.'}; },
+    hunters_mark: function(){ return {lines:spWpn('+1к6'), note:'Только по помеченной цели, атаки оружием.'}; },
+    magic_weapon: function(L){ var n = L >= 6 ? 3 : L >= 4 ? 2 : 1; return {lines:[['atk_m', '+' + n], ['dmg_m', '+' + n]], note:'Одно оружие. Для дальнобойного поменяйте строки на «дальний бой».'}; },
+    elemental_weapon: function(L){ var n = L >= 7 ? 3 : L >= 5 ? 2 : 1; return {lines:[['atk_m', '+' + n], ['dmg_m', '+' + n + 'к4']], note:'Одно оружие; урон выбранной стихии.'}; },
+    crusaders_mantle: function(){ return {lines:spWpn('+1к4 излучение'), note:'Атаки оружием; союзникам в ауре тоже.'}; },
+    spirit_shroud: function(L){ var n = 1 + Math.floor((L - 3) / 2); return {lines:[['dmg', '+' + n + 'к8']], note:'По целям в 10 фт от вас; излучение, некротический или холод.'}; },
+    holy_weapon: function(){ return {lines:spWpn('+2к8 излучение'), note:'Атаки этим оружием.'}; },
+    enlarge: function(){ return {lines:spWpn('+1к4'), note:'Только при увеличении; оружием.'}; },
+    haste: function(){ return {lines:[['ac', '+2'], ['save_dex', '+0']], note:'Ещё: преимущество на спасброски Ловкости, скорость ×2, доп. действие.'}; },
+    barkskin: function(){ return {lines:[], note:'КБ не ниже 16 — поправьте КБ, если он ниже.'}; },
+    greater_invisibility: function(){ return {lines:[], note:'Атаки по вам с помехой, ваши — с преимуществом.'}; },
+    blur: function(){ return {lines:[], note:'Атаки по вам с помехой.'}; },
+    stoneskin: function(){ return {lines:[], note:'Сопротивление немагическому дробящему, колющему и рубящему урону.'}; },
+    prot_energy: function(){ return {lines:[], note:'Сопротивление выбранному виду урона.'}; },
+    fire_shield: function(){ return {lines:[], note:'Сопротивление холоду (тёплый) или огню (холодный); ударивший вблизи получает 2к8.'}; },
+    mage_armor: null, longstrider: null, expeditious_retreat: null, fly: null
+  };
+  function spApplyBuff(s, L, entry){
+    var key = s.m && s.m.b;
+    var def = key && SP_BUFF[key];
+    if (!def || !autoOn('mods')) return false;
+    var spec = def(L || s.lvl, s);
+    if (!spec.lines.length) return false;
+    if (!Array.isArray(state.mods)) state.mods = [];
+    var bk = 'spb:' + s.id, m = null;
+    state.mods.forEach(function(x){ if (!m && x.bk === bk) m = x; });
+    var lines = spec.lines.filter(function(p){ return p[1] !== '+0'; }).map(function(p){ return {t:p[0], v:p[1]}; });
+    if (!m){ m = normMod({name:s.ru, toggle:true, on:true, lines:lines, note:spec.note || ''}); m.bk = bk; state.mods.push(m); }
+    else { m.lines = lines; m.toggle = true; m.on = true; if (spec.note) m.note = spec.note; }
+    m.spConc = s.conc ? String((entry && entry.name) || s.ru) : '';
+    invalidateMods();
+    saveState();
+    setTimeout(function(){ renderAll(); }, 0);
+    showActionToast('✚ ' + s.ru + ' — бонус включён', 'Выключить', function(){ m.on = false; invalidateMods(); saveState(); renderAll(); });
+    return true;
+  }
+  /* концентрация сменилась — выключить баффы прежнего заклинания */
+  var spConcLast = null;
+  function spConcChanged(){
+    var cur = state.concentration || '';
+    if (spConcLast === null || cur === spConcLast){ spConcLast = cur; return; }
+    var prev = spConcLast;
+    spConcLast = cur;
+    if (!prev) return;
+    var off = false;
+    (state.mods || []).forEach(function(m){ if (m.bk && /^spb:/.test(m.bk) && m.on && m.spConc && m.spConc === prev){ m.on = false; off = true; } });
+    if (off){ invalidateMods(); saveState(); setTimeout(function(){ renderAll(); }, 0); }
+  }
+  /* после траты ячейки (или для заговора): бафф, Доспехи мага, лист броска */
+  function spAfterCast(sp, L){
+    if (!autoOn('spells') || !SPDB) return false;
+    var s = spFind(sp);
+    if (!s) return false;
+    var did = false;
+    if (s.m && s.m.b) did = spApplyBuff(s, L, sp) || did;
+    if (s.id === 'mage_armor' && autoOn('ac') && typeof acCfg === 'function'){
+      var ac = acCfg();
+      if (ac.mode === 'none' || ac.mode === 'manual'){
+        var prev = ac.mode;
+        showActionToast('Доспехи мага: КБ 13 + Ловкость на себя?', 'Да', function(){
+          ac.mode = 'mage'; saveState(); renderAll();
+          showActionToast('КБ: доспехи мага', 'Отменить', function(){ ac.mode = prev; saveState(); renderAll(); });
+        }, 8000);
+        did = true;
+      }
+    }
+    if (spHasRoll(s)){ openSpellRoll(sp, s, L || s.lvl, {autoroll:true}); did = true; }
+    return did;
+  }
+  function spIsRitual(sp){ var s = SPDB && spFind(sp); return !!(s && s.rit); }
+  /* арканум колдуна: тратится счётчик «Арканум N круга», не ячейка */
+  function spCastArcanum(sp){
+    var n = toInt(sp.arc || sp.level, 0);
+    var r = null;
+    (state.resources || []).forEach(function(x){ if (!r && x.bk && /arcanum/.test(x.bk) && normName(x.name).indexOf(String(n)) >= 0) r = x; });
+    if (!r) (state.resources || []).forEach(function(x){ if (!r && /арканум/i.test(x.name || '') && String(x.name).indexOf(String(n)) >= 0) r = x; });
+    if (r){
+      var mx = resMax(r), cur = clampN(toInt(r.cur, mx), 0, mx);
+      if (cur <= 0){ showActionToast('Арканум ' + n + ' круга уже использован — нужен длинный отдых'); return; }
+      var prevCur = r.cur;
+      r.cur = cur - 1;
+      saveState();
+      renderAll();
+      showActionToast('✨ ' + (sp.name || 'Арканум') + ': арканум потрачен', 'Отменить', function(){ r.cur = prevCur; saveState(); renderAll(); });
+    }
+    if (sp.conc && autoOn('conc')) concSet(sp.name || 'заклинание');
+    spAfterCast(sp, n);
+  }
+
+  /* =====================================================================
+     КОНСТРУКТОР: заговоры, известные, книга, подготовка, тайны магии, арканум
+     state.build.sp[class] = {c:[], k:[], p:[], s:[], t:[], a:{6:'',7:'',8:'',9:''}}
+     ===================================================================== */
+  function bSpOf(cls){
+    var b = bRaw();
+    if (!b.sp || typeof b.sp !== 'object') b.sp = {};
+    var x = b.sp[cls];
+    if (!x || typeof x !== 'object') x = b.sp[cls] = {};
+    ['c', 'k', 'p', 's', 't'].forEach(function(k){ if (!Array.isArray(x[k])) x[k] = []; });
+    if (!x.a || typeof x.a !== 'object') x.a = {};
+    return x;
+  }
+  function bSpellCfg(ce){
+    var c = bClassDef(ce.id);
+    if (!c) return null;
+    var sd = bSubDef(ce), cast = (sd && sd.cast) || c.cast;
+    if (!cast) return null;
+    var L = clampN(toInt(ce.level, 1), 1, 20), b = bRaw();
+    var maxL = (SP_MAXL[cast.t] || SP_MAXL.full)[L - 1] || 0;
+    var cantrips = cast.cantrips ? toInt(cast.cantrips[L - 1], 0) : 0;
+    if (!maxL && !cantrips) return null;
+    var cfg = {cls:ce.id, name:c.n, ab:cast.ab, mode:cast.mode, type:cast.t, L:L, maxL:maxL, lists:[SP_CODE[cast.list] || cast.list], tce:!!b.tce,
+      cantrips:cantrips, known: cast.known ? toInt(cast.known[L - 1], 0) : 0, prep:0, book:0, auto:[], expanded:[], secrets:0, secretsInKnown:0,
+      arcanum:[], tome:0, schools:null, freeSchool:0, cantripAuto:0};
+    if (cast.mode !== 'known' && maxL) cfg.prep = Math.max(1, toInt(evalFormula(cast.prepF || '1'), 1));
+    if (cast.mode === 'book') cfg.book = 6 + 2 * (L - 1);
+    if (cast.schools){ cfg.schools = cast.schools.map(function(x){ return SP_SCHOOL_ID[x] || x; }); cfg.freeSchool = [3, 8, 14, 20].filter(function(x){ return L >= x; }).length; }
+    function addAuto(id, why, counts){ if (!cfg.auto.some(function(a){ return a.id === id; })) cfg.auto.push({id:id, why:why, counts:!!counts}); }
+    if (sd && sd.spells) Object.keys(sd.spells).forEach(function(k){
+      if (L >= toInt(k, 99)) sd.spells[k].forEach(function(id){ if (ce.id === 'warlock') cfg.expanded.push(id); else addAuto(id, sd.n); });
+    });
+    bFeatures().forEach(function(f){
+      if (f.cls !== ce.id) return;
+      var fx = f.fx || {};
+      if (fx.spellsAny){ cfg.secrets += fx.spellsAny; if (!f.sub) cfg.secretsInKnown += fx.spellsAny; }
+      if (fx.arcanum) cfg.arcanum.push(fx.arcanum);
+      if (fx.extraList){ var code = SP_CODE[fx.extraList] || fx.extraList; if (cfg.lists.indexOf(code) < 0) cfg.lists.push(code); }
+      if (f.key === 'primal_awareness') [[3, 'speak_with_animals'], [5, 'beast_sense'], [9, 'speak_with_plants'], [13, 'locate_creature'], [17, 'commune_with_nature']].forEach(function(p){ if (L >= p[0]) addAuto(p[1], f.n); });
+    });
+    if (ce.id === 'druid' && ce.sub === 'land'){
+      var land = bOpt('land', bArr(b.ch['druid:land'])[0]);
+      if (land && land.spells) Object.keys(land.spells).forEach(function(k){ if (L >= toInt(k, 99)) land.spells[k].forEach(function(id){ addAuto(id, 'Круг земли: ' + land.n); }); });
+    }
+    if (ce.id === 'druid' && ce.sub === 'stars'){ addAuto('guidance', 'Звёздная карта'); addAuto('guiding_bolt', 'Звёздная карта'); }
+    if (ce.id === 'warlock'){
+      if (ce.sub === 'genie'){
+        var gk = bOpt('genie', bArr(b.ch['warlock:genie'])[0]);
+        if (gk && gk.spells) Object.keys(gk.spells).forEach(function(k){ if (L >= toInt(k, 99)) gk.spells[k].forEach(function(id){ cfg.expanded.push(id); }); });
+      }
+      var pact = bArr(b.ch['warlock:pact'])[0];
+      if (pact === 'chain' && L >= 3) addAuto('find_familiar', 'Договор цепи');
+      if (pact === 'tome' && L >= 3) cfg.tome = 3;
+    }
+    if (ce.id === 'sorcerer' && ce.sub === 'divine_soul'){
+      var af = bOpt('divine_affinity', bArr(b.ch['sorcerer:divine_affinity'])[0]);
+      if (af && af.spell) addAuto(af.spell, 'Склонность: ' + af.n);
+    }
+    if (ce.id === 'cleric' && ce.sub === 'light') addAuto('light', 'Домен света');
+    if (ce.id === 'rogue' && ce.sub === 'arcane_trickster') addAuto('mage_hand', 'Мистический ловкач', true);
+    cfg.cantripAuto = cfg.auto.filter(function(a){ return a.counts; }).length;
+    return cfg;
+  }
+  function bSpellInList(cfg, s){
+    if (cfg.expanded.indexOf(s.id) >= 0) return true;
+    return cfg.lists.some(function(code){ return spIn(s, code, cfg.tce); });
+  }
+  /* сколько выбрать по каждой вкладке */
+  function bSpellNeeds(cfg){
+    var o = {c:Math.max(0, cfg.cantrips - cfg.cantripAuto), k:0, p:0, s:0, t:cfg.tome, a:cfg.arcanum.length, soft:{}};
+    if (cfg.mode === 'known'){ o.k = Math.max(0, cfg.known - cfg.secretsInKnown); o.s = cfg.secrets; }
+    if (cfg.mode === 'book'){ o.k = cfg.book; o.p = cfg.prep; o.soft.k = true; }
+    if (cfg.mode === 'prepared') o.p = cfg.prep;
+    return o;
+  }
+  function bSpellHave(cfg, sp){
+    var o = {c:sp.c.length, k:sp.k.length, p:sp.p.length, s:sp.s.length, t:sp.t.length, a:cfg.arcanum.filter(function(l){ return sp.a[l]; }).length};
+    if (cfg.mode === 'book') o.p = sp.p.filter(function(id){ return sp.k.indexOf(id) >= 0; }).length;
+    return o;
+  }
+  function bSpellSlots(){
+    var out = [], b = bRaw();
+    if (!autoOn('spells') || !b || !Array.isArray(b.classes)) return out;
+    b.classes.forEach(function(ce){
+      var cfg = bSpellCfg(ce);
+      if (!cfg) return;
+      var sp = bSpOf(ce.id), nd = bSpellNeeds(cfg), hv = bSpellHave(cfg, sp);
+      var need = 0, have = 0;
+      ['c', 'k', 'p', 's', 't', 'a'].forEach(function(k){ need += nd[k]; have += Math.min(nd[k], hv[k]); });
+      if (need) out.push({key:ce.id + ':spells', kind:'spells', cls:ce.id, t:'Заклинания: ' + cfg.name, need:need, have:have});
+    });
+    return out;
+  }
+  /* строка в карточке «Классы и умения» */
+  function bSpellCardRow(cls){
+    if (!autoOn('spells')) return '';
+    var ce = bClassEntry(cls), cfg = ce && ce.id ? bSpellCfg(ce) : null;
+    if (!cfg) return '';
+    var sp = bSpOf(cls), nd = bSpellNeeds(cfg), hv = bSpellHave(cfg, sp);
+    var names = {c:'заговоры', k:cfg.mode === 'book' ? 'в книге' : 'известные', p:'подготовлено', s:'тайны магии', t:'книга теней', a:'арканум'};
+    var chips = ['c', 'k', 'p', 's', 't', 'a'].filter(function(k){ return nd[k]; }).map(function(k){
+      var short = hv[k] < nd[k] && !(nd.soft[k] && hv[k] >= nd[k]);
+      return '<span class="bf-chip' + (short ? ' need' : '') + '">' + names[k] + ' ' + hv[k] + '/' + nd[k] + '</span>';
+    }).join('');
+    var ctx = spCtx({cls:cls}, null);
+    var stats = cfg.ab ? abShort(cfg.ab) + ' · Сл ' + ctx.dc + ' · атака ' + fmtMod(ctx.atk) + ' · круги до ' + cfg.maxL : '';
+    return '<div class="bf-item bsp-row"><span class="bf-lvl">✨</span><div class="bf-main"><div class="bf-name">Заклинания</div>' +
+      '<div class="bf-ch">' + chips + '<button type="button" class="bf-pick" data-bk="spells" data-cls="' + hEsc(cls) + '">выбрать</button></div>' +
+      (cfg.auto.length ? '<div class="bf-auto">Всегда подготовлены: ' + hEsc(cfg.auto.map(function(a){ var s = SPDB && SPDB.byId[a.id]; return s ? s.ru : a.id.replace(/_/g, ' '); }).join(', ')) + '</div>' : '') +
+      (stats ? '<div class="bf-auto">' + hEsc(stats) + '</div>' : '') + '</div></div>';
+  }
+  /* ---- окно выбора ---- */
+  function openSpellPick(cls, then){
+    if (!SPDB){ spDbLoad(function(){ openSpellPick(cls, then); }); showActionToast('Загружаю справочник заклинаний…'); return; }
+    var ce = bClassEntry(cls), cfg = ce && ce.id ? bSpellCfg(ce) : null;
+    if (!cfg){ showActionToast('На этом уровне заклинаний у класса нет'); return; }
+    var cur = JSON.parse(JSON.stringify(bSpOf(cls)));
+    var nd = bSpellNeeds(cfg);
+    var autoIds = cfg.auto.map(function(a){ return a.id; });
+    var tabs = [];
+    function T(id, title){ tabs.push({id:id, title:title}); }
+    if (nd.c) T('c', 'Заговоры');
+    if (cfg.mode === 'known' && nd.k) T('k', 'Известные');
+    if (cfg.mode === 'book'){ T('k', 'Книга'); T('p', 'Подготовка'); }
+    if (cfg.mode === 'prepared') T('p', 'Подготовленные');
+    if (nd.s) T('s', 'Тайны магии');
+    if (nd.t) T('t', 'Книга теней');
+    if (nd.a) T('a', 'Арканум');
+    if (!tabs.length){ showActionToast('Выбирать пока нечего'); return; }
+    var tab = tabs[0].id, q = '', lf = 'all';
+    tabs.forEach(function(t){ var hv = bSpellHave(cfg, cur); if (tab === tabs[0].id && hv[t.id] < nd[t.id] && !nd.soft[t.id]) tab = t.id; });
+    function chosenElsewhere(id, here){
+      var where = [];
+      if (here === 'p') return autoIds.indexOf(id) >= 0;
+      ['c', 'k', 's', 't'].forEach(function(k){ if (k !== here && cur[k].indexOf(id) >= 0) where.push(k); });
+      cfg.arcanum.forEach(function(l){ if (here !== 'a' && cur.a[l] === id) where.push('a'); });
+      if (autoIds.indexOf(id) >= 0) where.push('auto');
+      return where.length > 0;
+    }
+    function cands(){
+      var L = cfg.maxL;
+      if (tab === 'c') return SPDB.list.filter(function(s){ return s.lvl === 0 && bSpellInList(cfg, s); });
+      if (tab === 'k') return SPDB.list.filter(function(s){ return s.lvl >= 1 && s.lvl <= L && bSpellInList(cfg, s); });
+      if (tab === 'p'){
+        if (cfg.mode === 'book') return cur.k.map(function(id){ return SPDB.byId[id]; }).filter(Boolean).sort(function(a, b2){ return a.lvl - b2.lvl || (a.ru < b2.ru ? -1 : 1); });
+        return SPDB.list.filter(function(s){ return s.lvl >= 1 && s.lvl <= L && bSpellInList(cfg, s); });
+      }
+      if (tab === 's') return SPDB.list.filter(function(s){ return s.lvl <= L; });
+      if (tab === 't') return SPDB.list.filter(function(s){ return s.lvl === 0; });
+      if (tab === 'a') return SPDB.list.filter(function(s){ return cfg.arcanum.indexOf(s.lvl) >= 0 && bSpellInList(cfg, s); });
+      return [];
+    }
+    function isOn(id){
+      if (tab === 'a'){ return cfg.arcanum.some(function(l){ return cur.a[l] === id; }); }
+      return cur[tab].indexOf(id) >= 0;
+    }
+    function offSchool(){ return cur.k.filter(function(id){ var s = SPDB.byId[id]; return s && cfg.schools.indexOf(s.sch) < 0; }).length; }
+    function why(s){
+      if (autoIds.indexOf(s.id) >= 0) return 'всегда подготовлено';
+      if (!isOn(s.id) && chosenElsewhere(s.id, tab)) return 'уже выбрано';
+      if (tab === 'k' && cfg.schools && cfg.schools.indexOf(s.sch) < 0 && !isOn(s.id) && offSchool() >= cfg.freeSchool)
+        return 'только ' + cfg.schools.map(function(x){ return SP_SCHOOL[x]; }).join(' и ') + (cfg.freeSchool ? ' (свободных школ: ' + cfg.freeSchool + ')' : '');
+      return '';
+    }
+    function toggle(id){
+      var s = SPDB.byId[id];
+      if (tab === 'a'){
+        var l = s.lvl;
+        cur.a[l] = cur.a[l] === id ? '' : id;
+        return '';
+      }
+      var arr = cur[tab], i = arr.indexOf(id);
+      if (i >= 0){ arr.splice(i, 1); if (tab === 'k' && cfg.mode === 'book'){ var j = cur.p.indexOf(id); if (j >= 0) cur.p.splice(j, 1); } return ''; }
+      if (arr.length >= nd[tab] && !nd.soft[tab]) return 'Лимит: ' + nd[tab] + '. Уберите одно, чтобы взять другое.';
+      arr.push(id);
+      return '';
+    }
+    openSheet({title:cfg.name + ' ' + cfg.L + ': заклинания', icon:'✨', cls:'sp-sheet', build:function(body, api){
+      body.innerHTML = '<div class="seg sp-tabs" data-spk="tabs"></div><div class="au-muted sp-pick-info" data-spk="info"></div>' +
+        '<input type="text" class="bsearch" data-spk="q" placeholder="Поиск…" autocomplete="off" enterkeyhint="search"><div class="sp-chips" data-spk="lv"></div>' +
+        '<div class="sp-list" data-spk="list"></div>' +
+        '<div class="au-btns sp-pick-btns"><button type="button" class="au-btn ghost" data-spk="cancel">Отмена</button><button type="button" class="au-btn ok" data-spk="save">Сохранить</button></div>';
+      function head(){
+        var hv = bSpellHave(cfg, cur);
+        body.querySelector('[data-spk="tabs"]').innerHTML = tabs.map(function(t){
+          return '<button type="button" data-spt="' + t.id + '"' + (t.id === tab ? ' class="on"' : '') + '>' + hEsc(t.title) + ' <small>' + hv[t.id] + '/' + nd[t.id] + '</small></button>';
+        }).join('');
+        var info = '';
+        if (tab === 'c') info = 'Заговоры ' + SP_CLS[cfg.lists[0]].toLowerCase() + 'а. Меняются при повышении уровня.';
+        if (tab === 'k' && cfg.mode === 'known') info = 'Известные заклинания до ' + cfg.maxL + ' круга. При повышении уровня одно можно заменить.' + (cfg.secretsInKnown ? ' Тайны магии входят в это число.' : '');
+        if (tab === 'k' && cfg.mode === 'book') info = 'Книга заклинаний: бесплатно ' + nd.k + ' (6 на 1 уровне + 2 за уровень). Переписанные из свитков и книг можно добавлять сверх.';
+        if (tab === 'p') info = 'Подготовить ' + nd.p + ' (' + (cfg.mode === 'book' ? 'из книги' : 'из всего списка класса') + ', до ' + cfg.maxL + ' круга). Меняется после длинного отдыха.';
+        if (tab === 's') info = 'Любые заклинания любых классов до ' + cfg.maxL + ' круга (и заговоры).';
+        if (tab === 't') info = 'Три заговора из списков любых классов.';
+        if (tab === 'a') info = 'По одному заклинанию на круг: ' + cfg.arcanum.join(', ') + '. Раз в длинный отдых без ячейки.';
+        if (cfg.auto.length && (tab === 'k' || tab === 'p')) info += ' Всегда подготовлены (не считаются): ' + cfg.auto.map(function(a){ var s = SPDB.byId[a.id]; return s ? s.ru : a.id; }).join(', ') + '.';
+        body.querySelector('[data-spk="info"]').textContent = info;
+        var lv = body.querySelector('[data-spk="lv"]');
+        var lvls = [];
+        if (tab === 'k' || tab === 'p') for (var i = 1; i <= cfg.maxL; i++) lvls.push(i);
+        if (tab === 's') for (var j = 0; j <= cfg.maxL; j++) lvls.push(j);
+        if (tab === 'a') lvls = cfg.arcanum.slice();
+        lv.innerHTML = lvls.length > 1 ? '<button type="button" class="sp-chip' + (lf === 'all' ? ' on' : '') + '" data-spl="all">все</button>' + lvls.map(function(l){ return '<button type="button" class="sp-chip' + (String(lf) === String(l) ? ' on' : '') + '" data-spl="' + l + '">' + (l ? l : 'загов.') + '</button>'; }).join('') : '';
+      }
+      function list(){
+        var qq = spNorm(q);
+        var rows = cands().filter(function(s){
+          if (qq && s.key.indexOf(qq) < 0) return false;
+          if (lf !== 'all' && s.lvl !== toInt(lf, -1)) return false;
+          return true;
+        });
+        // выбранные — наверх
+        rows.sort(function(a, b2){ var x = isOn(a.id) ? 0 : 1, y = isOn(b2.id) ? 0 : 1; return x - y || a.lvl - b2.lvl || (a.ru < b2.ru ? -1 : a.ru > b2.ru ? 1 : 0); });
+        var html = '';
+        if ((tab === 'k' || tab === 'p') && cfg.auto.length && !qq && lf === 'all'){
+          html += cfg.auto.map(function(a){ var s = SPDB.byId[a.id]; if (!s) return ''; return '<div class="sp-opt locked"><span class="sp-opt-main"><span class="sp-opt-n">🔒 ' + hEsc(s.ru) + '</span><span class="sp-opt-m">' + hEsc(spRowMeta(s)) + ' · ' + hEsc(a.why) + '</span></span></div>'; }).join('');
+        }
+        html += rows.map(function(s){
+          var on = isOn(s.id), w = on ? '' : why(s);
+          if (autoIds.indexOf(s.id) >= 0) return '';
+          return '<div class="sp-opt' + (on ? ' on' : '') + (w ? ' dis' : '') + '" data-spo="' + s.id + '" role="button" tabindex="0"><span class="sp-opt-main"><span class="sp-opt-n">' + (on ? '✓ ' : '') + hEsc(s.ru) + (s.src !== 'PHB' ? ' <span class="bsrc">' + hEsc(s.src) + '</span>' : '') +
+            (cfg.expanded.indexOf(s.id) >= 0 ? ' <span class="sp-badge src">покровитель</span>' : '') + '</span>' +
+            '<span class="sp-opt-m">' + hEsc(spRowMeta(s)) + (s.conc ? ' · К' : '') + (s.rit ? ' · Р' : '') + '</span>' + (w ? '<span class="bopt-r">' + hEsc(w) + '</span>' : '') + '</span>' +
+            '<button type="button" class="sp-opt-i" data-spi2="' + s.id + '" aria-label="Описание">ℹ</button></div>';
+        }).join('');
+        if (!rows.length) html += '<div class="au-empty">' + (tab === 'p' && cfg.mode === 'book' ? 'Сначала впишите заклинания в книгу.' : 'Ничего не нашлось.') + '</div>';
+        body.querySelector('[data-spk="list"]').innerHTML = html;
+      }
+      body.addEventListener('click', function(e){
+        var x;
+        if ((x = e.target.closest('[data-spi2]'))){ e.stopPropagation(); openSpellInfo(SPDB.byId[x.getAttribute('data-spi2')], {cls:cls}); return; }
+        if ((x = e.target.closest('[data-spt]'))){ tab = x.getAttribute('data-spt'); lf = 'all'; head(); list(); return; }
+        if ((x = e.target.closest('[data-spl]'))){ lf = x.getAttribute('data-spl'); head(); list(); return; }
+        if ((x = e.target.closest('[data-spo]'))){
+          if (x.classList.contains('dis')) return;
+          var err = toggle(x.getAttribute('data-spo'));
+          if (err){ showActionToast(err); return; }
+          head(); list();
+          return;
+        }
+        if ((x = e.target.closest('[data-spk="cancel"]'))){ api.close(); return; }
+        if ((x = e.target.closest('[data-spk="save"]'))){
+          var b = bRaw();
+          if (!b.sp) b.sp = {};
+          b.sp[cls] = cur;
+          api.close();
+          bAfterChange();
+          showActionToast('Заклинания сохранены — они на вкладке «Магия»');
+          if (then) then();
+        }
+      });
+      body.addEventListener('input', function(e){ if (e.target.getAttribute('data-spk') === 'q'){ q = e.target.value; list(); } });
+      head(); list();
+    }});
+  }
+  /* ---- перенос в лист: строки заклинаний с меткой bk ---- */
+  function bSpellDesired(){
+    var out = [], seen = {}, b = bRaw(), hid = b.spHidden || {};
+    b.classes.forEach(function(ce){
+      var cfg = bSpellCfg(ce);
+      if (!cfg) return;
+      var sp = bSpOf(ce.id);
+      function add(id, kind, prep, extra){
+        var s = SPDB.byId[id];
+        if (!s || seen[id]) return;
+        var bk = 'sp:' + ce.id + ':' + kind + ':' + id;
+        if (hid[bk]) return;
+        seen[id] = 1;
+        out.push(Object.assign({bk:bk, sid:id, cls:ce.id, kind:kind, prepared:prep}, extra || {}));
+      }
+      cfg.auto.forEach(function(a){ add(a.id, 'auto', true, {auto:true}); });
+      sp.c.forEach(function(id){ add(id, 'c', true); });
+      if (cfg.mode === 'known'){
+        sp.k.forEach(function(id){ var s = SPDB.byId[id]; if (s && s.lvl <= cfg.maxL) add(id, 'k', true); });
+        sp.s.forEach(function(id){ add(id, 's', true); });
+        sp.t.forEach(function(id){ add(id, 't', true); });
+        cfg.arcanum.forEach(function(l){ if (sp.a[l]) add(sp.a[l], 'a', true, {arc:l}); });
+      } else if (cfg.mode === 'book'){
+        sp.k.forEach(function(id){ add(id, 'k', sp.p.indexOf(id) >= 0); });
+      } else {
+        sp.p.forEach(function(id){ var s = SPDB.byId[id]; if (s && s.lvl <= cfg.maxL) add(id, 'p', true); });
+      }
+    });
+    return out;
+  }
+  function spHasNotes(x){ return !!stripHtmlToText(x.notes || '').trim(); }
+  function bSpellForget(bk){
+    var p = bk.split(':'), cls = p[1], kind = p[2], id = p[3], b = bRaw();
+    if (kind === 'auto'){ if (!b.spHidden) b.spHidden = {}; b.spHidden[bk] = 1; return; }
+    var sp = bSpOf(cls);
+    if (kind === 'a'){ Object.keys(sp.a).forEach(function(l){ if (sp.a[l] === id) sp.a[l] = ''; }); return; }
+    [kind].concat(kind === 'k' ? ['p'] : []).forEach(function(k){ var i = sp[k] ? sp[k].indexOf(id) : -1; if (i >= 0) sp[k].splice(i, 1); });
+  }
+  /* при первом подключении: строки, уже вписанные в лист, становятся выбором в конструкторе */
+  function bSpellAdopt(){
+    var b = bRaw();
+    if (!b.sp) b.sp = {};
+    var cfgs = [];
+    b.classes.forEach(function(ce){ var cfg = bSpellCfg(ce); if (cfg) cfgs.push(cfg); });
+    if (!cfgs.length) return;
+    (state.spells || []).forEach(function(x){
+      if (!x || x.bk) return;
+      var s = spFind(x);
+      if (!s) return;
+      for (var i = 0; i < cfgs.length; i++){
+        var cfg = cfgs[i], sp = bSpOf(cfg.cls), nd = bSpellNeeds(cfg);
+        if (cfg.auto.some(function(a){ return a.id === s.id; })) return;
+        if (!bSpellInList(cfg, s) || s.lvl > cfg.maxL) continue;
+        if (s.lvl === 0){ if (sp.c.length < nd.c && sp.c.indexOf(s.id) < 0){ sp.c.push(s.id); return; } continue; }
+        if (cfg.mode === 'known'){ if (sp.k.length < nd.k && sp.k.indexOf(s.id) < 0){ sp.k.push(s.id); return; } continue; }
+        if (cfg.mode === 'book'){ if (sp.k.indexOf(s.id) < 0) sp.k.push(s.id); if (x.prepared && sp.p.indexOf(s.id) < 0) sp.p.push(s.id); return; }
+        if (cfg.mode === 'prepared'){ if (sp.p.length < nd.p && sp.p.indexOf(s.id) < 0){ sp.p.push(s.id); return; } continue; }
+      }
+    });
+  }
+  function bSpellSync(){
+    if (!SPDB || !autoOn('spells')) return false;
+    var b = bRaw();
+    if (!b || !Array.isArray(b.classes)) return false;
+    if (!Array.isArray(state.spells)) state.spells = [];
+    var changed = false;
+    if (b.spAdopt || !b.sp){ bSpellAdopt(); b.spAdopt = false; changed = true; }
+    var want = bSpellDesired();
+    var byBk = {};
+    want.forEach(function(w){ byBk[w.bk] = w; });
+    var present = {};
+    state.spells.forEach(function(x){ if (x && x.bk) present[x.bk] = x; });
+    // строку удалили из листа вручную — забыть этот выбор
+    (b.spLast || []).forEach(function(bk){ if (!present[bk] && byBk[bk]){ bSpellForget(bk); delete byBk[bk]; changed = true; } });
+    want = want.filter(function(w){ return !!byBk[w.bk]; });
+    // убрать строки, которые больше не выбраны (с заметками — оставить обычной строкой)
+    var keep = [];
+    state.spells.forEach(function(x){
+      if (x && x.bk && /^sp:/.test(x.bk) && !byBk[x.bk]){
+        changed = true;
+        if (spHasNotes(x)){ delete x.bk; delete x.auto; delete x.arc; delete x.cls; keep.push(x); }
+        return;
+      }
+      keep.push(x);
+    });
+    state.spells = keep;
+    want.forEach(function(w){
+      var s = SPDB.byId[w.sid], x = null;
+      state.spells.forEach(function(y){ if (!x && y.bk === w.bk) x = y; });
+      if (!x) state.spells.forEach(function(y){ if (!x && y && !y.bk && spFind(y) === s) x = y; });
+      if (!x){ x = {level:s.lvl, name:s.ru, prepared:w.prepared, notes:'', conc:s.conc}; spInsertByLevel(x); changed = true; }
+      var upd = {bk:w.bk, sid:w.sid, cls:w.cls, level:s.lvl, prepared:w.prepared};
+      Object.keys(upd).forEach(function(k){ if (x[k] !== upd[k]){ x[k] = upd[k]; changed = true; } });
+      if (w.auto){ if (!x.auto){ x.auto = true; changed = true; } } else if (x.auto){ delete x.auto; changed = true; }
+      if (w.arc){ if (x.arc !== w.arc){ x.arc = w.arc; changed = true; } } else if (x.arc){ delete x.arc; changed = true; }
+      if (x.conc === undefined){ x.conc = s.conc; changed = true; }
+    });
+    var nl = want.map(function(w){ return w.bk; });
+    if (JSON.stringify(nl) !== JSON.stringify(b.spLast || [])){ b.spLast = nl; changed = true; }
+    return changed;
+  }
+  /* галочка «подготовлено» в листе меняет выбор в конструкторе */
+  function spPreparedToggled(x){
+    if (!x || !x.bk || !/^sp:/.test(x.bk) || !(typeof bOn === 'function' && bOn())) return;
+    var p = x.bk.split(':'), cls = p[1], kind = p[2], id = p[3];
+    var sp = bSpOf(cls), ce = bClassEntry(cls), cfg = ce && ce.id ? bSpellCfg(ce) : null;
+    if (kind === 'k' && cfg && cfg.mode === 'book'){
+      var i = sp.p.indexOf(id);
+      if (x.prepared && i < 0) sp.p.push(id);
+      if (!x.prepared && i >= 0) sp.p.splice(i, 1);
+      var n = sp.p.length;
+      saveState();
+      if (typeof bCardRender === 'function') bCardRender();
+      if (x.prepared && n > cfg.prep) showActionToast('Подготовлено ' + n + ' из ' + cfg.prep + ' — больше, чем позволяет Интеллект и уровень');
+      return;
+    }
+    if (kind === 'p' && !x.prepared){
+      var j = sp.p.indexOf(id);
+      if (j >= 0) sp.p.splice(j, 1);
+      bAfterChange();
+      showActionToast('«' + x.name + '» больше не подготовлено', 'Вернуть', function(){ if (sp.p.indexOf(id) < 0) sp.p.push(id); bAfterChange(); });
+      return;
+    }
+    if (!x.prepared){
+      x.prepared = true;
+      saveState();
+      preserveScroll(renderSpells);
+      showActionToast(x.auto ? 'Это заклинание всегда подготовлено' : 'Известные заклинания всегда готовы — их не нужно готовить');
+    }
+  }
+  function bindSpellsInit(){
+    bindSpellsList();
+    spConcLast = state.concentration || '';
   }
 
   /* ====== AUTOMATION SUITE: END ====== */

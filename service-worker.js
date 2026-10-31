@@ -1,7 +1,8 @@
-const CACHE_NAME = 'dnd-sheet-cache-v2-1793437915';
+const CACHE_NAME = 'dnd-sheet-cache-v2-1793441198';
 const ASSETS = [
   './index.html',
   './classic.html',
+  './dnd-spells.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
