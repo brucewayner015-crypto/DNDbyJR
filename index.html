@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<script>try{if(localStorage.getItem('dnd5e_ui_version')==='classic'){location.replace('classic.html'+location.hash);}}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Дорбунла эм Джелмаузла</title>
 <meta name="description" content="Айыб этмегиз мен автомеханикме, программист тюлме">
@@ -4587,6 +4588,10 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .bs-item.temp{border-style:dashed;}
 .bs-item.off{opacity:.55;}
 .bs-empty{color:var(--ink-soft);font-style:italic;}
+
+.auto-classic{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border:1px dashed var(--parchment-shadow);border-radius:var(--radius-s);}
+.auto-classic .ac-text{flex:1;display:flex;flex-direction:column;gap:2px;font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
+.auto-classic .ac-text span{color:var(--ink-soft);font-size:calc(12px * var(--ui-font-scale));line-height:1.35;}
 
 </style>
 <script>
@@ -16825,6 +16830,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     if (!host) return;
     var html = '<p class="auto-intro">Каждую функцию можно выключить — тогда лист работает как раньше, а данные никуда не пропадают.</p>' +
       '<div class="au-btns" style="margin-top:0;"><button type="button" class="au-btn small ghost" data-ap="all">Включить всё</button><button type="button" class="au-btn small ghost" data-ap="none">Выключить всё</button></div>' +
+      '<div class="auto-classic"><div class="ac-text"><b>Старая версия</b><span>Ваш прежний лист без автоматизации — те же персонажи и данные. Вернуться сюда можно из ⚙ в старой версии.</span></div><button type="button" class="au-btn small ghost" data-ap="classic">Открыть</button></div>' +
       '<div class="auto-sub-row" style="margin-top:12px;"><span>Редакция правил</span><div class="seg"><button type="button" data-ap="r2014"' + (!rules2024() ? ' class="on"' : '') + '>2014</button><button type="button" data-ap="r2024"' + (rules2024() ? ' class="on"' : '') + '>2024</button></div></div>' +
       '<div class="au-muted" style="margin-top:4px;">Влияет на кости хитов при длинном отдыхе, истощение и пару таблиц.</div>';
     var group = '';
@@ -16875,6 +16881,23 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       var b = e.target.closest('[data-ap]');
       if (!b) return;
       var a = b.getAttribute('data-ap');
+      if (a === 'classic'){
+        var scb = document.getElementById('settingsCloseBtn');
+        if (scb) scb.click();
+        setTimeout(function(){ openSheet({title:'Старая версия', icon:'📜', build:function(body, api){
+          body.innerHTML = '<p class="auto-intro" style="margin-top:0;">Откроется ваш прежний лист без автоматизации. Персонаж и все записи останутся — новые данные просто не будут показаны.</p>' +
+            '<p class="auto-intro">Вернуться: ⚙ → кнопка «Новая версия» вверху настроек.</p>' +
+            '<div class="au-btns"><button type="button" class="au-btn ghost" data-cv="no">Остаться</button><button type="button" class="au-btn ok" data-cv="go">Открыть старую версию</button></div>';
+          body.addEventListener('click', function(ev){
+            var x = ev.target.closest('[data-cv]');
+            if (!x) return;
+            if (x.getAttribute('data-cv') === 'no'){ api.close(); return; }
+            try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); localStorage.setItem('dnd5e_ui_version', 'classic'); }catch(err){}
+            location.href = 'classic.html';
+          });
+        }}); }, 260);
+        return;
+      }
       if (a === 'all') AUTO_FEATURES.forEach(function(f){ uiSettings.auto[f.id] = true; });
       else if (a === 'none') AUTO_FEATURES.forEach(function(f){ uiSettings.auto[f.id] = false; });
       else if (a === 'r2014') uiSettings.auto.rules = '2014';
