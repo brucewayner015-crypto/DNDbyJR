@@ -4700,6 +4700,9 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .sp-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:10px 0;padding:10px 0;border-top:1px solid var(--parchment-shadow);border-bottom:1px solid var(--parchment-shadow);}
 .sp-facts span{display:block;font-size:calc(10.5px * var(--ui-font-scale));color:var(--ink-soft);letter-spacing:.3px;}
 .sp-facts b{font-weight:600;font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
+.sp-facts .sp-mat{grid-column:1 / -1;}
+.sp-facts .sp-mat b{font-weight:500;line-height:1.4;}
+.au-btn.sp-su{display:flex;justify-content:center;align-items:center;text-decoration:none;margin:4px 0 10px;width:100%;box-sizing:border-box;}
 .sp-mech{font-size:calc(12.5px * var(--ui-font-scale));line-height:1.5;padding:8px 10px;border-left:3px solid var(--gold);background:rgba(224,181,99,.12);border-radius:0 var(--radius-s) var(--radius-s) 0;margin-bottom:10px;color:var(--ink);}
 .sp-desc{font-size:calc(14px * var(--ui-font-scale));line-height:1.5;margin:0 0 10px;color:var(--ink);}
 .sp-cls{font-size:calc(12px * var(--ui-font-scale));color:var(--ink-soft);margin-bottom:4px;line-height:1.4;}
@@ -20899,7 +20902,9 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   function spTimeText(s){ return ({A:'1 действие', B:'1 бонусное действие', R:'1 реакция'})[s.time] || s.time; }
   function spTimeShort(s){ return ({A:'действие', B:'бонусное', R:'реакция'})[s.time] || s.time; }
   function spLvlText(lvl){ return lvl ? lvl + ' круг' : 'заговор'; }
-  function spCompText(s){ return String(s.comp || '').split('').join(', ') + (s.mat ? ' — ' + s.mat : ''); }
+  function spCompText(s){ return String(s.comp || '').split('').join(', ') + (s.mat && !s.mt ? ' — ' + s.mat : ''); }
+  /* полное описание на dnd.su (у каждого заклинания свой номер страницы) */
+  function spSuUrl(s){ var n = toInt(s && s.su, 0); return n > 0 ? 'https://dnd.su/spells/' + n + '/' : ''; }
   function spDurText(s){ return (s.conc ? 'концентрация, ' : '') + s.dur; }
   function spRowMeta(s){
     return [spLvlText(s.lvl) + ', ' + SP_SCHOOL[s.sch], spTimeShort(s), s.range, s.dur].join(' · ');
@@ -21299,6 +21304,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
             '<div><span>Дистанция</span><b>' + hEsc(s.range) + '</b></div>' +
             '<div><span>Компоненты</span><b>' + hEsc(spCompText(s)) + '</b></div>' +
             '<div><span>Длительность</span><b>' + hEsc(spDurText(s)) + '</b></div>' +
+            (s.mt ? '<div class="sp-mat"><span>' + (/М/.test(s.comp || '') ? 'Материальный компонент' : 'Плата') + '</span><b>' + hEsc(s.mt) + '</b></div>' : '') +
           '</div>';
         var mech = [];
         if (c.atk) mech.push((c.atk.melee ? 'Рукопашная' : 'Дальнобойная') + ' атака заклинанием' + (c.atk.bonus !== null ? ' ' + bonusText(c.atk.bonus, c.atk.dice) : '') + (c.n > 1 ? ', ×' + c.n : ''));
@@ -21311,7 +21317,9 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         h += '<p class="sp-desc">' + hEsc(s.d) + '</p>';
         h += '<div class="sp-cls"><b>Классы:</b> ' + hEsc(spClassText(s)) + '</div>';
         h += '<div class="sp-cls"><b>Источник:</b> ' + hEsc(SP_SRC[s.src] || s.src) + '</div>';
-        h += '<div class="legend">Описание — краткий пересказ своими словами; полный текст — в книге.</div>';
+        var su = spSuUrl(s);
+        h += '<div class="legend">Описание — краткий пересказ своими словами.' + (su ? ' Полный текст — на dnd.su.' : ' Полный текст — в книге.') + '</div>';
+        if (su) h += '<a class="au-btn ghost sp-su" href="' + su + '" target="_blank" rel="noopener">📜 Полное описание на dnd.su</a>';
         h += '<div class="au-btns">' + (spHasRoll(s) ? '<button type="button" class="au-btn ghost" data-spi="roll">🎲 Бросить</button>' : '') +
           (entry ? (autoOn('spellsec') && state.spells.indexOf(entry) >= 0 ? '<button type="button" class="au-btn ghost" data-spi="link">🔗 Это другое</button>' : '') : (onSheet ? '<button type="button" class="au-btn ghost" disabled>✓ Уже в листе</button>' : '<button type="button" class="au-btn" data-spi="add">+ В лист</button>')) + '</div>';
         body.innerHTML = h;
