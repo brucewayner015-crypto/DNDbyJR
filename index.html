@@ -4636,6 +4636,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .bf-chip{display:inline-block;padding:2px 9px;border-radius:999px;background:rgba(224,181,99,.22);border:1px solid var(--gold);color:var(--ink);font-size:calc(12px * var(--ui-font-scale));}
 .bf-chip.need{background:transparent;border-style:dashed;border-color:var(--danger);color:var(--danger);}
 .bf-auto{margin-top:4px;font-size:calc(11.5px * var(--ui-font-scale));color:var(--ink-soft);}
+.bf-item.off .bf-name{text-decoration:line-through;opacity:.7;}
+.bf-link.bf-off{opacity:.65;font-size:calc(11px * var(--ui-font-scale));}
 .bf-link{margin-top:4px;padding:0;border:0;background:none;color:var(--au-accent, var(--gold-bright));text-decoration:underline;font-family:var(--font-body);font-size:calc(12px * var(--ui-font-scale));cursor:pointer;text-align:left;}
 .bclass-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .bclass-row select{flex:1;min-width:0;}
@@ -17893,6 +17895,17 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       var nm = String(it.name || '');
       if (p.re.test(nm) && !(p.not && p.not.test(nm)) && toInt(it.qty, 0) > 0) inv = it;
     });
+    // «Зелье хилки — 2к4+2», «Среднее зелье — 4к4+4»: узнать по кубам, если в строке ровно одно такое число
+    if (!inv){
+      var want = p.dice.replace(/\s/g, '');
+      (state.items || []).forEach(function(it){
+        if (inv || toInt(it.qty, 0) <= 0) return;
+        var nm = String(it.name || ''), all = (nm + ' ' + hlTxt(it.notes)).toLowerCase().replace(/\s+/g, '').replace(/d/g, 'к');
+        if (!/зель|хилк|лечени/i.test(nm)) return;
+        var dice = all.match(/\d+к\d+(?:[+-]\d+)?/g) || [];
+        if (dice.length === 1 && dice[0] === want) inv = it;
+      });
+    }
     var label = 'Зелье ' + p.dice;
     if (inv){
       inv.qty = toInt(inv.qty, 0) - 1;
@@ -19784,7 +19797,9 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         if (fx.replOpt && b.tce && b.ch[ce.id + ':repl:' + fx.replOpt]) return;
         // a replacement feature shows only when switched on
         if (fx.opt && bIsReplacement(c, f[1]) && !b.ch[ce.id + ':repl:' + f[1]]) return;
-        out.push({cls:ce.id, ci:ci, sub:sub || '', lvl:f[0], key:f[1], n:f[2], d:f[3], fx:fx, uid:scope + ':' + f[1], src:sub ? c.subs[sub].src : c.src});
+        // умение, которое мастер убрал или заменил своим правилом: в списке остаётся, но ничего не даёт
+        var off = !!(b.fOff && b.fOff[scope + ':' + f[1]]);
+        out.push({cls:ce.id, ci:ci, sub:sub || '', lvl:f[0], key:f[1], n:f[2], d:f[3], fx:off ? {} : fx, fxOff:off ? fx : null, uid:scope + ':' + f[1], src:sub ? c.subs[sub].src : c.src});
       }
       (c.f || []).forEach(function(f){ if (f[0] <= ce.level) push(f, '', ce.id); });
       if (ce.level >= c.sub.lvl) out.push({cls:ce.id, ci:ci, sub:'', lvl:c.sub.lvl, key:'subclass', n:c.sub.n, d:ce.sub ? c.subs[ce.sub].n : 'Не выбран', fx:{subPick:true}, uid:ce.id + ':subclass', src:c.src});
@@ -19870,7 +19885,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       savesAll:false, hpLvl:0, hpTotalLvl:0, abil:{str:0,dex:0,con:0,int:0,wis:0,cha:0}, sneak:0, savage:false, mam:false, gwf:false, notes:[], eff:[]};
     if (!b || !b.classes.length) return g;
     var first = bClassDef(b.classes[0].id);
-    first.saves.forEach(function(a){ g.saves[a] = 1; });
+    first.saves.forEach(function(a){ if (!(b.skipSaves && b.skipSaves[a])) g.saves[a] = 1; });
     function addSkills(list, exp){ bArr(list).forEach(function(s){ if (SK_ALL.indexOf(s) >= 0){ g.skills[s] = 1; if (exp) g.exp[s] = 1; } }); }
     addSkills(b.ch[b.classes[0].id + ':skills']);
     b.classes.forEach(function(ce, ci){ if (ci > 0) addSkills(b.ch[ce.id + ':mcskills']); });
@@ -20219,8 +20234,11 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       }
       if (f.fx.opt === 'TCE' && bIsReplacement(bClassDef(f.cls), f.key)) repl = '<button type="button" class="bf-link" data-bk="repl" data-cls="' + f.cls + '" data-rk="' + f.key + '">Вернуть умение из «Книги игрока»</button>';
       var auto = bAutoText(f.fx);
-      html += '<div class="bf-item"><span class="bf-lvl">' + (f.lvl || '★') + '</span><div class="bf-main"><div class="bf-name">' + hEsc(f.n) + (f.fx.opt ? ' <span class="bsrc">Таша</span>' : '') + (f.feat ? srcTag(f.src) : '') + (f.sub ? ' <span class="bf-tag">· ' + hEsc(bClassDef(f.cls).subs[f.sub].n) + '</span>' : '') + '</div>' +
-        (f.d ? '<div class="bf-desc">' + hEsc(f.d) + '</div>' : '') + choiceHtml + (auto ? '<div class="bf-auto">' + hEsc(auto) + '</div>' : '') + repl + '</div></div>';
+      var offLink = '';
+      if (f.fxOff) offLink = '<div class="bf-auto">✕ убрано мастером</div><button type="button" class="bf-link" data-bk="foff" data-uid="' + hEsc(f.uid) + '">Вернуть умение</button>';
+      else if (f.cls && !f.feat && (f.fx.res || f.fx.mod)) offLink = '<button type="button" class="bf-link bf-off" data-bk="foff" data-uid="' + hEsc(f.uid) + '">Убрать — мастер заменил</button>';
+      html += '<div class="bf-item' + (f.fxOff ? ' off' : '') + '"><span class="bf-lvl">' + (f.lvl || '★') + '</span><div class="bf-main"><div class="bf-name">' + hEsc(f.n) + (f.fx.opt ? ' <span class="bsrc">Таша</span>' : '') + (f.feat ? srcTag(f.src) : '') + (f.sub ? ' <span class="bf-tag">· ' + hEsc(bClassDef(f.cls).subs[f.sub].n) + '</span>' : '') + '</div>' +
+        (f.d ? '<div class="bf-desc">' + hEsc(f.d) + '</div>' : '') + choiceHtml + (auto ? '<div class="bf-auto">' + hEsc(auto) + '</div>' : '') + repl + offLink + '</div></div>';
     });
     html += '<div class="legend">Краткие описания своими словами — полный текст в книгах. Источник подкласса указан рядом с названием.</div>';
     wrap.innerHTML = html;
@@ -20244,6 +20262,12 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       else if (a === 'repl'){
         var b = bNorm(), k = x.getAttribute('data-cls') + ':repl:' + x.getAttribute('data-rk');
         if (b.ch[k]) delete b.ch[k]; else b.ch[k] = true;
+        bAfterChange();
+      }
+      else if (a === 'foff'){
+        var bo = bNorm(), uid = x.getAttribute('data-uid');
+        if (!bo.fOff || typeof bo.fOff !== 'object') bo.fOff = {};
+        if (bo.fOff[uid]) delete bo.fOff[uid]; else bo.fOff[uid] = true;
         bAfterChange();
       }
     });
@@ -20517,6 +20541,9 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     list.forEach(function(x){ b.classes.push({id:x.id, level:x.level, sub:x.sub || '', hp:[]}); });
     state.build = b;
     bNorm();
+    // спасброски: если в листе они уже отмечены, оставить как есть (так мог решить мастер)
+    var c0s = bClassDef(b.classes[0].id), savesMarked = ABILITIES.some(function(a){ return state.saves[a.id] && state.saves[a.id].prof; });
+    if (savesMarked && c0s) c0s.saves.forEach(function(a){ if (!(state.saves[a] && state.saves[a].prof)){ if (!b.skipSaves) b.skipSaves = {}; b.skipSaves[a] = 1; } });
     // ASIs up to the current levels are already part of the scores
     bFeatures().forEach(function(f){ if (f.fx.asi) b.baked[f.uid] = true; });
     // class skills, expertise and saves from what the sheet already has
@@ -22629,7 +22656,16 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
      бонусы, сопротивления, заклинания и предлагает сделать из них карточки.
      Тексты игрока не меняются: только добавляется новое.
      ===================================================================== */
-  function hlTxt(x){ try{ return stripHtmlToText(String(x || '')); }catch(e){ return String(x || '').replace(/<[^>]+>/g, ' '); } }
+  /* текст из заметки с форматированием: строки <div>/<br> остаются строками */
+  function hlTxt(x){
+    var s = String(x || '');
+    if (!/[<>&]/.test(s)) return s;
+    s = s.replace(/<\/(?:div|p|li|h[1-6]|tr)>\s*<(?:div|p|li|h[1-6]|tr)(?:\s[^>]*)?>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n').replace(/<\/(?:div|p|li|h[1-6]|tr)>/gi, '\n').replace(/<(?:div|p|li|h[1-6]|tr)(?:\s[^>]*)?>/gi, '\n');
+    var t;
+    try{ t = new DOMParser().parseFromString('<!doctype html><body>' + s, 'text/html').body.textContent || ''; }catch(e){ t = s.replace(/<[^>]+>/g, ' '); }
+    return String(t).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+|\n+$/g, '');
+  }
   function hlNorm(s){ return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[«»"“”()]/g, ' ').replace(/\s+/g, ' ').trim(); }
   function hlClean(t){ return String(t || '').replace(/^[\s*•\-–—\d.)]+/, '').replace(/[:.\s]+$/, '').replace(/\s+/g, ' ').trim().slice(0, 48); }
   /* разбить текст на куски «название — описание» */
@@ -22661,9 +22697,9 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       if (n) out.push({kind:'equip', title:hlClean(n), text:hlTxt(sl.itemNotes), src:'Экипировка'});
     });
     (state.spells || []).forEach(function(sp){ if (sp && Number(sp.level) === -1 && String(sp.name || '').trim()) out.push({kind:'feat', title:hlClean(sp.name), text:hlTxt(sp.notes), src:'Воззвания'}); });
-    (tr.featuresSections || []).forEach(function(sec){ hlSplit(hlTxt(sec.content), sec.title).forEach(function(c){ c.kind = 'feat'; c.src = 'Умения'; out.push(c); }); });
+    (tr.featuresSections || []).forEach(function(sec){ hlSplit(hlTxt(sec.content), sec.title).forEach(function(c){ c.kind = 'feat'; c.src = 'Умения'; c.sec = hlClean(sec.title); out.push(c); }); });
     if (tr.features) hlSplit(hlTxt(tr.features), '').forEach(function(c){ c.kind = 'feat'; c.src = 'Умения'; out.push(c); });
-    (tr.notesSections || []).forEach(function(sec){ hlSplit(hlTxt(sec.content), sec.title).forEach(function(c){ c.kind = 'note'; c.src = 'Заметки'; out.push(c); }); });
+    (tr.notesSections || []).forEach(function(sec){ hlSplit(hlTxt(sec.content), sec.title).forEach(function(c){ c.kind = 'note'; c.src = 'Заметки'; c.sec = hlClean(sec.title); out.push(c); }); });
     if (tr.personality) hlSplit(hlTxt(tr.personality), '').forEach(function(c){ c.kind = 'feat'; c.src = 'Черты характера'; out.push(c); });
     return out;
   }
@@ -22692,7 +22728,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     hlKnown().forEach(function(x){
       if (x.k === k){ best = x; return; }
       if (best && best.k === k) return;
-      var words = x.k.split(' ').filter(function(w){ return w.length >= 6; });
+      var words = x.k.split(' ').filter(function(w){ return w.length >= 4; });
       if (words.length && words.every(function(w){ return k.indexOf(w) >= 0; }) && (!best || x.k.length > best.k.length)) best = x;
       else if (k.length >= 6 && x.k.indexOf(k) >= 0 && (!best || x.k.length < best.k.length)) best = x;
     });
@@ -22732,7 +22768,26 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     return w;
   }
   function hlHasMod(name){ var k = hlNorm(name); return (state.mods || []).some(function(m){ return hlNorm(m.name) === k; }); }
-  function hlHasRes(name){ var k = hlNorm(name); return (state.resources || []).some(function(r){ return hlNorm(r.name) === k || (k.length >= 6 && hlNorm(r.name).indexOf(k) >= 0); }); }
+  function hlStems(t){ var out = []; hlNorm(t).replace(/[^а-яёa-z0-9 ]/g, ' ').split(' ').forEach(function(w){ if (w.length >= 5){ var st = w.slice(0, 5); if (st !== 'преим' && out.indexOf(st) < 0) out.push(st); } }); return out; }
+  var HL_ITEMWORD = ['кольц', 'зелье', 'свито', 'амуле', 'посох', 'палоч', 'сапог', 'перча', 'камен', 'оружи', 'магич', 'волше', 'малое', 'больш', 'средн'];
+  function hlHasRes(name){
+    var k = hlNorm(name), st = hlStems(name);
+    return (state.resources || []).some(function(r){
+      var rn = hlNorm(r.name);
+      // «Дыхание (отхил)» — то же, что «Второе дыхание»: первое значимое слово уже есть в счётчике
+      return rn === k || (k.length >= 6 && rn.indexOf(k) >= 0) || (st.length && HL_ITEMWORD.indexOf(st[0]) < 0 && hlStems(r.name).indexOf(st[0]) >= 0);
+    });
+  }
+  /* такое преимущество уже записано: те же слова, или тот же источник и хотя бы одно общее слово */
+  function hlHasSimilarFx(kind, text, src, sec){
+    var st = hlStems(text), sk = hlNorm(src).slice(0, 12), sk2 = hlNorm(sec || '').slice(0, 12);
+    return (state.effects || []).some(function(e){
+      if (e.kind !== kind) return false;
+      var common = hlStems(e.text).filter(function(x){ return st.indexOf(x) >= 0; }).length;
+      var es = hlNorm(e.source).slice(0, 12);
+      return common >= 2 || (common >= 1 && ((sk.length >= 4 && es === sk) || (sk2.length >= 4 && es === sk2)));
+    });
+  }
   function hlHasFx(kind, text){ var k = hlNorm(text); return (state.effects || []).some(function(e){ return e.kind === kind && hlNorm(e.text) === k; }); }
   function hlPreset(name){ var f = null; MOD_PRESETS.forEach(function(p){ if (p.name === name) f = p; }); return f; }
 
@@ -22776,14 +22831,15 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       }
       // бонусы к КБ
       var acm = /(?:^|[^\d])(?:\+|плюс\s*)?([1-5])\s*(?:к\s*)?(?:кб|кд)(?![а-я])/.exec(low) || /(?:кб|кд)\s*\+\s*([1-5])/.exec(low) || /\+\s*([1-5])\s*к\s*класс[а-яё]*\s*доспех/.exec(low);
-      if (acm && (c.kind === 'item' || c.kind === 'equip' || c.kind === 'feat') && !hlHasMod(srcName)){
+      if (acm && (c.kind === 'item' || c.kind === 'equip' || c.kind === 'feat') && !hlHasMod(srcName) && !(/(^| )щит/.test(hlNorm(srcName)) && acCfg().shield)){
         var acv = '+' + acm[1];
         add({group:'mod', key:'ac:' + hlNorm(srcName), on:true, t:srcName, d:acv + ' к КБ, всегда', src:c.src, ac:toInt(acm[1], 0),
           apply:function(){ state.mods.push(normMod({name:srcName, toggle:false, on:true, lines:[{t:'ac', v:acv}], note:''})); }});
       }
       // +N к попаданию и урону
       var hd = /(?:\+|плюс\s*)(\d)\s*к\s*по[а-яё]*д[а-яё]*\s*и\s*(?:(\d)\s*к\s*)?урон/.exec(low);
-      if (hd && !hlHasMod(srcName)){
+      // «+1 к попаданию и урону» у оружия, для которого уже есть карточка атаки, — это его собственный бонус
+      if (hd && !hlHasMod(srcName) && !atkNames.some(function(n){ var k2 = hlNorm(srcName); return n === k2 || n.indexOf(k2) === 0; })){
         var a1 = '+' + hd[1], d1 = '+' + (hd[2] || hd[1]);
         add({group:'mod', key:'hd:' + hlNorm(srcName), on:true, t:srcName, d:a1 + ' к попаданию, ' + d1 + ' к урону', src:c.src,
           apply:function(){ state.mods.push(normMod({name:srcName, toggle:false, on:true, lines:[{t:'atk', v:a1}, {t:'dmg', v:d1}], note:''})); }});
@@ -22811,7 +22867,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         var l = hlNorm(snt);
         if (/сопротивлени/.test(l) && !/без сопротивл|нет сопротивл|не сопротивл|преодолени/.test(l)){
           hlDmgTypes(l.slice(l.indexOf('сопротивлени'))).forEach(function(tp){
-            if (hlHasFx('resist', tp)) return;
+            if (hlHasFx('resist', tp) || hlHasFx('immune', tp)) return;
             add({group:'fx', key:'res:' + tp, on:c.kind !== 'note', t:'Сопротивление: ' + tp, d:srcName, src:c.src, apply:function(){ state.effects.push({id:auId('fx'), kind:'resist', text:tp, source:srcName, cond:false, active:true}); }});
           });
         }
@@ -22824,7 +22880,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         }
         if (/пр[а-яё]{0,3}имуществ/.test(l)){
           var tx = snt.replace(/\s+/g, ' ').trim().slice(0, 110);
-          if (hlHasFx('adv', tx)) return;
+          if (hlHasFx('adv', tx) || hlHasSimilarFx('adv', snt, srcName, c.sec)) return;
           add({group:'fx', key:'adv:' + hlNorm(tx), on:c.kind !== 'note', t:'Преимущество: ' + tx, d:srcName, src:c.src, apply:function(){ state.effects.push({id:auId('fx'), kind:'adv', text:tx, source:srcName, cond:false, active:true}); }});
         }
       });
@@ -23429,13 +23485,26 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     if (!s || s.length < 2 || /^[.\s]+$/.test(s)) return null;
     var stone = false, m = /^камень связи\s+(?:с\s+|со\s+)?(.+)$/i.exec(s);
     if (m){ stone = true; s = m[1].trim(); }
+    // 📞 ☎ 📱 📡 рядом с именем — есть камень связи
+    if (/📞|☎|📱|📡/.test(s)){ stone = true; s = s.replace(/\s*(?:📞|☎\uFE0F?|📱|📡)\s*/g, ' ').replace(/\s{2,}/g, ' ').trim(); }
     s = s.replace(/[.\s]+$/, '').replace(/\s*[-–—:]+$/, '').trim();
     if (s.length < 2) return null;
-    var name = s, role = '';
+    var name = s, role = '', notes = '';
     var d = /^(.{2,40}?)\s+[-–—]\s*(.+)$/.exec(s) || /^(.{2,40}?)\s*[-–—]\s+(.+)$/.exec(s) || /^([^:]{2,40}):\s*(.+)$/.exec(s);
+    if (!d && s.length > 40) d = /^([^,]{2,40}),\s*(.+)$/.exec(s);
     if (d){ name = d[1].trim(); role = d[2].trim(); }
+    else {
+      // «Юлиан младший сын Гюнтера»: имя — слова с заглавной в начале, дальше — кто это
+      var w = s.split(/\s+/);
+      if (w.length >= 3 && /^[А-ЯЁA-Z]/.test(w[0])){
+        var k = 1;
+        while (k < w.length - 1 && (/^[А-ЯЁA-Z«"]/.test(w[k]) || (/^(фон|де|ван|дер|ибн|аль)$/i.test(w[k]) && /^[А-ЯЁA-Z]/.test(w[k + 1] || '')))) k++;
+        if (k < w.length){ name = w.slice(0, k).join(' '); role = w.slice(k).join(' '); }
+      }
+    }
+    if (role.length > 90){ notes = role; role = role.slice(0, 80).replace(/[\s,;]+\S*$/, '') + '…'; }
     if (name.length > 60) name = name.slice(0, 60);
-    return {name:name, role:role, stone:stone};
+    return {name:name, role:role, stone:stone, notes:notes};
   }
   function openNpcImport(){
     var srcs = [];
@@ -23473,7 +23542,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           if (a === 'back'){ pick = null; draw(); return; }
           if (a === 'cancel'){ api.close(); return; }
           var add = rows.filter(function(r){ return r.on; });
-          add.forEach(function(r){ npcListW().push({id:auId('npc'), name:r.name, role:r.role, place:'', att:'', stone:r.stone, notes:''}); });
+          add.forEach(function(r){ npcListW().push({id:auId('npc'), name:r.name, role:r.role, place:'', att:'', stone:r.stone, notes:r.notes || ''}); });
           saveState(); api.close(); npcRender();
           showActionToast('📇 Добавлено НПС: ' + add.length);
         }
