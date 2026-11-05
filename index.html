@@ -21363,6 +21363,22 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     if (typeof bOn === 'function' && bOn()) bRaw().classes.forEach(function(ce){ var c = SP_CODE[ce.id]; if (c && codes.indexOf(c) < 0 && bSpellCfg(ce)) codes.push(c); });
     return codes;
   }
+  /* компоненты: фильтр и порядок в справочнике */
+  var SP_COMP_FILT = [['', 'все компоненты'], ['noM', 'без материальных'], ['M', 'с материальными'], ['cost', 'материал с ценой'], ['noV', 'без вербального (В)'], ['noS', 'без соматического (С)'], ['onlyV', 'только В'], ['onlyS', 'только С']];
+  function spCompShort(s){ var c = String(s.comp || ''); return (c ? c.split('').join(' ') : '—') + (s.mat ? ' 💰' : ''); }
+  function spCompOk(s, f){
+    var c = String(s.comp || ''), V = c.indexOf('В') >= 0, S = c.indexOf('С') >= 0, M = c.indexOf('М') >= 0;
+    if (f === 'noM') return !M;
+    if (f === 'M') return M;
+    if (f === 'cost') return M && !!s.mat;
+    if (f === 'noV') return !V;
+    if (f === 'noS') return !S;
+    if (f === 'onlyV') return V && !S && !M;
+    if (f === 'onlyS') return S && !V && !M;
+    return true;
+  }
+  /* сначала проще: В → С → ВС → … → М с ценой */
+  function spCompRank(s){ var c = String(s.comp || ''); return (c.indexOf('В') >= 0 ? 1 : 0) + (c.indexOf('С') >= 0 ? 2 : 0) + (c.indexOf('М') >= 0 ? 4 : 0) + (s.mat ? 8 : 0); }
   function openSpellBook(){
     if (!SPDB){ spDbLoad(function(){ openSpellBook(); }); showActionToast('Загружаю справочник заклинаний…'); return; }
     var st = spBookState;
@@ -21373,6 +21389,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         SP_ORDER.map(function(c){ return '<option value="' + c + '"' + (st.cls === c ? ' selected' : '') + '>' + SP_CLS[c] + '</option>'; }).join('') + '</select>' +
         '<label class="inline-check"><input type="checkbox" data-sb="conc"' + (st.conc ? ' checked' : '') + '> концентрация</label>' +
         '<label class="inline-check"><input type="checkbox" data-sb="rit"' + (st.rit ? ' checked' : '') + '> ритуал</label></div>' +
+        '<div class="sp-filt"><select data-sb="comp" aria-label="Компоненты">' + SP_COMP_FILT.map(function(o){ return '<option value="' + o[0] + '"' + ((st.comp || '') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
+        '<select data-sb="sort" aria-label="Порядок"><option value="">по алфавиту</option><option value="comp"' + (st.sort === 'comp' ? ' selected' : '') + '>по компонентам</option><option value="lvl"' + (st.sort === 'lvl' ? ' selected' : '') + '>по кругу</option></select></div>' +
         '<div class="sp-chips" data-sb="lvls"></div><div class="au-muted sp-count"></div><div class="sp-list" data-sb="list"></div>';
       body.innerHTML = h;
       function lvls(){
@@ -21389,14 +21407,17 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           if (st.lvl !== 'all' && s.lvl !== toInt(st.lvl, -1)) return false;
           if (st.conc && !s.conc) return false;
           if (st.rit && !s.rit) return false;
+          if (st.comp && !spCompOk(s, st.comp)) return false;
           return true;
         });
+        if (st.sort === 'comp') rows = rows.slice().sort(function(a, b){ return spCompRank(a) - spCompRank(b) || a.lvl - b.lvl || a.ru.localeCompare(b.ru, 'ru'); });
+        else if (st.sort === 'lvl') rows = rows.slice().sort(function(a, b){ return a.lvl - b.lvl || a.ru.localeCompare(b.ru, 'ru'); });
         body.querySelector('.sp-count').textContent = 'Найдено: ' + rows.length;
         var have = {};
         (state.spells || []).forEach(function(x){ var s = spFind(x); if (s) have[s.id] = 1; });
         body.querySelector('[data-sb="list"]').innerHTML = rows.slice(0, 300).map(function(s){
           return '<div class="sp-opt' + (have[s.id] ? ' on' : '') + '" data-sbi="' + s.id + '" role="button" tabindex="0"><span class="sp-opt-main"><span class="sp-opt-n">' + hEsc(s.ru) + (s.src !== 'PHB' ? ' <span class="bsrc">' + hEsc(s.src) + '</span>' : '') + '</span>' +
-            '<span class="sp-opt-m">' + hEsc(spRowMeta(s)) + (s.conc ? ' · К' : '') + (s.rit ? ' · Р' : '') + '</span></span>' +
+            '<span class="sp-opt-m">' + hEsc(spRowMeta(s)) + ' · ' + hEsc(spCompShort(s)) + (s.conc ? ' · К' : '') + (s.rit ? ' · Р' : '') + '</span></span>' +
             (have[s.id] ? '<span class="sp-opt-ok" aria-label="уже в листе">✓</span>' : '<button type="button" class="sp-opt-add" data-sba="' + s.id + '" aria-label="Добавить в лист">+</button>') + '</div>';
         }).join('') + (rows.length > 300 ? '<div class="au-muted">Показаны первые 300 — уточните поиск.</div>' : '') + (!rows.length ? '<div class="au-empty">Ничего не нашлось.</div>' : '');
       }
@@ -21408,6 +21429,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         var t = e.target, k = t.getAttribute('data-sb');
         if (k === 'cls'){ st.cls = t.value; list(); }
         else if (k === 'conc' || k === 'rit'){ st[k] = t.checked; list(); }
+        else if (k === 'comp' || k === 'sort'){ st[k] = t.value; list(); }
       });
       body.addEventListener('click', function(e){
         var l = e.target.closest('[data-sbl]');
@@ -21448,7 +21470,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           (canLink ? '<span class="sp-acts"><button type="button" data-spa="link" title="Найти в справочнике" aria-label="Найти в справочнике">🔗</button></span>' : '') + '</div>');
         return;
       }
-      var meta = [SP_SCHOOL[s.sch], spTimeShort(s), s.range, s.dur].join(' · ');
+      var meta = [SP_SCHOOL[s.sch], spTimeShort(s), s.range, spCompShort(s), s.dur].join(' · ');
       var html = '<div class="sp-info"><span class="sp-meta">' + hEsc(meta) + (s.conc ? ' <span class="sp-badge c" title="Концентрация">К</span>' : '') +
         (s.rit ? ' <span class="sp-badge" title="Можно ритуалом">Р</span>' : '') + (tags ? ' ' + tags : '') +
         (how === 'fuzzy' ? ' <span class="sp-badge fz" title="Найдено по похожему названию: ' + hEsc(s.ru) + '">≈ ' + hEsc(s.ru) + '</span>' : '') + '</span>' +
