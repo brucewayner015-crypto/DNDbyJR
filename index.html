@@ -21379,6 +21379,23 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
   }
   /* сначала проще: В → С → ВС → … → М с ценой */
   function spCompRank(s){ var c = String(s.comp || ''); return (c.indexOf('В') >= 0 ? 1 : 0) + (c.indexOf('С') >= 0 ? 2 : 0) + (c.indexOf('М') >= 0 ? 4 : 0) + (s.mat ? 8 : 0); }
+  /* время накладывания и длительность: фильтр и порядок */
+  var SP_TIME_FILT = [['', 'любое время'], ['R', 'реакция'], ['B', 'бонусное действие'], ['A', 'действие'], ['long', '1 минута и дольше']];
+  function spTimeGroup(s){ return s.time === 'R' || s.time === 'B' || s.time === 'A' ? s.time : 'long'; }
+  function spTimeRank(s){
+    if (s.time === 'R') return 0; if (s.time === 'B') return 1; if (s.time === 'A') return 2;
+    var t = String(s.time).toLowerCase(), m = /(\d+)\s*(минут|час)/.exec(t);
+    if (/действие/.test(t)) return 3;
+    return m ? 10 + parseInt(m[1], 10) * (m[2] === 'час' ? 60 : 1) : 99999;
+  }
+  function spDurRank(s){
+    var t = String(s.dur || '').toLowerCase();
+    if (/^мгновенн/.test(t)) return 0;
+    if (/рассеется/.test(t)) return 1e8;
+    if (/особ/.test(t)) return 1e8 + 1;
+    var m = /(\d+)\s*(раунд|минут|час|дн|сут)/.exec(t);
+    return m ? parseInt(m[1], 10) * ({раунд:1, минут:10, час:600, дн:14400, сут:14400})[m[2]] : 1e8 + 2;
+  }
   function openSpellBook(){
     if (!SPDB){ spDbLoad(function(){ openSpellBook(); }); showActionToast('Загружаю справочник заклинаний…'); return; }
     var st = spBookState;
@@ -21390,7 +21407,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         '<label class="inline-check"><input type="checkbox" data-sb="conc"' + (st.conc ? ' checked' : '') + '> концентрация</label>' +
         '<label class="inline-check"><input type="checkbox" data-sb="rit"' + (st.rit ? ' checked' : '') + '> ритуал</label></div>' +
         '<div class="sp-filt"><select data-sb="comp" aria-label="Компоненты">' + SP_COMP_FILT.map(function(o){ return '<option value="' + o[0] + '"' + ((st.comp || '') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
-        '<select data-sb="sort" aria-label="Порядок"><option value="">по алфавиту</option><option value="comp"' + (st.sort === 'comp' ? ' selected' : '') + '>по компонентам</option><option value="lvl"' + (st.sort === 'lvl' ? ' selected' : '') + '>по кругу</option></select></div>' +
+        '<select data-sb="sort" aria-label="Порядок">' + [['', 'по алфавиту'], ['lvl', 'по кругу'], ['time', 'по времени накладывания'], ['dur', 'по длительности'], ['comp', 'по компонентам']].map(function(o){ return '<option value="' + o[0] + '"' + ((st.sort || '') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
+        '<select data-sb="time" aria-label="Время накладывания">' + SP_TIME_FILT.map(function(o){ return '<option value="' + o[0] + '"' + ((st.time || '') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
         '<div class="sp-chips" data-sb="lvls"></div><div class="au-muted sp-count"></div><div class="sp-list" data-sb="list"></div>';
       body.innerHTML = h;
       function lvls(){
@@ -21408,9 +21426,12 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           if (st.conc && !s.conc) return false;
           if (st.rit && !s.rit) return false;
           if (st.comp && !spCompOk(s, st.comp)) return false;
+          if (st.time && spTimeGroup(s) !== st.time) return false;
           return true;
         });
         if (st.sort === 'comp') rows = rows.slice().sort(function(a, b){ return spCompRank(a) - spCompRank(b) || a.lvl - b.lvl || a.ru.localeCompare(b.ru, 'ru'); });
+        else if (st.sort === 'time') rows = rows.slice().sort(function(a, b){ return spTimeRank(a) - spTimeRank(b) || a.lvl - b.lvl || a.ru.localeCompare(b.ru, 'ru'); });
+        else if (st.sort === 'dur') rows = rows.slice().sort(function(a, b){ return spDurRank(a) - spDurRank(b) || a.lvl - b.lvl || a.ru.localeCompare(b.ru, 'ru'); });
         else if (st.sort === 'lvl') rows = rows.slice().sort(function(a, b){ return a.lvl - b.lvl || a.ru.localeCompare(b.ru, 'ru'); });
         body.querySelector('.sp-count').textContent = 'Найдено: ' + rows.length;
         var have = {};
@@ -21429,7 +21450,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         var t = e.target, k = t.getAttribute('data-sb');
         if (k === 'cls'){ st.cls = t.value; list(); }
         else if (k === 'conc' || k === 'rit'){ st[k] = t.checked; list(); }
-        else if (k === 'comp' || k === 'sort'){ st[k] = t.value; list(); }
+        else if (k === 'comp' || k === 'sort' || k === 'time'){ st[k] = t.value; list(); }
       });
       body.addEventListener('click', function(e){
         var l = e.target.closest('[data-sbl]');
