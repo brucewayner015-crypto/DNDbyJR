@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnd-sheet-cache-v2-1794003033';
+const CACHE_NAME = 'dnd-sheet-cache-v2-1794165978';
 const ASSETS = [
   './index.html',
   './classic.html',

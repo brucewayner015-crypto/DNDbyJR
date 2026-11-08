@@ -4406,6 +4406,10 @@ html:not([data-f-hp="1"]):not([data-f-rest="1"]) .health-tools{display:none;}
 .res-row{padding:8px 10px;border:1px solid var(--parchment-shadow);border-radius:var(--radius-s);background:rgba(255,255,255,.35);}
 .res-head{display:flex;align-items:center;gap:8px;}
 .res-name{flex:1;min-width:0;font-weight:700;font-size:calc(13.5px * var(--ui-font-scale));color:var(--ink);}
+button.res-name{background:none;border:0;padding:2px 0;margin:0;text-align:left;font-family:inherit;cursor:pointer;}
+.res-i{font-weight:400;color:var(--gold);font-size:.9em;}
+.res-note-in{width:100%;box-sizing:border-box;margin-top:6px;font:inherit;font-size:calc(13px * var(--ui-font-scale));}
+.res-rule{white-space:pre-wrap;line-height:1.45;font-size:calc(13px * var(--ui-font-scale));color:var(--ink);}
 .res-rest{flex-shrink:0;font-size:calc(10.5px * var(--ui-font-scale));color:var(--ink-soft);font-family:var(--font-display);letter-spacing:.3px;}
 .res-count{font-family:var(--font-mono);font-weight:700;font-size:calc(14px * var(--ui-font-scale));color:var(--ink);}
 .pips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
@@ -18285,6 +18289,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
           '<div class="res-edit-row"><input type="text" data-rk="name" value="' + hEsc(r.name) + '" placeholder="Название">' +
           '<input type="text" data-rk="maxF" value="' + hEsc(r.maxF) + '" placeholder="макс." title="Число или формула: УР, БМ, ХАР, УР*5…" autocomplete="off">' +
           '<button type="button" class="au-icon-btn" data-ra="del" aria-label="Удалить" style="color:var(--danger);border-color:var(--danger);">✕</button></div>' +
+          '<textarea data-rk="note" rows="2" class="res-note-in" placeholder="Описание: что делает, когда тратить (видно по нажатию на название)">' + hEsc(r.note || '') + '</textarea>' +
           '<div class="au-muted" style="margin-top:4px;">максимум сейчас: <b>' + (mv === null ? (toInt(r.maxF, NaN) >= 0 ? toInt(r.maxF, 0) : '?') : Math.floor(mv)) + '</b>' + (mv === null && isNaN(toInt(r.maxF, NaN)) ? ' — формула не распознана' : '') + '</div>' +
           '<div class="seg" data-rseg="' + i + '">' +
             '<button type="button" data-rest="short"' + (r.rest === 'short' ? ' class="on"' : '') + '>Короткий</button>' +
@@ -18294,7 +18299,8 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
         '</div>';
         return;
       }
-      html += '<div class="res-row" data-ri="' + i + '"><div class="res-head"><span class="res-name">' + hEsc(r.name || 'Ресурс') + '</span><span class="res-rest">' + REST_LABEL[r.rest] + '</span><span class="res-count">' + cur + '/' + (max >= 99 ? '∞' : max) + '</span></div>';
+      var hasInfo = !!(String(r.note || '').trim() || resRuleText(r));
+      html += '<div class="res-row" data-ri="' + i + '"><div class="res-head"><button type="button" class="res-name" data-ra="info" title="Описание">' + hEsc(r.name || 'Ресурс') + (hasInfo ? ' <span class="res-i" aria-hidden="true">ⓘ</span>' : '') + '</button><span class="res-rest">' + REST_LABEL[r.rest] + '</span><span class="res-count">' + cur + '/' + (max >= 99 ? '∞' : max) + '</span></div>';
       if (max > 0 && max <= 20){
         html += '<div class="pips">';
         for (var k = 0; k < max; k++) html += '<button type="button" class="pip' + (k < cur ? ' full' : '') + '" data-pip="' + k + '" aria-label="' + hEsc(r.name) + ' ' + (k + 1) + '"></button>';
@@ -18307,6 +18313,41 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
     });
     html += '</div>';
     wrap.innerHTML = html;
+  }
+  /* описание счётчика: правило из конструктора (или заклинания расы) и своё описание игрока */
+  function resRuleText(r){
+    var bk = String(r && r.bk || '');
+    try{
+      if (/^b:/.test(bk) && typeof bFeatures === 'function' && state.build){
+        var f = bFeatures().filter(function(x){ return 'b:' + x.uid === bk; })[0];
+        if (f && f.d) return f.d;
+      }
+      if (/^sr:/.test(bk) && SPDB && SPDB.byId[bk.slice(3)]) return SPDB.byId[bk.slice(3)].d || '';
+    }catch(e){}
+    return '';
+  }
+  function openResInfo(r){
+    var REST_TXT = {short:'короткий или длинный отдых', long:'длинный отдых', dawn:'рассвет', none:'не восстанавливается'};
+    openSheet({title:r.name || 'Ресурс', icon:'🔋', build:function(body, api){
+      function draw(){
+        var max = resMax(r), cur = clampN(toInt(r.cur, 0), 0, max), rule = resRuleText(r);
+        body.innerHTML = '<div class="au-muted">Осталось <b>' + cur + ' из ' + (max >= 99 ? '∞' : max) + '</b> · восстановление: ' + REST_TXT[r.rest] + '</div>' +
+          (rule ? '<div class="au-sheet-section-title">По правилам</div><div class="res-rule">' + hEsc(rule) + '</div>' : '') +
+          '<div class="au-sheet-section-title">Описание</div>' +
+          '<textarea class="res-note-in" data-rn="1" rows="5" placeholder="Что делает, когда и как тратить. Например: реакцией, когда враг заканчивает ход в 30 фт — спасбросок Мудрости Сл 14…">' + hEsc(r.note || '') + '</textarea>' +
+          '<div class="au-btns"><button type="button" class="au-btn" data-rb="minus"' + (cur <= 0 ? ' disabled' : '') + '>Потратить 1</button><button type="button" class="au-btn ghost" data-rb="plus"' + (cur >= max ? ' disabled' : '') + '>Вернуть 1</button></div>';
+      }
+      draw();
+      body.addEventListener('input', function(e){ if (e.target.getAttribute('data-rn')){ r.note = e.target.value; saveState(); } });
+      body.addEventListener('click', function(e){
+        var b = e.target.closest('[data-rb]');
+        if (!b) return;
+        var max = resMax(r);
+        r.cur = b.getAttribute('data-rb') === 'minus' ? Math.max(0, toInt(r.cur, 0) - 1) : Math.min(max, toInt(r.cur, 0) + 1);
+        saveState(); renderResources();
+        var keep = r.note; draw(); r.note = keep;
+      });
+    }, onClose:function(){ renderResources(); }});
   }
   function bindResourcesCard(){
     var wrap = document.getElementById('resWrap');
@@ -18340,6 +18381,7 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
       var a = e.target.closest('[data-ra]');
       if (!a) return;
       var act = a.getAttribute('data-ra');
+      if (act === 'info'){ openResInfo(r); return; }
       if (act === 'del'){ showConfirm('Удалить ресурс «' + (r.name || 'без названия') + '»?', function(){ state.resources.splice(state.resources.indexOf(r), 1); saveState(); renderResources(); }); return; }
       if (act === 'minus'){ r.cur = Math.max(0, toInt(r.cur, 0) - 1); saveState(); renderResources(); return; }
       if (act === 'plus'){ r.cur = Math.min(max, toInt(r.cur, 0) + 1); saveState(); renderResources(); return; }
