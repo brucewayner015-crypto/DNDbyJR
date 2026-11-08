@@ -4097,7 +4097,7 @@ html[data-f-slots="1"] .af-slots-off{display:none !important;}
   position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));
   width:min(94vw,420px);
   transform:translate(-50%,140%);opacity:0;
-  z-index:128;pointer-events:none;
+  z-index:128;
   background:linear-gradient(180deg,var(--parchment),var(--parchment-2));
   border:2px solid var(--gold);border-radius:var(--radius-m);
   box-shadow:0 12px 30px rgba(0,0,0,.5);
@@ -4105,7 +4105,7 @@ html[data-f-slots="1"] .af-slots-off{display:none !important;}
   color:var(--ink);
   transition:transform .3s cubic-bezier(.2,.9,.3,1.1), opacity .2s ease;
 }
-.roll-toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto;}
+.roll-toast.show{transform:translate(-50%,0);opacity:1;}
 .roll-toast.is-crit{border-color:var(--gold-bright);box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 18px rgba(224,181,99,.55);}
 .roll-toast.is-fumble{border-color:var(--wax-bright);}
 .rt-head{display:flex;align-items:center;gap:8px;}
@@ -4845,33 +4845,6 @@ html[data-f-cond="1"] .death-cond-grid{grid-template-columns:1fr;gap:14px;}
 .npc-n{font-weight:600;font-size:calc(14px * var(--ui-font-scale));}
 .npc-s{color:var(--ink-soft);font-size:calc(12px * var(--ui-font-scale));overflow:hidden;text-overflow:ellipsis;}
 .npc-acts{margin-top:10px;}
-
-/* ---- find my sheet in the cloud ---- */
-.cf-banner{display:flex;align-items:center;gap:9px;padding:8px 12px 8px 14px;background:var(--chrome-2);border-bottom:1px solid var(--gold);flex-shrink:0;}
-.cf-banner .cf-b-ico{font-size:18px;line-height:1;flex:none;}
-.cf-banner .cf-b-text{flex:1;min-width:0;font-family:var(--font-body);font-size:calc(12px * var(--ui-font-scale));line-height:1.35;color:var(--gold-bright);}
-.cf-banner .au-btn{flex:none;white-space:nowrap;}
-.cf-banner.busy .au-btn{opacity:.6;}
-.cf-intro{margin-bottom:10px;}
-.cf-q{width:100%;margin:0 0 10px;}
-.cf-list{display:flex;flex-direction:column;gap:7px;}
-.cf-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 11px;border-radius:var(--radius-s);border:1px solid var(--parchment-shadow);background:rgba(255,255,255,.38);color:var(--ink);font:inherit;cursor:pointer;}
-button.cf-item:active{transform:scale(.99);}
-.cf-item.old{opacity:.7;}
-div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
-.cf-ava{position:relative;flex:none;width:42px;height:42px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:var(--chrome-2, #2b2118);font-family:var(--font-deco);font-size:19px;font-weight:700;}
-.cf-ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-.cf-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-.cf-name{font-weight:700;font-size:calc(14px * var(--ui-font-scale));line-height:1.25;overflow-wrap:anywhere;}
-.cf-sub{color:var(--ink-soft);font-size:calc(11.5px * var(--ui-font-scale));line-height:1.35;overflow-wrap:anywhere;}
-.cf-tag{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;border:1px solid var(--parchment-shadow);color:var(--ink-soft);font-size:calc(10.5px * var(--ui-font-scale));font-weight:600;line-height:1.6;vertical-align:1px;white-space:nowrap;}
-.cf-tag.warn{border-color:var(--wax);color:var(--wax);}
-.cf-ask{font-family:var(--font-deco);font-size:calc(17px * var(--ui-font-scale));color:var(--ink);}
-.cf-warn{margin:0 0 10px;padding:8px 10px;border-radius:var(--radius-s);border:1px solid var(--wax);background:rgba(166,60,60,.08);color:var(--ink);font-size:calc(12px * var(--ui-font-scale));line-height:1.4;}
-.cf-status{min-height:1.4em;margin-top:8px;text-align:center;}
-.cf-status.bad{color:var(--wax);}
-/* confirm dialogs opened from inside settings (restore by ID, backups, new sheet) were drawn under the settings window */
-#confirmOverlay{z-index:240;}
 
 </style>
 <script>
@@ -5876,13 +5849,7 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
           <span class="feedback-email-text" id="fbUidText" style="word-break:break-all;">—</span>
           <button type="button" class="feedback-copy-btn" id="btnCopyUid" title="Скопировать ID">⧉</button>
         </div>
-        <div class="settings-hint">Этот ID — ваша анонимная учётная запись. Сохраните его на всякий случай: по нему лист возвращается точно, даже если в группе есть похожие персонажи.</div>
-
-        <div class="settings-divider"></div>
-
-        <p class="modal-text" style="margin-bottom:6px;">Найти мой лист в облаке</p>
-        <div class="settings-hint" style="margin-bottom:8px;">Очистили браузер или открыли приложение на новом телефоне? Выберите своего персонажа из списка — ID вводить не нужно. Вернутся лист, чат, карта и настройки.</div>
-        <button class="update-btn" id="btnCloudFind" type="button">☁ Найти мой лист</button>
+        <div class="settings-hint">Этот ID — ваша анонимная учётная запись. Сохраните его в заметках на телефоне: если очистите данные браузера, это единственный способ вернуть доступ к персонажу и переписке.</div>
 
         <div class="settings-divider"></div>
 
@@ -6266,7 +6233,6 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
             setAccountStatus('ok', 'Подключено — лист синхронизируется');
             syncToCloud();
             initMentionNotifications();
-            if (typeof cfAfterAuth === 'function') cfAfterAuth();
           }
         });
         auth.signInAnonymously().catch(function(err){
@@ -6283,11 +6249,9 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
   function flushSyncToCloud(){
     clearTimeout(cloudSyncTimer);
     if (!fbReady || !fbDb || !fbUser) return Promise.resolve();
-    /* an untouched empty sheet (fresh start after clearing the browser) is not uploaded: no empty records in the DM panel */
-    if (typeof cfIsBlank === 'function' && cfIsBlank(state)) return Promise.resolve();
     try{
       return fbDb.collection('characters').doc(getMyId()).set({
-        state: (typeof cfCloudState === 'function') ? cfCloudState() : state,
+        state: state,
         characterName: (state.meta && state.meta.name) ? state.meta.name : '',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, {merge: true}).then(function(){
@@ -12514,8 +12478,6 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
   function saveUiSettings(){
     try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(uiSettings)); }
     catch(e){ console.warn('Не удалось сохранить настройки', e); }
-    /* settings travel with the sheet's cloud copy */
-    try{ if (typeof cfCloudState === 'function') syncToCloud(); }catch(e){}
   }
 
   function applyUiScale(){
@@ -13177,7 +13139,6 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
         var loaded = JSON.parse(reader.result);
         if (typeof makeBackup === 'function') makeBackup('перед импортом', true);
         applyLoadedState(loaded);
-        if (typeof cfAfterImport === 'function') cfAfterImport();
         renderAll();
         saveState();
         alert(t('alert.charLoaded'));
@@ -19473,7 +19434,6 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
   function maybeShowWhatsNew(){
     if (autoOpt('seen') === AUTO_VERSION) return;
     var items = [
-      ['☁', 'Лист не теряется', 'очистили браузер или взяли новый телефон — нажмите «Найти мой лист» над пустым листом или в ⚙ → «Данные» и выберите своего персонажа. Вернутся лист, чат, карта и настройки.'],
       ['⚔', 'Бой с мастером', 'мастер ведёт инициативу и раунды в своей панели, у вас над вкладками видно, чей ход. Инициатива отправляется кнопкой «🎲 Инициатива», ход передаётся кнопкой «Конец хода».'],
       ['⏳', 'Баффы заканчиваются сами', 'у модификатора есть длительность — со сменой раунда он выключится. Без мастера — свой счётчик раундов в «Моём ходе».'],
       ['🪄', 'Мастер переноса', 'находит в вещах и заметках оружие, «раз за отдых», бонусы и сопротивления и делает из них карточки. «Профиль» → «🪄 Перенос».'],
@@ -23810,7 +23770,6 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
     var chip = document.getElementById('chkChip'); if (chip) chip.addEventListener('click', openCheck);
     npcBind();
     tbBind();
-    try{ cfBind(); }catch(e){ console.warn('cfBind', e); }
   }
   function moreRenderAll(){
     try{
@@ -23821,321 +23780,6 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
       toolsRender();
       eqDecorate();
     }catch(e){ console.warn('moreRenderAll', e); }
-  }
-
-  /* ---------------- find my sheet in the cloud ----------------
-     Clearing the browser wipes this phone's memory of whose sheet it is: the app gets a new
-     anonymous ID and opens an empty sheet. The old sheet is still in the cloud under the old ID,
-     so the player picks it from the group's list instead of typing that ID. The app's settings
-     travel with the sheet (state.uiBackup in the cloud copy only), and for sheets saved before
-     that, the parts of the sheet the player used (equipment, groups, rich text…) are switched on. */
-  var CF_OFF_KEY = 'dnd5e_cloud_find_off', CF_DONE_KEY = 'dnd5e_cloud_find_done';
-  var CF_UI_KEYS = {s:'dnd5e_ru_settings_v1', snd:'dnd5e_sound_settings', lang:'dnd5e_ru_lang', dev:'dnd5e_dev_unlocked',
-    hk:'dnd5e_hide_unchecked_skills', hv:'dnd5e_hide_unchecked_saves', pins:'dnd5e_map_pin_settings'};
-  /* [setting, name for the player, its checkbox, lives on the developer tab] */
-  var CF_MODS = [['equipmentEnabled', 'снаряжение', 'equipmentEnabledToggle', true], ['groupsEnabled', 'группы атак и вещей', 'groupsEnabledToggle', true],
-    ['effectsEnabled', 'эффекты', 'effectsEnabledToggle', true], ['soundpadEnabled', 'саундпад', 'soundpadEnabledToggle', true],
-    ['richTextEnabled', 'оформление текста', 'richTextToggle', false]];
-  var CF_RECENT = 15 * 60 * 1000;
-  var cfAuthSeen = false, cfBannerEl = null;
-
-  function cfTxt(v){ return String(v === undefined || v === null ? '' : v).trim(); }
-  function cfArr(v){ return Array.isArray(v) ? v : []; }
-  /* nothing a player typed: a fresh start after clearing, a new phone, or a brand-new player */
-  function cfIsBlank(st){
-    if (!st || typeof st !== 'object') return true;
-    var m = st.meta || {}, tr = st.traits || {}, c = st.combat || {};
-    if (cfTxt(m.name) || cfTxt(m.klass) || cfTxt(m.race) || cfTxt(m.background) || cfTxt(m.player)) return false;
-    if (cfArr(st.items).length || cfArr(st.spells).length || cfArr(st.attacks).length || cfArr(st.npcs).length) return false;
-    if (['personality', 'ideals', 'bonds', 'flaws', 'profs'].some(function(k){ return cfTxt(tr[k]); })) return false;
-    if (cfArr(tr.featuresSections).concat(cfArr(tr.notesSections)).some(function(s){ return s && (cfTxt(s.title) || cfTxt(s.content)); })) return false;
-    if (toInt(c.hpMax, 0) > 0) return false;
-    return true;
-  }
-
-  /* ---- settings that travel with the sheet ---- */
-  function cfUiSnapshot(){
-    var o = {v:1}, n = 0;
-    Object.keys(CF_UI_KEYS).forEach(function(k){
-      try{ var raw = localStorage.getItem(CF_UI_KEYS[k]); if (raw !== null && raw.length < 40000){ o[k] = raw; n++; } }catch(e){}
-    });
-    return n ? o : null;
-  }
-  /* what goes to the cloud: the sheet plus this phone's settings */
-  function cfCloudState(){
-    var snap = cfUiSnapshot();
-    if (!snap) return state;
-    var copy = Object.assign({}, state);
-    copy.uiBackup = snap;
-    return copy;
-  }
-  /* parts of the app the sheet uses — they are off by default and hidden on a clean phone */
-  function cfUsedModules(st){
-    if (!st || typeof st !== 'object') return [];
-    var eq = cfArr(st.equipment), def = defaultState().equipment;
-    var eqUsed = eq.length !== def.length || eq.some(function(e, i){
-      return !e || !def[i] || cfTxt(e.itemName) || cfTxt(e.itemNotes) || !!e.iconUrl || e.label !== def[i].label || e.icon !== def[i].icon || cfArr(e.mods).length > 0;
-    });
-    var htmlRe = /<\s*(b|i|u|s|em|strong|div|br|p|span|font|ul|ol|li|h[1-6])\b/i, tr = st.traits || {};
-    var rich = cfArr(tr.featuresSections).concat(cfArr(tr.notesSections)).some(function(s){ return s && htmlRe.test(String(s.content || '')); }) ||
-      ['attacks', 'items', 'spells'].some(function(k){ return cfArr(st[k]).some(function(x){ return x && htmlRe.test(String(x.notes || '')); }); });
-    var used = {equipmentEnabled:eqUsed, groupsEnabled:cfArr(st.groups).length > 0, effectsEnabled:cfArr(st.effects).length > 0,
-      soundpadEnabled:cfArr(st.soundpad).length > 0, richTextEnabled:rich};
-    return CF_MODS.filter(function(m){ return used[m[0]]; });
-  }
-  function cfEnableModules(list){
-    if (!list.length) return;
-    var dev = false;
-    list.forEach(function(m){
-      uiSettings[m[0]] = true;
-      var tg = document.getElementById(m[2]);
-      if (tg) tg.checked = true;
-      if (m[3]) dev = true;
-    });
-    if (dev){
-      try{ localStorage.setItem('dnd5e_dev_unlocked', '1'); }catch(e){}
-      var dt = document.getElementById('devSettingsTab');
-      if (dt) dt.style.display = '';
-    }
-    saveUiSettings();
-  }
-  /* switching to a sheet from the cloud: its settings come back, or at least the parts it uses */
-  function cfRestoreUi(st){
-    var res = {settings:false, mods:[]};
-    var bk = st && st.uiBackup;
-    if (bk && typeof bk === 'object' && typeof bk.s === 'string'){
-      Object.keys(CF_UI_KEYS).forEach(function(k){
-        if (typeof bk[k] === 'string'){ try{ localStorage.setItem(CF_UI_KEYS[k], bk[k]); }catch(e){} }
-      });
-      try{
-        var s = JSON.parse(bk.s);
-        if (s && typeof s === 'object') Object.keys(s).forEach(function(k){ uiSettings[k] = s[k]; });
-      }catch(e){}
-      res.settings = true;
-    } else {
-      res.mods = cfUsedModules(st).filter(function(m){ return !uiSettings[m[0]]; });
-      cfEnableModules(res.mods);
-      if (uiSettings.auto && typeof uiSettings.auto === 'object'){ uiSettings.auto.seen = AUTO_VERSION; saveUiSettings(); }
-    }
-    if (state && state.uiBackup) delete state.uiBackup;
-    return res;
-  }
-  function cfDoneNote(name, res){
-    try{ sessionStorage.setItem(CF_DONE_KEY, JSON.stringify({name:name || '', settings:!!res.settings, mods:res.mods.map(function(m){ return m[1]; })})); }catch(e){}
-  }
-  /* a file was imported: switch on the parts of the app its data needs, so nothing looks missing */
-  function cfAfterImport(){
-    if (state && state.uiBackup) delete state.uiBackup;
-    var mods = cfUsedModules(state).filter(function(m){ return !uiSettings[m[0]]; });
-    if (!mods.length) return;
-    cfEnableModules(mods);
-    try{ applyEquipmentEnabled(); }catch(e){}
-    try{ applyGroupsEnabled(); }catch(e){}
-    try{ applyEffectsEnabled(); }catch(e){}
-    try{ applySoundpadEnabled(); }catch(e){}
-    setTimeout(function(){ showActionToast('Включено для этого листа: ' + mods.map(function(m){ return m[1]; }).join(', ') + '.', null, null, 7000); }, 60);
-  }
-
-  /* ---- the group's sheets ---- */
-  function cfWhen(t){
-    if (!t) return 'давно';
-    var d = Date.now() - t;
-    if (d < 60000) return 'только что';
-    if (d < 3600000) return Math.max(1, Math.round(d / 60000)) + ' мин назад';
-    var dt = new Date(t), now = new Date();
-    var day = function(x){ return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime(); };
-    var dd = Math.round((day(now) - day(dt)) / 86400000);
-    if (dd === 0) return 'сегодня в ' + fmtClock(t);
-    if (dd === 1) return 'вчера в ' + fmtClock(t);
-    return dt.toLocaleDateString('ru-RU', {day:'numeric', month:'short'}) + (dt.getFullYear() !== now.getFullYear() ? ' ' + dt.getFullYear() : '') + ', ' + fmtClock(t);
-  }
-  function cfTime(v){
-    if (!v) return 0;
-    if (typeof v.toMillis === 'function') return v.toMillis();
-    if (typeof v.toDate === 'function') return v.toDate().getTime();
-    if (typeof v.seconds === 'number') return v.seconds * 1000;
-    return typeof v === 'number' ? v : 0;
-  }
-  function cfFetch(){
-    if (!fbDb || !fbUser) return Promise.reject(new Error('offline'));
-    return fbDb.collection('characters').get().then(function(snap){
-      var me = getMyId(), out = [];
-      snap.forEach(function(doc){
-        if (!doc.id || doc.id.indexOf('__') === 0 || doc.id === me) return;
-        var d = doc.data() || {}, st = d.state;
-        if (!st || typeof st !== 'object' || cfIsBlank(st)) return;
-        var m = st.meta || {};
-        out.push({id:doc.id, name:cfTxt(d.characterName) || cfTxt(m.name) || 'Без имени', klass:cfTxt(m.klass), race:cfTxt(m.race), player:cfTxt(m.player),
-          t:cfTime(d.updatedAt), avatar:typeof d.avatarUrl === 'string' ? d.avatarUrl : '', nSp:cfArr(st.spells).filter(function(x){ return x && x.kind !== 'hdr'; }).length, nIt:cfArr(st.items).length});
-      });
-      out.sort(function(a, b){ return b.t - a.t; });
-      var seen = {};
-      out.forEach(function(x){ var k = x.name.toLowerCase().replace(/ё/g, 'е'); x.old = !!seen[k]; if (!seen[k]) seen[k] = x; else seen[k].hasOld = true; });
-      return out;
-    });
-  }
-  function cfCardHtml(x, tag){
-    var sub1 = [x.klass, x.race].filter(Boolean).join(' · ');
-    var bits = [];
-    if (x.player) bits.push('игрок: ' + x.player);
-    bits.push('сохранён ' + cfWhen(x.t));
-    var sub3 = [];
-    if (x.nSp) sub3.push(x.nSp + ' ' + plural(x.nSp, 'заклинание', 'заклинания', 'заклинаний'));
-    if (x.nIt) sub3.push(x.nIt + ' ' + plural(x.nIt, 'вещь', 'вещи', 'вещей'));
-    var recent = x.t && Date.now() - x.t < CF_RECENT;
-    var letter = hEsc((x.name.match(/[A-Za-zА-Яа-яЁё0-9]/) || ['?'])[0].toUpperCase());
-    return '<' + tag + (tag === 'button' ? ' type="button" data-cfid="' + hEsc(x.id) + '"' : '') + ' class="cf-item' + (x.old ? ' old' : '') + '">' +
-      '<span class="cf-ava" aria-hidden="true">' + letter + (x.avatar ? '<img src="' + hEsc(x.avatar) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</span>' +
-      '<span class="cf-main"><span class="cf-name">' + hEsc(x.name) + (x.old ? '<span class="cf-tag">старая копия</span>' : '') + (recent ? '<span class="cf-tag warn">только что сохранялся</span>' : '') + '</span>' +
-      (sub1 ? '<span class="cf-sub">' + hEsc(sub1) + '</span>' : '') +
-      '<span class="cf-sub">' + hEsc(bits.join(' · ')) + '</span>' +
-      (sub3.length ? '<span class="cf-sub">' + hEsc(sub3.join(' · ')) + '</span>' : '') + '</span></' + tag + '>';
-  }
-  function openCloudFind(){
-    if (cfBannerEl) cfBannerEl.classList.add('busy');
-    openSheet({title:'Найти мой лист', icon:'☁', cls:'cf-sheet', build:function(body, api){
-      var list = [], query = '';
-      function listView(){
-        var shown = list.filter(function(x){ if (!query) return true; var q = query.toLowerCase(); return (x.name + ' ' + x.player + ' ' + x.klass).toLowerCase().indexOf(q) > -1; });
-        body.innerHTML = '<div class="au-muted cf-intro">Здесь все листы группы. Нажмите на своего персонажа — на этом устройстве снова откроются его лист, чат и карта.</div>' +
-          (list.length > 6 ? '<input type="search" class="cf-q" placeholder="Поиск по имени" value="' + hEsc(query) + '">' : '') +
-          '<div class="cf-list">' + (shown.length ? shown.map(function(x){ return cfCardHtml(x, 'button'); }).join('') : '<div class="au-empty">Никого не нашлось.</div>') + '</div>';
-      }
-      function load(){
-        body.innerHTML = '<div class="au-muted cf-wait">Ищем листы в облаке…</div>';
-        cfFetch().then(function(l){
-          if (api.closed) return;
-          list = l;
-          if (!list.length){
-            body.innerHTML = '<div class="au-empty">В облаке нет других листов. Если вы сохраняли свой ID — введите его в ⚙ → «Данные» → «Восстановить персонажа по ID».</div>';
-            return;
-          }
-          listView();
-        }).catch(function(){
-          if (api.closed) return;
-          body.innerHTML = '<div class="au-empty">Нет связи с облаком. Проверьте интернет и попробуйте ещё раз.</div><div class="au-btns"><button type="button" class="au-btn" data-cfa="retry">Повторить</button></div>';
-        });
-      }
-      function confirmView(x){
-        var curName = cfTxt(state.meta && state.meta.name);
-        var recent = x.t && Date.now() - x.t < CF_RECENT;
-        var h = '<div class="cf-ask">Это ваш персонаж?</div>' + cfCardHtml(x, 'div');
-        if (recent) h += '<div class="cf-warn">Этот лист сохранялся ' + hEsc(cfWhen(x.t)) + ' — возможно, сейчас он открыт у другого игрока. Если это не ваш персонаж, вернитесь назад: изменения будут записываться в чужой лист.</div>';
-        if (x.old) h += '<div class="cf-warn">Это старая копия: есть лист с тем же именем, сохранённый позже. Обычно нужен самый свежий.</div>';
-        h += '<div class="au-muted">Дальше все изменения на этом устройстве будут сохраняться в этот лист.' +
-          (!cfIsBlank(state) ? ' Лист' + (curName ? ' «' + hEsc(curName) + '»' : '') + ', открытый сейчас, не пропадёт — он остаётся в облаке, его можно будет найти здесь же.' : '') + '</div>' +
-          '<div class="au-btns"><button type="button" class="au-btn ghost" data-cfa="back">Назад</button><button type="button" class="au-btn ok" data-cfa="yes" data-cfid="' + hEsc(x.id) + '">Да, это мой</button></div>' +
-          '<div class="cf-status au-muted" role="status"></div>';
-        body.innerHTML = h;
-        body.scrollTop = 0;
-      }
-      function doSwitch(id, btn){
-        var stEl = body.querySelector('.cf-status');
-        function say(t, bad){ if (stEl){ stEl.textContent = t; stEl.classList.toggle('bad', !!bad); } }
-        btn.disabled = true;
-        say('Загружаем лист…');
-        fbDb.collection('characters').doc(id).get().then(function(doc){
-          var d = doc && doc.exists ? doc.data() : null;
-          if (!d || !d.state || typeof d.state !== 'object' || cfIsBlank(d.state)){ btn.disabled = false; say('Этот лист пуст или удалён — выберите другой.', true); return; }
-          /* the sheet on screen becomes the found one before the ID changes: saving on page close then writes the same sheet */
-          applyLoadedState(d.state);
-          var res = cfRestoreUi(d.state);
-          setMyId(id);
-          try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-          cfDoneNote(cfTxt(state.meta && state.meta.name), res);
-          say('✓ Готово! Открываем лист…');
-          setTimeout(function(){ location.reload(); }, 450);
-        }).catch(function(err){ btn.disabled = false; say('Не удалось загрузить: ' + (err && err.message || err), true); });
-      }
-      body.addEventListener('input', function(e){
-        if (!e.target.classList.contains('cf-q')) return;
-        query = e.target.value.trim();
-        var caret = e.target.selectionStart;
-        listView();
-        var qi = body.querySelector('.cf-q');
-        if (qi){ qi.focus(); try{ qi.setSelectionRange(caret, caret); }catch(err){} }
-      });
-      body.addEventListener('click', function(e){
-        var b = e.target.closest('[data-cfa]');
-        if (b){
-          var a = b.getAttribute('data-cfa');
-          if (a === 'retry') load();
-          else if (a === 'back') listView();
-          else if (a === 'yes') doSwitch(b.getAttribute('data-cfid'), b);
-          return;
-        }
-        var it = e.target.closest('button[data-cfid]');
-        if (!it) return;
-        var id = it.getAttribute('data-cfid'), x = null;
-        list.forEach(function(y){ if (y.id === id) x = y; });
-        if (x) confirmView(x);
-      });
-      load();
-    }, onClose:function(){ if (cfBannerEl) cfBannerEl.classList.remove('busy'); }});
-  }
-
-  /* ---- offer it on an empty sheet ---- */
-  function cfHideBanner(){ if (cfBannerEl){ cfBannerEl.style.display = 'none'; } }
-  function cfShowBanner(){
-    if (!cfBannerEl){
-      cfBannerEl = document.createElement('div');
-      cfBannerEl.className = 'cf-banner';
-      cfBannerEl.id = 'cloudFindBanner';
-      cfBannerEl.setAttribute('role', 'status');
-      cfBannerEl.innerHTML = '<span class="cf-b-ico" aria-hidden="true">☁</span><span class="cf-b-text">Здесь пустой лист. Если вы уже играли — ваш персонаж остался в облаке.</span>' +
-        '<button type="button" class="au-btn small ok" data-cfb="find">Найти мой лист</button><button type="button" class="ios-hint-close" data-cfb="x" aria-label="Не показывать">✕</button>';
-      var after = document.getElementById('iosInstallHint') || document.querySelector('header.spine');
-      if (after && after.parentNode) after.parentNode.insertBefore(cfBannerEl, after.nextSibling);
-      else document.body.insertBefore(cfBannerEl, document.body.firstChild);
-      cfBannerEl.addEventListener('click', function(e){
-        var b = e.target.closest('[data-cfb]');
-        if (!b) return;
-        if (b.getAttribute('data-cfb') === 'find') openCloudFind();
-        else { try{ localStorage.setItem(CF_OFF_KEY, '1'); }catch(err){} cfHideBanner(); }
-      });
-    }
-    cfBannerEl.style.display = '';
-  }
-  function cfAfterAuth(){
-    if (cfAuthSeen) return;
-    cfAuthSeen = true;
-    if (!cfIsBlank(state)) return;
-    try{ if (localStorage.getItem(CF_OFF_KEY) === '1') return; }catch(e){}
-    setTimeout(function(){
-      if (!cfIsBlank(state)) return;
-      cfFetch().then(function(list){ if (list.length && cfIsBlank(state)) cfShowBanner(); }).catch(function(){});
-    }, 700);
-  }
-  function cfPersist(){
-    /* ask the browser not to clear the sheet on its own when space runs low; it cannot stop a manual clean-up */
-    try{
-      if (!navigator.storage || !navigator.storage.persist || !navigator.storage.persisted || /Firefox\//.test(navigator.userAgent)) return;
-      navigator.storage.persisted().then(function(p){ if (!p) return navigator.storage.persist(); }).catch(function(){});
-    }catch(e){}
-  }
-  function cfBind(){
-    var btn = document.getElementById('btnCloudFind');
-    if (btn && !btn._cfBound){
-      btn._cfBound = true;
-      btn.addEventListener('click', function(){
-        if (!fbDb || !fbUser){ showActionToast('Нет связи с облаком — попробуйте через пару секунд.'); return; }
-        var ov = document.getElementById('settingsOverlay'), scb = document.getElementById('settingsCloseBtn');
-        if (ov && ov.classList.contains('active') && scb){ scb.click(); setTimeout(openCloudFind, 280); }
-        else openCloudFind();
-      });
-    }
-    document.addEventListener('input', function(){
-      if (!cfBannerEl || cfBannerEl.style.display === 'none') return;
-      setTimeout(function(){ if (!cfIsBlank(state)) cfHideBanner(); }, 0);
-    }, true);
-    cfPersist();
-    var done = null;
-    try{ done = JSON.parse(sessionStorage.getItem(CF_DONE_KEY) || 'null'); sessionStorage.removeItem(CF_DONE_KEY); }catch(e){}
-    if (done && typeof done === 'object'){
-      var msg = '☁ Лист' + (done.name ? ' «' + done.name + '»' : '') + ' снова здесь.' +
-        (done.settings ? ' Настройки тоже вернулись.' : (done.mods && done.mods.length ? ' Включено: ' + done.mods.join(', ') + '.' : ''));
-      setTimeout(function(){ showActionToast(msg, null, null, 8000); }, 1100);
-    }
   }
 
   /* ====== AUTOMATION SUITE: END ====== */
@@ -24276,13 +23920,10 @@ div.cf-item{cursor:default;margin:8px 0 10px;border-color:var(--gold);}
         statusEl.textContent = 'Переключаемся…';
         fbDb.collection('characters').doc(newId).get().then(function(doc){
           if (typeof makeBackup === 'function') makeBackup('перед сменой ID', true);
+          setMyId(newId);
           if (doc.exists && doc.data() && doc.data().state){
             applyLoadedState(doc.data().state);
-            if (typeof cfRestoreUi === 'function') cfDoneNote(state.meta && state.meta.name, cfRestoreUi(doc.data().state));
-            setMyId(newId);
             saveState();
-          } else {
-            setMyId(newId);
           }
           statusEl.style.color = 'var(--ok)';
           statusEl.textContent = '✓ Готово! Перезагружаем…';
